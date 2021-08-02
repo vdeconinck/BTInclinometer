@@ -285,7 +285,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             Log.e("--","123:"+getString(R.string.Voltage));
             setTableData("1.0","3.3V","2020-1-1","00:00:00.0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX","AngleY","AngleZ"), qColour);
-            lineChartManager.setDescription(getString(R.string.angle_Chart));
+            lineChartManager.setDescription(getString(R.string.angle_chart));
             if(type==9){
                 unLockReg(0);
                 Calendar calendar = Calendar.getInstance();
@@ -304,19 +304,19 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             setTableName("ax:","ay:","az:","|a|");
             setTableData("0","0","0","0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("ax","ay","az"), qColour);
-            lineChartManager.setDescription(getString(R.string.acc_Chart));
+            lineChartManager.setDescription(getString(R.string.acc_chart));
         } else if (i == R.id.button2) {
             iCurrentGroup = 2;
             setTableName("wx:","wy:","wz:","|w|");
             setTableData("0","0","0","0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("wx","wy","wz"), qColour);
-            lineChartManager.setDescription(getString(R.string.w_Chart));
+            lineChartManager.setDescription(getString(R.string.w_chart));
         } else if (i == R.id.button3) {
             iCurrentGroup = 3;
             setTableName("AgnleX:","AngleY:","AngleZ:","T:");
             setTableData("0","0","0","25℃");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX","AngleY","AngleZ"), qColour);
-            lineChartManager.setDescription(getString(R.string.angle_Chart));
+            lineChartManager.setDescription(getString(R.string.angle_chart));
         } else if (i == R.id.button4) {
             iCurrentGroup = 4;
             setTableName("hx:","hy:","hz:","|h|");
@@ -340,13 +340,13 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             setTableName("Longitude:","Latitude:","","");
             setTableData("0","0","","");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX","AngleY","AngleZ"), qColour);
-            lineChartManager.setDescription(getString(R.string.angle_Chart));
+            lineChartManager.setDescription(getString(R.string.angle_chart));
         } else if (i == R.id.button8) {
             iCurrentGroup = 8;
             setTableName("Altitude:","Yaw:","Velocity:","");
             setTableData("0","0","0","");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX","AngleY","AngleZ"), qColour);
-            lineChartManager.setDescription(getString(R.string.angle_Chart));
+            lineChartManager.setDescription(getString(R.string.angle_chart));
         } else if (i == R.id.button9) {
             iCurrentGroup = 9;
             setTableName("q0:","q1:","q2:","q3:");
@@ -358,7 +358,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             setTableName("SN:","PDOP:","HDOP:","VDOP");
             setTableData("0","0","0","0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX","AngleY","AngleZ"), qColour);
-            lineChartManager.setDescription(getString(R.string.angle_Chart));
+            lineChartManager.setDescription(getString(R.string.angle_chart));
         }
         if(type == 9) {
             outputSwitch.setVisibility(View.VISIBLE);
@@ -718,7 +718,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             Dialog dialog = new AlertDialog.Builder(DataMonitorActivity.this)
                     .setTitle(getString(R.string.hint))
                     .setMessage(getString(R.string.USB_HOST))
-                    .setPositiveButton(getString(R.string.Determine),
+                    .setPositiveButton(getString(R.string.ok),
                             new DialogInterface.OnClickListener() {
 
                                 @Override
@@ -739,7 +739,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         try {
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (mBluetoothAdapter == null) {
-                Toast.makeText(this, getString(R.string.Bluetoothbad), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.bluetooth_bad), Toast.LENGTH_LONG).show();
                 return;
             }
         } catch (Exception err) {
@@ -789,10 +789,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             findViewById(R.id.button9).setVisibility(View.GONE);
             findViewById(R.id.buttonA).setVisibility(View.GONE);
             MenuGroup grop = new MenuGroup();
-            grop.setName(getString(R.string.Add_calibration));
+            grop.setName(getString(R.string.acc_calibration));
             grop.setChildList(menuItemList);
             MenuGroup grop2 = new MenuGroup();
-            grop2.setName(getString(R.string.Smoothness_coefficient));
+            grop2.setName(getString(R.string.smoothing_factor));
             grop2.setChildList(menuItemList);
             groupList.add(grop);
             groupList.add(grop2);
@@ -805,7 +805,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             findViewById(R.id.button9).setVisibility(View.GONE);
             findViewById(R.id.buttonA).setVisibility(View.GONE);
             MenuGroup grop = new MenuGroup();
-            grop.setName(getString(R.string.Add_calibration));
+            grop.setName(getString(R.string.acc_calibration));
             grop.setChildList(menuItemList);
             groupList.add(grop);
             MenuGroup grop2 = new MenuGroup();
@@ -813,7 +813,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             grop2.setChildList(menuItemList);
             groupList.add(grop2);
             MenuGroup grop3 = new MenuGroup();
-            grop3.setName(getString(R.string.ToZero));
+            grop3.setName(getString(R.string.reset_Z_axis));
             grop3.setChildList(menuItemList);
             groupList.add(grop3);
             MenuGroup grop4 = new MenuGroup();
@@ -824,15 +824,15 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             grop4.setChildList(menuItemList);
             groupList.add(grop4);
             MenuGroup grop5 = new MenuGroup();
-            grop5.setName(getString(R.string.Installation_direction));
+            grop5.setName(getString(R.string.installation_orientation));
             grop5.setChildList(menuItemList);
             groupList.add(grop5);
             MenuGroup grop6 = new MenuGroup();
-            grop6.setName(getString(R.string.Static_detection_threshold));
+            grop6.setName(getString(R.string.static_detection_threshold));
             grop6.setChildList(menuItemList);
             groupList.add(grop6);
             MenuGroup grop7 = new MenuGroup();
-            grop7.setName(getString(R.string.Measurement_bandwidth));
+            grop7.setName(getString(R.string.measurement_bandwidth));
             grop7.setChildList(menuItemList);
             groupList.add(grop7);
         } else if (type == 9 || isOpen) {
@@ -852,17 +852,17 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             MenuGroup system = new MenuGroup();
             system.setName(getString(R.string.system));
             MenuItem sys1 = new MenuItem();
-            sys1.setName(getString(R.string.Resume_out_of_the_factory));
+            sys1.setName(getString(R.string.factory_reset));
             MenuItem sys2 = new MenuItem();
             sys2.setName(getString(R.string.dormancy));
             MenuItem sys3 = new MenuItem();
             sys3.setName(getString(R.string.algorithm));
             MenuItem sys4 = new MenuItem();
-            sys4.setName(getString(R.string.Installation_direction));
+            sys4.setName(getString(R.string.installation_orientation));
             MenuItem sys5 = new MenuItem();
             sys5.setName(getString(R.string.Instruction_start));
             MenuItem sys6 = new MenuItem();
-            sys6.setName(getString(R.string.Call_the_police));
+            sys6.setName(getString(R.string.alarm));
             List<MenuItem> sysList = new ArrayList<>();
             sysList.add(sys1);
             sysList.add(sys2);
@@ -877,19 +877,19 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             MenuGroup calibration = new MenuGroup();
             calibration.setName(getString(R.string.calibration));
             MenuItem c1 = new MenuItem();
-            c1.setName(getString(R.string.Add_calibration));
+            c1.setName(getString(R.string.acc_calibration));
             MenuItem c2 = new MenuItem();
-            c2.setName(getString(R.string.Magnetic_field_calibration_start));
+            c2.setName(getString(R.string.magnetic_field_calibration_start));
             MenuItem c2ok = new MenuItem();
-            c2ok.setName(getString(R.string.Magnetic_field_calibration_end));
+            c2ok.setName(getString(R.string.magnetic_field_calibration_end));
             MenuItem c3 = new MenuItem();
-            c3.setName(getString(R.string.High_zero));
+            c3.setName(getString(R.string.reset_height));
             MenuItem c4 = new MenuItem();
-            c4.setName(getString(R.string.Gyroscope_automatic_calibration));
+            c4.setName(getString(R.string.gyroscope_automatic_calibration));
             MenuItem c5 = new MenuItem();
             c5.setName(getString(R.string.Z_axis_angle_to_zero));
             MenuItem c6 = new MenuItem();
-            c6.setName(getString(R.string.Setting_angle_reference));
+            c6.setName(getString(R.string.setting_angle_reference));
             List<MenuItem> cbList = new ArrayList<>();
             cbList.add(c1);
             cbList.add(c2);
@@ -903,11 +903,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
             //范围
             MenuGroup scope = new MenuGroup();
-            scope.setName(getString(R.string.Range));
+            scope.setName(getString(R.string.range));
             MenuItem scope1 = new MenuItem();
-            scope1.setName(getString(R.string.Acceleration_range));
+            scope1.setName(getString(R.string.acceleration_range));
             MenuItem scope2 = new MenuItem();
-            scope2.setName(getString(R.string.Angular_velocity_range));
+            scope2.setName(getString(R.string.angular_velocity_range));
             MenuItem scope3 = new MenuItem();
             scope3.setName(getString(R.string.bandwidth));
             List<MenuItem> spcopeList = new ArrayList<>();
@@ -919,7 +919,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
             //通信
             MenuGroup communication = new MenuGroup();
-            communication.setName(getString(R.string.Signal_communication));
+            communication.setName(getString(R.string.signal_communication));
             List<MenuItem> comList = new ArrayList<>();
             MenuItem com1 = new MenuItem();
             com1.setName(getString(R.string.retrieval_rate));
@@ -929,7 +929,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             comList.add(com2);
             if (isOpen) {
                 MenuItem com = new MenuItem();
-                com.setName(getString(R.string.Communication_rate));
+                com.setName(getString(R.string.communication_rate));
                 comList.add(com);
             }
             communication.setChildList(comList);
@@ -937,7 +937,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             if (bUsbConnect) {
                 //端口模式
                 MenuGroup port = new MenuGroup();
-                port.setName(getString(R.string.Port_mode));
+                port.setName(getString(R.string.port_mode));
                 MenuItem prot1 = new MenuItem();
                 prot1.setName(getString(R.string.d0_mode));
                 MenuItem prot2 = new MenuItem();
@@ -956,7 +956,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
                 //端口PWM脉宽
                 MenuGroup pwm = new MenuGroup();
-                pwm.setName(getString(R.string.Port_PWM_pulse_width));
+                pwm.setName(getString(R.string.port_PWM_pulse_width));
                 MenuItem pwm1 = new MenuItem();
                 pwm1.setName(getString(R.string.D0PWM_pulse_width));
                 MenuItem pwm2 = new MenuItem();
@@ -975,7 +975,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
                 //端口PWM周期
                 MenuGroup cycle = new MenuGroup();
-                cycle.setName(getString(R.string.Port_PWM_cycle));
+                cycle.setName(getString(R.string.port_PWM_cycle));
                 MenuItem cycle1 = new MenuItem();
                 cycle1.setName(getString(R.string.D0PWM_cycle));
                 MenuItem cycle2 = new MenuItem();
@@ -1080,26 +1080,26 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             accCali();
                         } else if (i1 == 1) {
                             writeLockReg(0x01, 0x07 );//开始校准
-                            Toast.makeText(getApplicationContext(), getString(R.string.toastCali), Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), getString(R.string.toast_calibrating), Toast.LENGTH_LONG).show();
                         } else if (i1 == 2) {
                             writeAndSaveReg(0x01,0x00);
-                            Toast.makeText(getApplicationContext(), getString(R.string.toastCaliFinish), Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
                             drawerLayout.closeDrawer(Gravity.LEFT);
                         } else if (i1 == 3) {
                             writeAndSaveReg(0x01, 0x03 );
-                            Toast.makeText(getApplicationContext(), getString(R.string.toastCaliFinish), Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
                             drawerLayout.closeDrawer(Gravity.LEFT);
                         } else if (i1 == 4) {
                             autoCalibrate();
-                            Toast.makeText(getApplicationContext(), getString(R.string.toastCaliFinish), Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
                             drawerLayout.closeDrawer(Gravity.LEFT);
                         } else if (i1 == 5) {
                             writeAndSaveReg(0x01, 0x04);
-                            Toast.makeText(getApplicationContext(), getString(R.string.toastCaliFinish), Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
                             drawerLayout.closeDrawer(Gravity.LEFT);
                         } else if (i1 == 6) {
                             writeAndSaveReg(0x01, 0x08 );
-                            Toast.makeText(getApplicationContext(), getString(R.string.toastCaliFinish), Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
                             drawerLayout.closeDrawer(Gravity.LEFT);
                         }
                     }
@@ -1126,16 +1126,16 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     }
                     if (i == 4) {
                         if (i1 == 0) {
-                            String value = getString(R.string.Please_select_the_D0_port_mode);
+                            String value = getString(R.string.select_D0_port_mode);
                             DMode(i1, value);
                         } else if (i1 == 1) {
-                            String value = getString(R.string.Please_select_the_D1_port_mode);
+                            String value = getString(R.string.select_D1_port_mode);
                             DMode(i1, value);
                         } else if (i1 == 2) {
-                            String value = getString(R.string.Please_select_the_D2_port_mode);
+                            String value = getString(R.string.select_D2_port_mode);
                             DMode(i1, value);
                         } else if (i1 == 3) {
-                            String value = getString(R.string.Please_select_the_D3_port_mode);
+                            String value = getString(R.string.select_D3_port_mode);
                             DMode(i1, value);
                         }
                         drawerLayout.closeDrawer(Gravity.LEFT);
@@ -1249,7 +1249,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private void outputRate() {
         String[] s = new String[]{"0.2Hz", "0.5Hz", "1Hz", "2Hz", "5Hz", "10HZ", "20Hz", "50Hz", "100Hz", "125Hz", "200Hz"};
         new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.PleaseSelectTheReturnRate))
+                .setTitle(getString(R.string.select_return_rate))
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setSingleChoiceItems(s, iRetrivalRateSelect, new DialogInterface.OnClickListener() {
                     @Override
@@ -1270,11 +1270,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private void DMode(final int index, String v) {
         String[] s;
         if (index == 1) {
-            s = new String[]{getString(R.string.AnalogInput), getString(R.string.DigitalInput), getString(R.string.Output_digital_high_level)
-                    , getString(R.string.Output_digital_low_level), getString(R.string.Output_PWM), getString(R.string.CLR_relative_posture)};
+            s = new String[]{getString(R.string.analog_input), getString(R.string.digital_input), getString(R.string.output_digital_high_level)
+                    , getString(R.string.output_digital_low_level), getString(R.string.output_PWM), getString(R.string.CLR_relative_posture)};
         } else {
-            s = new String[]{getString(R.string.AnalogInput), getString(R.string.DigitalInput), getString(R.string.Output_digital_high_level)
-                    , getString(R.string.Output_digital_low_level), getString(R.string.Output_PWM)};
+            s = new String[]{getString(R.string.analog_input), getString(R.string.digital_input), getString(R.string.output_digital_high_level)
+                    , getString(R.string.output_digital_low_level), getString(R.string.output_PWM)};
         }
         new AlertDialog.Builder(this).setTitle(v)
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -1307,7 +1307,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         iBandwidth901 = i;
                     }
                 })
-                .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                         writeAndSaveReg(0x1f, (byte)iBandwidth901 );
@@ -1329,7 +1329,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         angularVelocityRangeParam = i;
                     }
                 })
-                .setPositiveButton((R.string.OK), new DialogInterface.OnClickListener() {
+                .setPositiveButton((R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                         writeAndSaveReg(0x20, (byte)angularVelocityRangeParam );
@@ -1371,7 +1371,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private void autoCalibrate() {
         String[] s = new String[]{"Yes", "No"};
         new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.Automatic_calibration_of_helix))
+                .setTitle(getString(R.string.automatic_calibration_of_helix))
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setSingleChoiceItems(s, iAutoCali, new DialogInterface.OnClickListener() {
                     @Override
@@ -1393,12 +1393,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private void magCali() {
         if (bMagCali) {
             writeAndSaveReg(0x01,0x00);
-            groupList.get(1).getChildList().get(1).setName(getString(R.string.Magnetic_field_calibration_start));
+            groupList.get(1).getChildList().get(1).setName(getString(R.string.magnetic_field_calibration_start));
             adapter.notifyDataSetChanged();
             bMagCali = false;
         } else {//结束校准
             writeLockReg(0x01, 0x07 );//开始校准
-            groupList.get(1).getChildList().get(1).setName(getString(R.string.Finish));
+            groupList.get(1).getChildList().get(1).setName(getString(R.string.finish));
             adapter.notifyDataSetChanged();
             bMagCali = true;
         }
@@ -1444,7 +1444,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iAlgrithm = 1;
     private void algrithmSet() {
-        String[] s = new String[]{getString(R.string.SixAxisAlgorithm), getString(R.string.NineAxisAlgorithm)};
+        String[] s = new String[]{getString(R.string.six_axis_algorithm), getString(R.string.nine_axis_algorithm)};
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.choose_algorithm))
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -1482,10 +1482,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             MyApp.driver.CloseDevice();
         } else if (retval == 0) {
             if (!MyApp.driver.UartInit()) {//对串口设备进行初始化操作
-                Toast.makeText(DataMonitorActivity.this, getString(R.string.fail_to_open), Toast.LENGTH_SHORT).show();
+                Toast.makeText(DataMonitorActivity.this, getString(R.string.open_device_failure), Toast.LENGTH_SHORT).show();
                 return false;
             }
-            Toast.makeText(DataMonitorActivity.this, getString(R.string.open_device_suc), Toast.LENGTH_SHORT).show();
+            Toast.makeText(DataMonitorActivity.this, getString(R.string.open_device_success), Toast.LENGTH_SHORT).show();
             if (MyApp.driver.isConnected()) {
                 USBBaudInit();
                 bBTConnet = false;
@@ -1496,9 +1496,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             return true;
         } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.Unauthorized_authority));
-            builder.setMessage(getString(R.string.quit));
-            builder.setPositiveButton(getString(R.string.Determine), new DialogInterface.OnClickListener() {
+            builder.setTitle(getString(R.string.unauthorized_authority));
+            builder.setMessage(getString(R.string.confirm_quit));
+            builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     System.exit(0);
@@ -1595,7 +1595,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         if (lineChart==null) {
             lineChart = (LineChart) findViewById(R.id.lineChart);
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
-            lineChartManager.setDescription(getString(R.string.angle_Chart));
+            lineChartManager.setDescription(getString(R.string.angle_chart));
         }
         outputSwitch = (Switch)findViewById(R.id.dataSwitch);
         if (type==9) outputSwitch.setVisibility(View.VISIBLE);
@@ -1672,7 +1672,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     break;
             }
             new AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.PleaseSelectTheReturnRate))
+                    .setTitle(getString(R.string.select_return_rate))
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setSingleChoiceItems(new String[]{ "9600", "115200"}, iJY61Baud, new DialogInterface.OnClickListener() {
                         @Override
@@ -1680,7 +1680,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             iJY61Baud = i;
                         }
                     })
-                    .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface arg0, int arg1) {
                             try {
@@ -1700,7 +1700,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
         else{
             new AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.PleaseSelectTheReturnRate))
+                    .setTitle(getString(R.string.select_return_rate))
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setSingleChoiceItems( new String[]{"20Hz", "100Hz"}, iJY61RateSelect, new DialogInterface.OnClickListener() {
                         @Override
@@ -1708,7 +1708,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             iJY61RateSelect = i;
                         }
                     })
-                    .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface arg0, int arg1) {
                             try {
@@ -1725,15 +1725,15 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     int iDirection = 0;
     public void Direction601() {
         new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.please_choose_install_derection))
+                .setTitle(getString(R.string.choose_install_orientation))
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setSingleChoiceItems(new String[]{getString(R.string.Horizontal_installation), getString(R.string.Vertical_installation)}, iDirection, new DialogInterface.OnClickListener() {
+                .setSingleChoiceItems(new String[]{getString(R.string.horizontal_installation), getString(R.string.vertical_installation)}, iDirection, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         iDirection = i;
                     }
                 })
-                .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                         if (iDirection == 0) {
@@ -1750,15 +1750,15 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     int getiDirection901 = 1;
     public void Direction901() {
         new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.please_choose_install_derection))
+                .setTitle(getString(R.string.choose_install_orientation))
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setSingleChoiceItems(new String[]{getString(R.string.Horizontal_installation), getString(R.string.Vertical_installation)}, getiDirection901, new DialogInterface.OnClickListener() {
+                .setSingleChoiceItems(new String[]{getString(R.string.horizontal_installation), getString(R.string.vertical_installation)}, getiDirection901, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         getiDirection901 = i;
                     }
                 })
-                .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                             writeAndSaveReg(0x23,0x01-getiDirection901);
@@ -1779,7 +1779,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         iCmdStartup = i;
                     }
                 })
-                .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                         writeAndSaveReg(0x2d,iCmdStartup);
@@ -1794,7 +1794,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         String[] s = new String[]{"0.122°/s", "0.244°/s", "0.366°/s", "0.488°/s", "0.610°/s", "0.732°/s", "0.854°/s", "0.976°/s"
                 , "1.098°/s", "1.221°/s", "1.343°/s", "1.456°/s", "1.587°/s", "1.709°/s", "1.831°/s"};
         new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.Static_detection_threshold))
+                .setTitle(getString(R.string.static_detection_threshold))
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setSingleChoiceItems(s, iStaticDetect61, new DialogInterface.OnClickListener() {
                     @Override
@@ -1802,7 +1802,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         iStaticDetect61 = i;
                     }
                 })
-                .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                         SendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) (0x71+iStaticDetect61)});
@@ -1824,7 +1824,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         iBandwidth61 = i;
                     }
                 })
-                .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                         SendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) (0x81+iBandwidth61)});
@@ -1846,7 +1846,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         iMode61 = i;
                     }
                 })
-                .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                         SendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) (0x61+iMode61)});
@@ -1943,7 +1943,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     .setTitle(getString(R.string.hint))
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setMessage(getString(R.string.recorded_root_directory) + myFile.file.getPath() + getString(R.string.open_file))
-                    .setPositiveButton(getString(R.string.Determine), new DialogInterface.OnClickListener() {
+                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface arg0, int arg1) {
                             try {
