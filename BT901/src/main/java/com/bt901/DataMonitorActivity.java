@@ -20,10 +20,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
-import androidx.fragment.app.FragmentActivity;
-import androidx.drawerlayout.widget.DrawerLayout;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -33,10 +30,20 @@ import android.widget.ExpandableListView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.FragmentActivity;
+
+import com.bt901.bluetooth.BluetoothService;
 import com.bt901.dialog.AddressDialog;
+import com.bt901.dialog.AlarmDialog;
 import com.bt901.dialog.DevDialog;
 import com.bt901.dialog.PwmCycleDialog;
 import com.bt901.dialog.PwmDialog;
+import com.github.mikephil.charting.charts.LineChart;
+import com.wtzn.wtfile.util.MyFile;
+import com.wtzn.wtfile.util.SharedUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,11 +53,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+
 import cn.wch.ch34xuartdriver.CH34xUARTDriver;
-import com.bt901.bluetooth.BluetoothService;
-import com.wtzn.wtfile.util.*;
-import com.bt901.dialog.AlarmDialog;
-import com.github.mikephil.charting.charts.LineChart;
 
 public class DataMonitorActivity extends FragmentActivity implements OnClickListener {
 
@@ -1001,7 +1005,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             listview.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
                 @Override
                 public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
-                    drawerLayout.closeDrawer(Gravity.LEFT);
+                    drawerLayout.closeDrawer(GravityCompat.START);
                     if (i == 0) {
                         SendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x01, (byte) 0x01, (byte) 0x00});
                     } else if (i == 1) {
@@ -1031,7 +1035,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             listview.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
                 @Override
                 public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
-                    drawerLayout.closeDrawer(Gravity.LEFT);
+                    drawerLayout.closeDrawer(GravityCompat.START);
                     if (i == 0) {
                         SendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x67});
                     } else if (i == 1) {
@@ -1073,7 +1077,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         } else if (i1 == 5) {
                             alarmSet();
                         }
-                        drawerLayout.closeDrawer(Gravity.LEFT);
+                        drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 1) {
                         if (i1 == 0) {
@@ -1084,23 +1088,23 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         } else if (i1 == 2) {
                             writeAndSaveReg(0x01,0x00);
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                            drawerLayout.closeDrawer(Gravity.LEFT);
+                            drawerLayout.closeDrawer(GravityCompat.START);
                         } else if (i1 == 3) {
                             writeAndSaveReg(0x01, 0x03 );
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                            drawerLayout.closeDrawer(Gravity.LEFT);
+                            drawerLayout.closeDrawer(GravityCompat.START);
                         } else if (i1 == 4) {
                             autoCalibrate();
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                            drawerLayout.closeDrawer(Gravity.LEFT);
+                            drawerLayout.closeDrawer(GravityCompat.START);
                         } else if (i1 == 5) {
                             writeAndSaveReg(0x01, 0x04);
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                            drawerLayout.closeDrawer(Gravity.LEFT);
+                            drawerLayout.closeDrawer(GravityCompat.START);
                         } else if (i1 == 6) {
                             writeAndSaveReg(0x01, 0x08 );
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                            drawerLayout.closeDrawer(Gravity.LEFT);
+                            drawerLayout.closeDrawer(GravityCompat.START);
                         }
                     }
                     if (i == 2) {
@@ -1112,7 +1116,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         } else if (i1 == 2) {
                             Bandwidth901();
                         }
-                        drawerLayout.closeDrawer(Gravity.LEFT);
+                        drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 3) {
                         if (i1 == 0) {
@@ -1122,7 +1126,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         } else if (i1 == 2) {
                             ccSpeed();
                         }
-                        drawerLayout.closeDrawer(Gravity.LEFT);
+                        drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 4) {
                         if (i1 == 0) {
@@ -1138,7 +1142,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             String value = getString(R.string.select_D3_port_mode);
                             DMode(i1, value);
                         }
-                        drawerLayout.closeDrawer(Gravity.LEFT);
+                        drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 5) {
 
@@ -1151,7 +1155,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         } else if (i1 == 3) {
                             Pwm(i1);
                         }
-                        drawerLayout.closeDrawer(Gravity.LEFT);
+                        drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 6) {
                         if (i1 == 0) {
@@ -1163,7 +1167,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         } else if (i1 == 3) {
                             PwmCycle(i1);
                         }
-                        drawerLayout.closeDrawer(Gravity.LEFT);
+                        drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     return true;
                 }
@@ -1919,7 +1923,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         return  iTemp;
     }
     public void onConfigClick(View v) {
-        drawerLayout.openDrawer(Gravity.LEFT);
+        drawerLayout.openDrawer(GravityCompat.START);
     }
     boolean bPause = false;
     public void onClickPause(View v){
