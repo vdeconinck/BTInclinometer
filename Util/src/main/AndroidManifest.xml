@@ -5,7 +5,7 @@
     <!-- Create and delete file permissions in SDCard -->
     <application>
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="info.deconinck.fileProvider"
             android:exported="false"
             android:grantUriPermissions="true">
