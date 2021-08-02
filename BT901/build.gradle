@@ -1,13 +1,13 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion '28.0.3'
+    compileSdkVersion 31
+    buildToolsVersion '31.0.0'
 
     defaultConfig {
-//        applicationId "com.Billiard"
         minSdkVersion 18
-        targetSdkVersion 28
+        targetSdkVersion 31
+        resConfigs "en"
     }
 
     buildTypes {

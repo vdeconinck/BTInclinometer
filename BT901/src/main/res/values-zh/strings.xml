@@ -102,8 +102,8 @@
     <string name="Instruction_start">指令启动</string>
     <string name="Call_the_police">报警</string>
     <string name="calibration">校准</string>
-    <string name="Magnetic_field_calibration">磁场校准</string>
-    <string name="Magnetic_field_calibration_finish">磁场校准完成</string>
+    <string name="Magnetic_field_calibration_start">磁场校准</string>
+    <string name="Magnetic_field_calibration_end">磁场校准完成</string>
     <string name="High_zero">高度清零</string>
     <string name="Gyroscope_automatic_calibration">陀螺仪自动校准</string>
     <string name="Z_axis_angle_to_zero">Z轴角度归零</string>

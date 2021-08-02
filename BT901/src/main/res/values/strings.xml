@@ -97,8 +97,8 @@
     <string name="Instruction_start">\? Instruction Start</string>
     <string name="Call_the_police">\? Police Alarm</string>
     <string name="calibration">Calibration</string>
-    <string name="Magnetic_field_calibration">Magnetic calibration</string>
-    <string name="Magnetic_field_calibration_finish">Magnetic calibration complete</string>
+    <string name="Magnetic_field_calibration_start">Magnetic calibration - start</string>
+    <string name="Magnetic_field_calibration_end">Magnetic calibration - end</string>
     <string name="High_zero">Reset height to zero</string>
     <string name="Gyroscope_automatic_calibration">Automatic gyroscope calibration</string>
     <string name="Z_axis_angle_to_zero">Reset Z-axis angle to zero</string>
@@ -216,7 +216,7 @@
     <string name="Date">Date:</string>
     <string name="Time">Time:</string>
     <string name="please_choose_install_derection">Please choose installation orientation:</string>
-    <string name="data_output">Data output:</string>
+    <string name="data_output">Enable chart:</string>
     <string name="pause">Pause</string>
     <string name="Calibrating">Accelerator is calibrating, please keep horizontal for 3 seconds!</string>
     <string name="Calibrated">Calibration is complete!</string>

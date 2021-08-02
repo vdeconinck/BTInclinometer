@@ -879,9 +879,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             MenuItem c1 = new MenuItem();
             c1.setName(getString(R.string.Add_calibration));
             MenuItem c2 = new MenuItem();
-            c2.setName(getString(R.string.Magnetic_field_calibration));
+            c2.setName(getString(R.string.Magnetic_field_calibration_start));
             MenuItem c2ok = new MenuItem();
-            c2ok.setName(getString(R.string.Magnetic_field_calibration_finish));
+            c2ok.setName(getString(R.string.Magnetic_field_calibration_end));
             MenuItem c3 = new MenuItem();
             c3.setName(getString(R.string.High_zero));
             MenuItem c4 = new MenuItem();
@@ -1393,7 +1393,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private void magCali() {
         if (bMagCali) {
             writeAndSaveReg(0x01,0x00);
-            groupList.get(1).getChildList().get(1).setName(getString(R.string.Magnetic_field_calibration));
+            groupList.get(1).getChildList().get(1).setName(getString(R.string.Magnetic_field_calibration_start));
             adapter.notifyDataSetChanged();
             bMagCali = false;
         } else {//结束校准
