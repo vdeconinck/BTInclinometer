@@ -5,23 +5,18 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.hardware.usb.UsbManager;
-import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -37,14 +32,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
 
-import info.deconinck.bt901.bluetooth.BluetoothService;
-import info.deconinck.bt901.dialog.AddressDialog;
-import info.deconinck.bt901.dialog.DevDialog;
-
 import com.github.mikephil.charting.charts.LineChart;
-
-import info.deconinck.wtfile.util.MyFile;
-import info.deconinck.wtfile.util.SharedUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -54,6 +42,12 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+
+import info.deconinck.bt901.bluetooth.BluetoothService;
+import info.deconinck.bt901.dialog.AddressDialog;
+import info.deconinck.bt901.dialog.DevDialog;
+import info.deconinck.wtfile.util.MyFile;
+import info.deconinck.wtfile.util.SharedUtil;
 
 @SuppressWarnings("ALL")
 @SuppressLint("DefaultLocale")
