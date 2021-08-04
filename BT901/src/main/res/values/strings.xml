@@ -23,10 +23,6 @@
     <string name="velocity">Velocity</string>
     <string name="angle">Euler angle</string>
     <string name="mag_field">Magnetic field</string>
-    <string name="Pressure">Press</string>
-    <string name="pressure">Pressure：</string>
-    <string name="mPressure">Pressure</string>
-    <string name="myPressure">Pressure</string>
 
     <string name="port">Port</string>
     <string name="quaternion">Quaternion</string>
@@ -176,12 +172,8 @@
     <string name="mAngleVelocity">w</string>
     <string name="mAngle">Angle</string>
     <string name="mMag">Mag</string>
-    <string name="mPort">Port</string>
-    <string name="mQuater">q</string>
     <string name="mAcc">a</string>
-    <string name="lal">Location</string>
-    <string name="gv">GPSV</string>
-    <string name="sn">PDOP</string>
+
     <string name="bt_not_enabled_leaving">Bluetooth not enabled</string>
     <string name="connect">Connect</string>
     <string name="data_null">Cannot be null!</string>
@@ -204,15 +196,15 @@
     <string name="version">Version:</string>
     <string name="website_url">http://www.wit-motion.com/english.php</string>
     <string name="wiki_url">https://wiki.wit-motion.com/english/doku.php</string>
+
     <string name="acc_chart">Acceleration chart</string>
     <string name="w_chart">Angle rate chart</string>
-    <string name="time">Time:</string>
-    <string name="date">Date:</string>
     <string name="angle_chart">Angle chart</string>
     <string name="mag_chart">Magnetic chart</string>
-    <string name="port_chart">Port chart</string>
-    <string name="pressure_chart">Pressure chart</string>
-    <string name="quaternion_chart">Quaternion chart</string>
+
+    <string name="time">Time:</string>
+    <string name="date">Date:</string>
+
     <string name="choose_install_orientation">Please choose installation orientation:</string>
     <string name="data_output">Enable chart:</string>
     <string name="pause">Pause</string>

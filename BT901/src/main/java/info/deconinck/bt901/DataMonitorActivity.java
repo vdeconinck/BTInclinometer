@@ -44,7 +44,6 @@ import info.deconinck.bt901.dialog.DevDialog;
 import info.deconinck.bt901.dialog.PwmCycleDialog;
 import info.deconinck.bt901.dialog.PwmDialog;
 
-import info.deconinck.bt901.R;
 import com.github.mikephil.charting.charts.LineChart;
 import info.deconinck.wtfile.util.MyFile;
 import info.deconinck.wtfile.util.SharedUtil;
@@ -71,12 +70,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public static final int TAB_ANGULAR_VELOCITY = 2;
     public static final int TAB_ANGLE = 3;
     public static final int TAB_MAGNETIC_FIELD = 4;
-    public static final int TAB_PORT = 5;
-    public static final int TAB_PRESSURE = 6;
-    public static final int TAB_LOCATION = 7;
-    public static final int TAB_GPS_VELOCITY = 8;
-    public static final int TAB_QUATERNION = 9;
-    public static final int TAB_SATELLITE_NUMBER = 10;
 
     public static final int UNSELECTED_BACKGROUND_COLOR = 0xff33b5e5;
     public static final int SELECTED_BACKGROUND_COLOR = 0xff0099cc;
@@ -120,7 +113,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private static int sDataSave = 0;
     static int currentTab = 3;
     private static String strDate = "", strTime = "";
-    private boolean bBTConnet = false;
+    private boolean isBtConnection = false;
     private LineChart lineChart;
     private LineChartManager lineChartManager;
     private final List<Integer> qColour = new ArrayList<>(Arrays.asList(Color.RED, Color.GREEN, Color.BLUE, Color.GRAY)); //Polyline color collection
@@ -347,12 +340,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         (findViewById(R.id.angularVelocityTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
         (findViewById(R.id.angleTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
         (findViewById(R.id.magneticFieldTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
-        (findViewById(R.id.portTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
-        (findViewById(R.id.pressureTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
-        (findViewById(R.id.locationTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
-        (findViewById(R.id.gpsVelocityTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
-        (findViewById(R.id.quaternionTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
-        (findViewById(R.id.satelliteNumberTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
         v.setBackgroundColor(SELECTED_BACKGROUND_COLOR);
     }
 
@@ -419,48 +406,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("hx", "hy", "hz"), qColour);
             lineChartManager.setDescription(getString(R.string.mag_chart));
         }
-        else if (i == R.id.portTabBtn) {
-            currentTab = TAB_PORT;
-            setTableName("D0:", "D1:", "D2:", "D3:");
-            setTableData("0", "0", "0", "0");
-            lineChartManager = new LineChartManager(lineChart, Arrays.asList("D0", "D1", "D2", "D3"), qColour);
-            lineChartManager.setDescription(getString(R.string.port_chart));
-        }
-        else if (i == R.id.pressureTabBtn) {
-            currentTab = TAB_PRESSURE;
-            setTableName("Pressure:", "Altitude:", "wz:", "|w|");
-            setTableData("0", "0", "0", "0");
-            lineChartManager = new LineChartManager(lineChart, Arrays.asList("pressure"), qColour);
-            lineChartManager.setDescription(getString(R.string.pressure_chart));
-        }
-        else if (i == R.id.locationTabBtn) {
-            currentTab = TAB_LOCATION;
-            setTableName("Longitude:", "Latitude:", "", "");
-            setTableData("0", "0", "", "");
-            lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
-            lineChartManager.setDescription(getString(R.string.angle_chart));
-        }
-        else if (i == R.id.gpsVelocityTabBtn) {
-            currentTab = TAB_GPS_VELOCITY;
-            setTableName("Altitude:", "Yaw:", "Velocity:", "");
-            setTableData("0", "0", "0", "");
-            lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
-            lineChartManager.setDescription(getString(R.string.angle_chart));
-        }
-        else if (i == R.id.quaternionTabBtn) {
-            currentTab = TAB_QUATERNION;
-            setTableName("q0:", "q1:", "q2:", "q3:");
-            setTableData("0", "0", "0", "0");
-            lineChartManager = new LineChartManager(lineChart, Arrays.asList("q0", "q1", "q2", "q3"), qColour);
-            lineChartManager.setDescription(getString(R.string.quaternion_chart));
-        }
-        else if (i == R.id.satelliteNumberTabBtn) {
-            currentTab = TAB_SATELLITE_NUMBER;
-            setTableName("SN:", "PDOP:", "HDOP:", "VDOP");
-            setTableData("0", "0", "0", "0");
-            lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
-            lineChartManager.setDescription(getString(R.string.angle_chart));
-        }
+
         if (sensor_type_numaxis == 9) {
             outputSwitch.setVisibility(View.VISIBLE);
             outputSwitch.setChecked(outputPackage[currentTab]);
@@ -579,7 +525,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 case MESSAGE_STATE_CHANGE:
                     switch (msg.arg1) {
                         case BluetoothService.STATE_CONNECTED:
-                            bBTConnet = true;
+                            isBtConnection = true;
                             initButton();
                             if (mTitle != null) {
                                 mTitle.setText(getString(R.string.title_connected_to, mConnectedDeviceName));
@@ -592,7 +538,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             break;
                         case BluetoothService.STATE_LISTEN:
                         case BluetoothService.STATE_NONE:
-                            bBTConnet = false;
+                            isBtConnection = false;
                             if (mTitle != null) {
                                 mTitle.setText(getString(R.string.title_not_connected));
                             }
@@ -735,32 +681,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     lineChartManager.addEntry(Arrays.asList(h[0], h[1], h[2]));
                     break;
 
-                case TAB_PORT:
-                    setTableData("% 10.0f", d[0], d[1], d[2], d[3]);
-                    lineChartManager.addEntry(Arrays.asList(d[0], d[1], d[2], d[3]));
-                    break;
-
-                case TAB_PRESSURE: // Air pressure, altitude
-                    setTableData(String.format("% 10.2fPa", pressure), String.format("% 10.2fPa", height), "", "");
-                    lineChartManager.addEntry(Arrays.asList(pressure));
-                    break;
-
-                case TAB_LOCATION: // Latitude and longitude
-                    setTableData(String.format("% 14.6f°", longitude), String.format("% 14.6f°", latitude), "", "");
-                    break;
-
-                case TAB_GPS_VELOCITY: // Altitude, heading, ground speed
-                    setTableData(String.format("% 10.2f", altitude), String.format("% 10.2f°", yaw), String.format("% 10.2fkm/s", velocity), "");
-                    break;
-
-                case TAB_QUATERNION: // Quaternion
-                    setTableData("% 7.4f", q[0], q[1], q[2], q[3]);
-                    lineChartManager.addEntry(Arrays.asList(q[0], q[1], q[2], q[3]));
-                    break;
-
-                case TAB_SATELLITE_NUMBER: // Number of satellites
-                    setTableData(String.format("% 5.0f", sn), String.format("% 7.1f", pdop), String.format("% 7.1f", hdop), String.format("% 7.1f", vdop));
-                    break;
             } // end switch
 
             // TODO Why do we draw angles in those tabs
@@ -897,12 +817,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         if (sensor_type_numaxis == 3) {
             findViewById(R.id.angularVelocityTabBtn).setVisibility(View.GONE);
             findViewById(R.id.magneticFieldTabBtn).setVisibility(View.GONE);
-            findViewById(R.id.portTabBtn).setVisibility(View.GONE);
-            findViewById(R.id.pressureTabBtn).setVisibility(View.GONE);
-            findViewById(R.id.locationTabBtn).setVisibility(View.GONE);
-            findViewById(R.id.gpsVelocityTabBtn).setVisibility(View.GONE);
-            findViewById(R.id.quaternionTabBtn).setVisibility(View.GONE);
-            findViewById(R.id.satelliteNumberTabBtn).setVisibility(View.GONE);
             MenuGroup group = new MenuGroup();
             group.setName(getString(R.string.acc_calibration));
             group.setChildList(menuItemList);
@@ -914,12 +828,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
         else if (sensor_type_numaxis == 6) {
             findViewById(R.id.magneticFieldTabBtn).setVisibility(View.GONE);
-            findViewById(R.id.portTabBtn).setVisibility(View.GONE);
-            findViewById(R.id.pressureTabBtn).setVisibility(View.GONE);
-            findViewById(R.id.locationTabBtn).setVisibility(View.GONE);
-            findViewById(R.id.gpsVelocityTabBtn).setVisibility(View.GONE);
-            findViewById(R.id.quaternionTabBtn).setVisibility(View.GONE);
-            findViewById(R.id.satelliteNumberTabBtn).setVisibility(View.GONE);
             MenuGroup group = new MenuGroup();
             group.setName(getString(R.string.acc_calibration));
             group.setChildList(menuItemList);
@@ -956,18 +864,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
         else if (sensor_type_numaxis == 9 || isOpen) {
             // System menu
-            if (bBTConnet) {
-                findViewById(R.id.portTabBtn).setVisibility(View.GONE);
-                findViewById(R.id.locationTabBtn).setVisibility(View.GONE);
-                findViewById(R.id.gpsVelocityTabBtn).setVisibility(View.GONE);
-                findViewById(R.id.satelliteNumberTabBtn).setVisibility(View.GONE);
-            }
-            else {
-                findViewById(R.id.portTabBtn).setVisibility(View.VISIBLE);
-                findViewById(R.id.locationTabBtn).setVisibility(View.VISIBLE);
-                findViewById(R.id.gpsVelocityTabBtn).setVisibility(View.VISIBLE);
-                findViewById(R.id.satelliteNumberTabBtn).setVisibility(View.VISIBLE);
-            }
             MenuGroup system = new MenuGroup();
             system.setName(getString(R.string.system));
             List<MenuItem> sysList = new ArrayList<>();
@@ -1600,7 +1496,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             Toast.makeText(DataMonitorActivity.this, getString(R.string.open_device_success), Toast.LENGTH_SHORT).show();
             if (MyApp.driver.isConnected()) {
                 usbBaudrateInit();
-                bBTConnet = false;
+                isBtConnection = false;
                 bUsbConnect = true;
             }
             isOpen = true;
