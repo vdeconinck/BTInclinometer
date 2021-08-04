@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center_vertical"
-    android:background="@drawable/background"
+    android:background="@color/black"
     android:orientation="vertical">
 
 
@@ -13,19 +13,9 @@
         android:layout_height="300dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="150dp"
+        android:contentDescription="@string/logo_image"
         android:scaleType="fitCenter"
-        android:src="@drawable/logo"
-        android:contentDescription="@string/logo_image" />
+        android:src="@drawable/logo" />
 
 
-    <ImageView
-        android:id="@+id/logo"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="40dp"
-        android:layout_marginTop="80dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/banner"
-        android:contentDescription="@string/banner_image" />
 </LinearLayout>
