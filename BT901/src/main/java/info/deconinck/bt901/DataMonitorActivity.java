@@ -714,15 +714,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         Intent intent = getIntent();
         sensor_type_numaxis = intent.getIntExtra("type", 0);
         MyApp.driver = new CH34xUARTDriver((UsbManager) getSystemService(Context.USB_SERVICE), this, ACTION_USB_PERMISSION);
-        // Determine whether the system supports USB HOST
-        if (!MyApp.driver.UsbFeatureSupported()) {
-            Dialog dialog = new AlertDialog.Builder(DataMonitorActivity.this)
-                    .setTitle(getString(R.string.hint))
-                    .setMessage(getString(R.string.USB_HOST))
-                    .setPositiveButton(getString(R.string.ok), (arg0, arg1) -> System.exit(0)).create();
-            dialog.setCanceledOnTouchOutside(false);
-            dialog.show();
-        }
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // Keep the screen always on
 
         writeBuffer = new byte[512];

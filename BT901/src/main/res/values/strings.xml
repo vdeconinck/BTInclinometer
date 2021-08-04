@@ -55,7 +55,6 @@
     <string name="y">Y：</string>
     <string name="z">Z：</string>
     <string name="about">About\nV2.3</string>
-    <string name="USB_HOST">Your mobile device does not support USB HOST, please use another device and try again!</string>
     <string name="hint">Hint</string>
     <string name="bluetooth_bad">Bluetooth is not available</string>
     <string name="open_device_failure">Failed to open the device!</string>
