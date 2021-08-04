@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">4x4 Remote Inclinometer</string>
+    <string name="app_name">WTApp</string>
 
     <string name="JY31">三轴系列</string>
     <string name="JY61">六轴系列</string>

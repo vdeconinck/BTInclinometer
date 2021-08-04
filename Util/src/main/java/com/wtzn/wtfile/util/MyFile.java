@@ -46,7 +46,7 @@ public class MyFile {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         Uri uriForFile;
         if (Build.VERSION.SDK_INT > 23) {
-            uriForFile = FileProvider.getUriForFile(context, "info.deconinck.fileProvider", file);
+            uriForFile = FileProvider.getUriForFile(context, "com.wtzn.fileProvider", file);
             intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);//Temporarily authorize the target file
         }
         else {
@@ -63,7 +63,7 @@ public class MyFile {
         String fName = file.getName();
         int dotIndex = fName.lastIndexOf(".");
         if (dotIndex > 0) {
-            String end = fName.substring(dotIndex, fName.length()).toLowerCase(Locale.getDefault());
+            String end = fName.substring(dotIndex).toLowerCase(Locale.getDefault());
             HashMap<String, String> map = MyMimeMap.getMimeMap();
             if (!TextUtils.isEmpty(end) && map.containsKey(end)) {
                 type = map.get(end);

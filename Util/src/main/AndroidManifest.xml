@@ -6,7 +6,7 @@
     <application>
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="info.deconinck.fileProvider"
+            android:authorities="com.wtzn.fileProvider"
             android:exported="false"
             android:grantUriPermissions="true">
             <!--Specify the shared path of Uri-->

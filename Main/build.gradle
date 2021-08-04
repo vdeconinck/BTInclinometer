@@ -15,7 +15,7 @@ android {
 
 
     defaultConfig {
-        applicationId "info.deconinck.inclinometer"
+        applicationId "com.wtzn.wtapp"
         minSdkVersion 18
         targetSdkVersion 31
         versionCode 1
