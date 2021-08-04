@@ -221,8 +221,8 @@
     <string name="choose_install_orientation">Please choose installation orientation:</string>
     <string name="data_output">Enable chart:</string>
     <string name="pause">Pause</string>
-    <string name="Calibrating">Accelerator is calibrating, please keep horizontal for 3 seconds!</string>
-    <string name="Calibrated">Calibration is complete!</string>
+    <string name="calibrating">Accelerator is calibrating, please keep horizontal for 3 seconds!</string>
+    <string name="calibrated">Calibration is complete!</string>
     <string name="anglex">AngleX:</string>
     <string name="angley">AngleY:</string>
     <string name="anglez">AngleZ:</string>

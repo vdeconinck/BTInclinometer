@@ -30,17 +30,17 @@ public class AlarmDialog extends BDialog implements View.OnClickListener, RadioG
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.lay_police_dialog, container, false);
-        Button sure = (Button) view.findViewById(R.id.bt_save);
-        Button abli = (Button) view.findViewById(R.id.bt_abolish);
-        RadioGroup radioGroup = (RadioGroup) view.findViewById(R.id.radioGroup);
-        open = (RadioButton) view.findViewById(R.id.rb_open);
-        close = (RadioButton) view.findViewById(R.id.rb_close);
+        Button sure = view.findViewById(R.id.bt_save);
+        Button abli = view.findViewById(R.id.bt_abolish);
+        RadioGroup radioGroup = view.findViewById(R.id.radioGroup);
+        open = view.findViewById(R.id.rb_open);
+        close = view.findViewById(R.id.rb_close);
 
-        xMin = (EditText) view.findViewById(R.id.et_putXMin);
-        xMax = (EditText) view.findViewById(R.id.et_putXMax);
-        yMin = (EditText) view.findViewById(R.id.et_putYMin);
-        yMax = (EditText) view.findViewById(R.id.et_putYMax);
-        time = (EditText) view.findViewById(R.id.et_time);
+        xMin = view.findViewById(R.id.et_putXMin);
+        xMax = view.findViewById(R.id.et_putXMax);
+        yMin = view.findViewById(R.id.et_putYMin);
+        yMax = view.findViewById(R.id.et_putYMax);
+        time = view.findViewById(R.id.et_time);
 
         radioGroup.setOnCheckedChangeListener(this);
         sure.setOnClickListener(this);

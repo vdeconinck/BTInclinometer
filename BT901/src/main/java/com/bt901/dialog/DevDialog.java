@@ -2,7 +2,9 @@ package com.bt901.dialog;
 
 import android.content.Context;
 import android.os.Bundle;
+
 import androidx.annotation.Nullable;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,9 +51,9 @@ public class DevDialog extends BDialog implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.lay_dev_dialog, container, false);
-        startName = (EditText) view.findViewById(R.id.et_putStart);
-        Button sure = (Button) view.findViewById(R.id.bt_save);
-        Button abli = (Button) view.findViewById(R.id.bt_abolish);
+        startName = view.findViewById(R.id.et_putStart);
+        Button sure = view.findViewById(R.id.bt_save);
+        Button abli = view.findViewById(R.id.bt_abolish);
         sure.setOnClickListener(this);
         abli.setOnClickListener(this);
         return view;

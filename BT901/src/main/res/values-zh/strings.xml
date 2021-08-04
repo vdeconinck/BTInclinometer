@@ -220,7 +220,7 @@
     <string name="choose_install_orientation">请选择安装方向：</string>
     <string name="data_output">数据输出：</string>
     <string name="pause">暂停</string>
-    <string name="Calibrating">校准中，请保持水平3秒！</string>
-    <string name="Calibrated">校准完成</string>
+    <string name="calibrating">校准中，请保持水平3秒！</string>
+    <string name="calibrated">校准完成</string>
 
 </resources>
