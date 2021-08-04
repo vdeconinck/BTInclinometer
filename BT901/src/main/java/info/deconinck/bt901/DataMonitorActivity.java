@@ -39,7 +39,6 @@ import androidx.fragment.app.FragmentActivity;
 
 import info.deconinck.bt901.bluetooth.BluetoothService;
 import info.deconinck.bt901.dialog.AddressDialog;
-import info.deconinck.bt901.dialog.AlarmDialog;
 import info.deconinck.bt901.dialog.DevDialog;
 import info.deconinck.bt901.dialog.PwmCycleDialog;
 import info.deconinck.bt901.dialog.PwmDialog;
@@ -872,7 +871,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             sysList.add(new MenuItem(getString(R.string.algorithm)));
             sysList.add(new MenuItem(getString(R.string.installation_orientation)));
             sysList.add(new MenuItem(getString(R.string.__instruction_start)));
-            sysList.add(new MenuItem(getString(R.string.alarm)));
             system.setChildList(sysList);
             groupList.add(system);
 
@@ -1037,9 +1035,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         }
                         else if (i1 == 4) {
                             cmdStartUp();
-                        }
-                        else if (i1 == 5) {
-                            setAlarm();
                         }
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
@@ -1421,51 +1416,26 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         new Handler().postDelayed(() -> Toast.makeText(getApplicationContext(), getString(R.string.calibrated), Toast.LENGTH_SHORT).show(), 3000);
     }
 
-    private void setAlarm() {
-        AlarmDialog alarmDialog = new AlarmDialog();
-        alarmDialog.setPoliceDialogCallBack(new AlarmDialog.PoliceDialogCallBack() {
-            @Override
-            public void save(String strXMin, final String strXMax, final String strYMin, final String strYMax, final String time, final int tag) {
-                unLockReg(0);
-                writeReg(0x5a, Integer.parseInt(strXMin) * 32768 / 180, 50);
-                writeReg(0x5a, Integer.parseInt(strXMax) * 32768 / 180, 100);
-                writeReg(0x5a, Integer.parseInt(strYMin) * 32768 / 180, 150);
-                writeReg(0x5a, Integer.parseInt(strYMax) * 32768 / 180, 200);
-                writeReg(0x5a, Integer.parseInt(time));
-                if (tag == 0) {
-                    writeReg(0x62, 0x00, 250);
-                }
-                else if (tag == 1) writeReg(0x62, 0x01, 250);
-                saveReg(300);
-            }
-
-            @Override
-            public void back() {
-            }
-        });
-        alarmDialog.show(getSupportFragmentManager());
-    }
-
-    int iAlgrithm = 1;
+    int iAlgorithm = 1;
 
     private void selectAlgorithm() {
         String[] s = new String[]{getString(R.string.six_axis_algorithm), getString(R.string.nine_axis_algorithm)};
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.choose_algorithm))
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setSingleChoiceItems(s, iAlgrithm, new DialogInterface.OnClickListener() {
+                .setSingleChoiceItems(s, iAlgorithm, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        iAlgrithm = i;
+                        iAlgorithm = i;
                     }
                 })
                 .setPositiveButton(getString(R.string.end), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
-                        if (iAlgrithm == 0) {
+                        if (iAlgorithm == 0) {
                             writeAndSaveReg(0x24, 0x01);
                         }
-                        else if (iAlgrithm == 1) {
+                        else if (iAlgorithm == 1) {
                             writeAndSaveReg(0x24, 0x00);
                         }
                     }

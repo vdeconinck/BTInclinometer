@@ -91,8 +91,6 @@
     <string name="__instruction_start">\? Instruction Start</string>
     <string name="__whether_or_not">\? Whether or not the instruction is started：</string>
 
-    <string name="alarm">Alarm</string>
-
     <string name="calibration">Calibration</string>
     <string name="magnetic_field_calibration_start">Magnetic calibration - start</string>
     <string name="magnetic_field_calibration_end">Magnetic calibration - end</string>
@@ -141,13 +139,7 @@
     <string name="six_axis_algorithm">Six-axis algorithm</string>
     <string name="nine_axis_algorithm">Nine-axis algorithm</string>
     <string name="choose_algorithm">Please select the algorithm:</string>
-    <string name="X_axis_minimum">MinX：</string>
-    <string name="X_axis_maximum">MaxX：</string>
-    <string name="Y_axis_minimum">MinY：</string>
-    <string name="Y_axis_maximum">MaxY：</string>
-    <string name="keep_time">Keep time：</string>
-    <string name="Positive_and_negative_180_degrees">\? Plus or minus 180 degrees</string>
-    <string name="unit_ms">Unit: ms</string>
+
     <string name="automatic_calibration_of_helix">Automatic calibration of helix：</string>
     <string name="choose_range">Please select the acceleration range:</string>
     <string name="choose_angle">Please select the angular velocity:</string>
@@ -168,7 +160,9 @@
     <string name="CLR_relative_posture">\? CLR relative level</string>
     <string name="enter_port_PWM_pulse_width">Please enter PWM pulse width</string>
     <string name="enter_the_port_PWM_cycle">Please enter PWM cycle</string>
+
     <string name="angle_velocity">Angular velocity</string>
+
     <string name="mAngleVelocity">w</string>
     <string name="mAngle">Angle</string>
     <string name="mMag">Mag</string>
@@ -178,12 +172,11 @@
     <string name="connect">Connect</string>
     <string name="data_null">Cannot be null!</string>
     <string name="discoverable">Discoverable</string>
-    <string name="main_textview">0.00</string>
-    <string name="mytime">Hold time must be greater than 0!</string>
+
     <string name="not_connected">No device connected!</string>
     <string name="put_end">End (0~1000)</string>
     <string name="send">Send</string>
-    <string name="shop_name">Wit Motion</string>
+
     <string name="title_connecting">Connecting…</string>
     <string name="title_connected_to">Connected: %1$s</string>
     <string name="title_not_connected">Disconnect</string>
@@ -194,8 +187,6 @@
     <string name="ymin_null">Y min cannot be null!</string>
     <string name="voltage">Voltage:</string>
     <string name="version">Version:</string>
-    <string name="website_url">http://www.wit-motion.com/english.php</string>
-    <string name="wiki_url">https://wiki.wit-motion.com/english/doku.php</string>
 
     <string name="acc_chart">Acceleration chart</string>
     <string name="w_chart">Angle rate chart</string>
