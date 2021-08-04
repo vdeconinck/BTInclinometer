@@ -55,8 +55,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import cn.wch.ch34xuartdriver.CH34xUARTDriver;
-
 @SuppressWarnings("ALL")
 @SuppressLint("DefaultLocale")
 public class DataMonitorActivity extends FragmentActivity implements OnClickListener {
@@ -555,95 +553,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
     };
 
-    int iBaudJY61Select = 1;
-    final int[] baud = new int[]{4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600};
-
-    private void usbBaudrateInit() {
-        if (sensor_type_numaxis == 9) {
-            iBaudJY901Select = SharedUtil.getInt("JY901BAUD");
-            if ((iBaudJY901Select > 0) && (iBaudJY901Select < 9)) {
-                iBaud = baud[iBaudJY901Select];
-            }
-            else {
-                iBaud = 9600;
-            }
-            setBaudrate(iBaud);
-            selectJY901Baudrate();
-        }
-        else {
-            iBaudJY61Select = SharedUtil.getInt("JY61BAUD");
-            if (iBaudJY61Select == 0) {
-                iBaud = 9600;
-            }
-            else {
-                iBaud = 115200;
-            }
-            setBaudrate(iBaud);
-            selectJY61Baudrate();
-        }
-    }
-
-    private void selectJY61Baudrate() {
-        String[] s = new String[]{"9600", "115200"};
-        new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.choose_baud_rate))
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setSingleChoiceItems(s, iBaudJY61Select, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        iBaudJY61Select = i;
-                    }
-                })
-                .setPositiveButton(getString(R.string.end), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface arg0, int arg1) {
-                        SharedUtil.putInt("JY61BAUD", iBaudJY61Select);
-                        if (iBaudJY61Select == 0) {
-                            iBaud = 9600;
-                        }
-                        else {
-                            iBaud = 115200;
-                        }
-                        setBaudrate(iBaud);
-                    }
-                })
-                .setNegativeButton(getString(R.string.cancel), null)
-                .show();
-    }
-
-    int iBaudJY901Select = 5;
-
-    private void selectJY901Baudrate() {
-        String[] s = new String[]{"4800", "9600", "19200", "38400", "57600", "115200", "230400", "460800", "921600"};
-        new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.choose_baud_rate))
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setSingleChoiceItems(s, iBaudJY901Select, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        iBaudJY901Select = i;
-                    }
-                })
-                .setPositiveButton(getString(R.string.end), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface arg0, int arg1) {
-                        SharedUtil.putInt("JY901BAUD", iBaudJY901Select);
-                        iBaud = baud[iBaudJY901Select];
-                        setBaudrate(iBaud);
-                    }
-                })
-                .setNegativeButton(getString(R.string.cancel), null)
-                .show();
-    }
-
-    private int iBaud = 9600;
-
-    public void setBaudrate(int iBaudrate) {
-        iBaud = iBaudrate;
-        SharedUtil.putInt("Baud", iBaudrate);
-        MyApp.driver.SetConfig(iBaud, (byte) 8, (byte) 0, (byte) 0, (byte) 0);
-    }
-
     private final Handler refreshHandler = new Handler(Looper.getMainLooper()) {
         public void handleMessage(Message msg) {
             if (bPause) return;
@@ -713,7 +622,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
         Intent intent = getIntent();
         sensor_type_numaxis = intent.getIntExtra("type", 0);
-        MyApp.driver = new CH34xUARTDriver((UsbManager) getSystemService(Context.USB_SERVICE), this, ACTION_USB_PERMISSION);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // Keep the screen always on
 
