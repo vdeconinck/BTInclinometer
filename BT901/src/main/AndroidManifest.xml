@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.bt901"
+    package="info.deconinck.bt901"
     android:versionCode="1"
     android:versionName="1.0">
 
@@ -18,12 +18,12 @@
 
     <application android:allowBackup="true">
         <activity
-            android:name="com.bt901.DeviceListActivity"
+            android:name="info.deconinck.bt901.DeviceListActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/select_device"
             android:theme="@android:style/Theme.Dialog" />
         <activity
-            android:name="com.bt901.DataMonitorActivity"
+            android:name="info.deconinck.bt901.DataMonitorActivity"
             android:screenOrientation="fullSensor" />
     </application>
 

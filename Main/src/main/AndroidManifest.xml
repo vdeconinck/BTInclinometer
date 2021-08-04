@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.wtzn.wtapp">
+    package="info.deconinck.inclinometer">
 
     <application
-        android:name=".InitApplication"
+        android:name="info.deconinck.inclinometer.InitApplication"
         android:allowBackup="true"
         android:icon="@drawable/logo"
         android:label="@string/app_name"
@@ -13,12 +13,12 @@
         tools:replace="android:theme"
         tools:ignore="AllowBackup">
         <activity
-            android:name="com.bt901.DataMonitorActivity"
+            android:name="info.deconinck.bt901.DataMonitorActivity"
             android:screenOrientation="fullSensor" />
         <activity
-            android:name=".DeviceSelectionActivity"
+            android:name="info.deconinck.inclinometer.DeviceSelectionActivity"
             android:screenOrientation="fullSensor" />
-        <activity android:name=".SplashActivity"
+        <activity android:name="info.deconinck.inclinometer.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

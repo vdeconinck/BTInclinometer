@@ -1,12 +1,17 @@
 apply plugin: 'com.android.application'
 
+// Load keystore
+def localPropertiesFile = rootProject.file("local.properties");
+def localProperties = new Properties()
+localProperties.load(new FileInputStream(localPropertiesFile))
+
 android {
     signingConfigs {
         release {
-            keyAlias 'key0'
-            keyPassword 'wtznwtzn'
-            storeFile file('../WitSign.jks')
-            storePassword 'wtznwtzn'
+            keyAlias        localProperties['keyAlias']
+            keyPassword     localProperties['keyPassword']
+            storeFile       file("../" + localProperties['storeFile'])
+            storePassword   localProperties['storePassword']
         }
     }
 
@@ -15,7 +20,7 @@ android {
 
 
     defaultConfig {
-        applicationId "com.wtzn.wtapp"
+        applicationId "info.deconinck.inclinometer"
         minSdkVersion 18
         targetSdkVersion 31
         versionCode 1

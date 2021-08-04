@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">WTApp</string>
+    <string name="app_name">4x4 remote inclinometer</string>
 
     <string name="JY31">3-axis Series</string>
     <string name="JY61">6-axis Series</string>
