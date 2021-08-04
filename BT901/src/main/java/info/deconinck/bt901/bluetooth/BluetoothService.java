@@ -271,18 +271,13 @@ public class BluetoothService {
 
         public void run() {
             byte[] tempInputBuffer = new byte[10240];
-            int acceptedLen = 0;
+            int acceptedLen;
             // Keep listening to the InputStream while connected
             while (true) {
                 try {
                     acceptedLen = mmInStream.read(tempInputBuffer);
                     if (acceptedLen > 0) {
-                         DataMonitorActivity.handleSerialData(acceptedLen,tempInputBuffer);
-//                        Message msg = mHandler.obtainMessage(DataMonitor.MESSAGE_READ);
-//                        Bundle bundle = new Bundle();
-//                        bundle.putInt("Type", type);
-//                        msg.setData(bundle);
-//                        mHandler.sendMessage(msg);
+                         DataMonitorActivity.handleSerialData(acceptedLen, tempInputBuffer);
                     }
                 } catch (IOException e) {
                     connectionLost();

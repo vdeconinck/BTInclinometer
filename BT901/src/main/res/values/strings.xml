@@ -148,18 +148,6 @@
     <string name="no_output">No output</string>
     <string name="select_return_rate">Please select the return rate：</string>
     <string name="enter_address">Please enter the address</string>
-    <string name="select_D0_port_mode">Please select the D0 port mode:</string>
-    <string name="select_D1_port_mode">Please select the D1 port mode:</string>
-    <string name="select_D2_port_mode">Please select the D2 port mode:</string>
-    <string name="select_D3_port_mode">Please select the D3 port mode:</string>
-    <string name="analog_input">Analog input</string>
-    <string name="digital_input">Digital input</string>
-    <string name="output_digital_high_level">Output digital high level</string>
-    <string name="output_digital_low_level">Output digital low level</string>
-    <string name="output_PWM">Output PWM</string>
-    <string name="CLR_relative_posture">\? CLR relative level</string>
-    <string name="enter_port_PWM_pulse_width">Please enter PWM pulse width</string>
-    <string name="enter_the_port_PWM_cycle">Please enter PWM cycle</string>
 
     <string name="angle_velocity">Angular velocity</string>
 

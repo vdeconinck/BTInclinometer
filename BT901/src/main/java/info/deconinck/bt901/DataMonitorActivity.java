@@ -40,10 +40,9 @@ import androidx.fragment.app.FragmentActivity;
 import info.deconinck.bt901.bluetooth.BluetoothService;
 import info.deconinck.bt901.dialog.AddressDialog;
 import info.deconinck.bt901.dialog.DevDialog;
-import info.deconinck.bt901.dialog.PwmCycleDialog;
-import info.deconinck.bt901.dialog.PwmDialog;
 
 import com.github.mikephil.charting.charts.LineChart;
+
 import info.deconinck.wtfile.util.MyFile;
 import info.deconinck.wtfile.util.SharedUtil;
 
@@ -91,7 +90,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private boolean recordStartorStop = false;
     public byte[] writeBuffer;
     public byte[] readBuffer;
-    private boolean isOpen;
     static MyFile myFile;
     DrawerLayout drawerLayout;
     ExLisViewAdapter adapter;
@@ -691,41 +689,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
     };
 
-    private boolean checkGpsIsOpen() {
-        boolean isOpen;
-        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        isOpen = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        return isOpen;
-    }
-
-    private void openGPSSetting() {
-        if (checkGpsIsOpen()) {
-            Toast.makeText(this, "true", Toast.LENGTH_SHORT).show();
-        }
-        else {
-            new AlertDialog.Builder(this).setTitle("open GPS")
-                    .setMessage("go to open")
-                    .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            Toast.makeText(DataMonitorActivity.this, "close", Toast.LENGTH_SHORT).show();
-                            dialogInterface.dismiss();
-                        }
-                    })
-                    .setPositiveButton("setting", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                            startActivityForResult(intent, GPS_REQUEST_CODE);
-                        }
-                    })
-                    .setCancelable(false)
-                    .show();
-        }
-    }
-
-    private static final int GPS_REQUEST_CODE = 2;
-
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -739,7 +702,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         SharedUtil.init(getApplicationContext());
         setOutputBoolean(SharedUtil.getInt("Out"));
 
-        openGPSSetting();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
@@ -765,8 +727,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
         writeBuffer = new byte[512];
         readBuffer = new byte[512];
-        isOpen = false;
-        serialPortOpen();
+
         try {
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (mBluetoothAdapter == null) {
@@ -840,12 +801,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             group3.setChildList(menuItemList);
             groupList.add(group3);
             MenuGroup group4 = new MenuGroup();
-            if (bUsbConnect) {
-                group4.setName(getString(R.string.baudrate));
-            }
-            else {
-                group4.setName(getString(R.string.retrieval_rate));
-            }
+            group4.setName(getString(R.string.retrieval_rate));
             group4.setChildList(menuItemList);
             groupList.add(group4);
             MenuGroup group5 = new MenuGroup();
@@ -861,7 +817,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             group7.setChildList(menuItemList);
             groupList.add(group7);
         }
-        else if (sensor_type_numaxis == 9 || isOpen) {
+        else if (sensor_type_numaxis == 9) {
             // System menu
             MenuGroup system = new MenuGroup();
             system.setName(getString(R.string.system));
@@ -904,45 +860,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             List<MenuItem> comList = new ArrayList<>();
             comList.add(new MenuItem(getString(R.string.retrieval_rate)));
             comList.add(new MenuItem(getString(R.string.address)));
-            if (isOpen) {
-                comList.add(new MenuItem(getString(R.string.communication_rate)));
-            }
             communication.setChildList(comList);
             groupList.add(communication);
-            if (bUsbConnect) {
-                // Port mode
-                MenuGroup port = new MenuGroup();
-                port.setName(getString(R.string.port_mode));
-                List<MenuItem> portList = new ArrayList<>();
-                portList.add(new MenuItem(getString(R.string.d0_mode)));
-                portList.add(new MenuItem(getString(R.string.d1_mode)));
-                portList.add(new MenuItem(getString(R.string.d2_mode)));
-                portList.add(new MenuItem(getString(R.string.d3_mode)));
-                port.setChildList(portList);
-                groupList.add(port);
-
-                // Port PWM pulse width
-                MenuGroup pwm = new MenuGroup();
-                pwm.setName(getString(R.string.port_PWM_pulse_width));
-                List<MenuItem> pwmList = new ArrayList<>();
-                pwmList.add(new MenuItem(getString(R.string.D0PWM_pulse_width)));
-                pwmList.add(new MenuItem(getString(R.string.D1PWM_pulse_width)));
-                pwmList.add(new MenuItem(getString(R.string.D2PWM_pulse_width)));
-                pwmList.add(new MenuItem(getString(R.string.D3PWM_pulse_width)));
-                pwm.setChildList(pwmList);
-                groupList.add(pwm);
-
-                // Port PWM cycle
-                MenuGroup cycle = new MenuGroup();
-                cycle.setName(getString(R.string.port_PWM_cycle));
-                List<MenuItem> cycleList = new ArrayList<>();
-                cycleList.add(new MenuItem(getString(R.string.D0PWM_cycle)));
-                cycleList.add(new MenuItem(getString(R.string.D1PWM_cycle)));
-                cycleList.add(new MenuItem(getString(R.string.D2PWM_cycle)));
-                cycleList.add(new MenuItem(getString(R.string.D3PWM_cycle)));
-                cycle.setChildList(cycleList);
-                groupList.add(cycle);
-            }
         }
         adapter = new ExLisViewAdapter(this, groupList);
         listview.setAdapter(adapter);
@@ -1099,58 +1018,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         }
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
-                    if (i == 4) {
-                        // TODO switch
-                        if (i1 == 0) {
-                            String value = getString(R.string.select_D0_port_mode);
-                            dMode(i1, value);
-                        }
-                        else if (i1 == 1) {
-                            String value = getString(R.string.select_D1_port_mode);
-                            dMode(i1, value);
-                        }
-                        else if (i1 == 2) {
-                            String value = getString(R.string.select_D2_port_mode);
-                            dMode(i1, value);
-                        }
-                        else if (i1 == 3) {
-                            String value = getString(R.string.select_D3_port_mode);
-                            dMode(i1, value);
-                        }
-                        drawerLayout.closeDrawer(GravityCompat.START);
-                    }
-                    if (i == 5) {
-                        // TODO wtf
-                        if (i1 == 0) {
-                            pwm(i1);
-                        }
-                        else if (i1 == 1) {
-                            pwm(i1);
-                        }
-                        else if (i1 == 2) {
-                            pwm(i1);
-                        }
-                        else if (i1 == 3) {
-                            pwm(i1);
-                        }
-                        drawerLayout.closeDrawer(GravityCompat.START);
-                    }
-                    if (i == 6) {
-                        // TODO wtf
-                        if (i1 == 0) {
-                            pwmCycle(i1);
-                        }
-                        else if (i1 == 1) {
-                            pwmCycle(i1);
-                        }
-                        else if (i1 == 2) {
-                            pwmCycle(i1);
-                        }
-                        else if (i1 == 3) {
-                            pwmCycle(i1);
-                        }
-                        drawerLayout.closeDrawer(GravityCompat.START);
-                    }
                     return true;
                 }
             });
@@ -1158,13 +1025,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
     private void sendData(byte[] byteSend) {
-        if (bUsbConnect) {
-            if (MyApp.driver.isConnected()) MyApp.driver.WriteData(byteSend, byteSend.length);
-        }
-        else {
-            if (mBluetoothService != null) {
-                mBluetoothService.send(byteSend);
-            }
+        if (mBluetoothService != null) {
+            mBluetoothService.send(byteSend);
         }
     }
 
@@ -1189,36 +1051,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
-    }
-
-    private void pwmCycle(final int pos) {
-        PwmCycleDialog pwmCycle = PwmCycleDialog.newInstance();
-        pwmCycle.setPwmCycleDialogCallBack(new PwmCycleDialog.PwmCycleDialogCallBack() {
-            @Override
-            public void save(String value) {
-                writeAndSaveReg(0x16 + pos, Integer.parseInt(value));
-            }
-
-            @Override
-            public void back() {
-            }
-        });
-        pwmCycle.show(getSupportFragmentManager());
-    }
-
-    private void pwm(final int pos) {
-        PwmDialog pwmDialog = PwmDialog.newInstance();
-        pwmDialog.setPwmDialogCallBack(new PwmDialog.PwmDialogCallBack() {
-            @Override
-            public void save(String value) {
-                writeAndSaveReg(0x12 + pos, Integer.parseInt(value));
-            }
-
-            @Override
-            public void back() {
-            }
-        });
-        pwmDialog.show(getSupportFragmentManager());
     }
 
     private void myAddress() {
@@ -1260,37 +1092,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
-
-    int[] iPortMode = new int[]{0, 0, 0, 0};
-
-    private void dMode(final int index, String v) {
-        String[] s;
-        if (index == 1) {
-            s = new String[]{getString(R.string.analog_input), getString(R.string.digital_input), getString(R.string.output_digital_high_level)
-                    , getString(R.string.output_digital_low_level), getString(R.string.output_PWM), getString(R.string.CLR_relative_posture)};
-        }
-        else {
-            s = new String[]{getString(R.string.analog_input), getString(R.string.digital_input), getString(R.string.output_digital_high_level)
-                    , getString(R.string.output_digital_low_level), getString(R.string.output_PWM)};
-        }
-        new AlertDialog.Builder(this).setTitle(v)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setSingleChoiceItems(s, iPortMode[index], new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        iPortMode[index] = i;
-                    }
-                })
-                .setPositiveButton(getString(R.string.end), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface arg0, int arg1) {
-                        writeAndSaveReg(0x0e + index, iPortMode[index]);
-                    }
-                })
-                .setNegativeButton(getString(R.string.cancel), null)
-                .show();
-    }
-
 
     int iBandwidth901 = 4;
 
@@ -1444,57 +1245,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 .show();
     }
 
-    private void serialPortClose() {
-        MyApp.driver.CloseDevice();
-        isOpen = false;
-    }
-
-    private Thread readThread;
-    boolean bUsbConnect = false;
-
-    private boolean serialPortOpen() {
-        int retval = MyApp.driver.ResumeUsbList();
-        if (retval == -1) // The ResumeUsbList() method is used to enumerate CH34X devices and open related devices
-        {
-            MyApp.driver.CloseDevice();
-        }
-        else if (retval == 0) {
-            if (!MyApp.driver.UartInit()) { // Initialize the serial device
-                Toast.makeText(DataMonitorActivity.this, getString(R.string.open_device_failure), Toast.LENGTH_SHORT).show();
-                return false;
-            }
-            Toast.makeText(DataMonitorActivity.this, getString(R.string.open_device_success), Toast.LENGTH_SHORT).show();
-            if (MyApp.driver.isConnected()) {
-                usbBaudrateInit();
-                isBtConnection = false;
-                bUsbConnect = true;
-            }
-            isOpen = true;
-
-            return true;
-        }
-        else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.unauthorized_authority));
-            builder.setMessage(getString(R.string.confirm_quit));
-            builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    System.exit(0);
-                }
-            });
-            builder.setNegativeButton(getString(R.string.back), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                }
-            });
-            builder.show();
-            return false;
-        }
-        return false;
-    }
-
-
     public void onClickedBTSet(View v) {
         try {
             if (mBluetoothService == null) {
@@ -1520,34 +1270,33 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public synchronized void onResume() {
         super.onResume();
         initButton();
-        if (!bUsbConnect) {
-            if (!mBluetoothAdapter.isEnabled()) {
-                mBluetoothAdapter.enable();
-            }
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (mBluetoothService != null) {
-                        if (mBluetoothService.getState() == BluetoothService.STATE_NONE) {
-                            mBluetoothService.start();
-                        }
-                    }
-                    else {
-                        Log.e(TAG, "onResume.run: service is null");
-                        String address = SharedUtil.getString("BTName");
-                        if (address != null) {
-                            Log.e("--", "BTName = " + address);
-                            mBluetoothService = new BluetoothService(getApplicationContext(), mHandler); // Used to manage Bluetooth connections
-                            device = mBluetoothAdapter.getRemoteDevice(address);// Get the BLuetoothDevice object
-                            mBluetoothService.connect(device);// Attempt to connect to the device
-                        }
-                        else {
-                            onClickedBTSet(null);
-                        }
+        if (!mBluetoothAdapter.isEnabled()) {
+            mBluetoothAdapter.enable();
+        }
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (mBluetoothService != null) {
+                    if (mBluetoothService.getState() == BluetoothService.STATE_NONE) {
+                        mBluetoothService.start();
                     }
                 }
-            }, 1000);
-        }
+                else {
+                    Log.e(TAG, "onResume.run: service is null");
+                    String address = SharedUtil.getString("BTName");
+                    if (address != null) {
+                        Log.e("--", "BTName = " + address);
+                        mBluetoothService = new BluetoothService(getApplicationContext(), mHandler); // Used to manage Bluetooth connections
+                        device = mBluetoothAdapter.getRemoteDevice(address);// Get the BLuetoothDevice object
+                        mBluetoothService.connect(device);// Attempt to connect to the device
+                    }
+                    else {
+                        onClickedBTSet(null);
+                    }
+                }
+            }
+        }, 1000);
+
         if (lineChart == null) {
             lineChart = findViewById(R.id.lineChart);
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
@@ -1560,31 +1309,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         else {
             outputSwitch.setVisibility(View.INVISIBLE);
         }
-        if (readThread == null) {
-            // Open the reader thread to read the data received by the serial port
-            readThread = new Thread(() -> {
-                byte[] buffer = new byte[4096];
-                while (isOpen) {
-                    int length = MyApp.driver.ReadData(buffer, 4096);
-                    if (length > 0) {
-                        handleSerialData(length, buffer);
-                    }
-                }
-                try {
-                    Thread.sleep(10);
-                }
-                catch (Exception ignored) {
-                }
-            });
-            readThread.start();
-        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         if (mBluetoothService != null) mBluetoothService.stop();
-        serialPortClose();
         bDisplay = false;
     }
 
@@ -1606,9 +1336,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     mBluetoothService.connect(device);
                 }
                 break;
-            case GPS_REQUEST_CODE:
-                openGPSSetting();
-                break;
         }
     }
 
@@ -1616,73 +1343,30 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     int iJY61RateSelect = 0;
 
     public void onClickSetJy61Baud() {
-        if (bUsbConnect) {
-            switch (iBaud) {
-                case 9600:
-                    iJY61Baud = 0;
-                    break;
-                case 115200:
-                    iJY61Baud = 1;
-                    break;
-            }
-            new AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.select_return_rate))
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setSingleChoiceItems(new String[]{"9600", "115200"}, iJY61Baud, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            iJY61Baud = i;
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.select_return_rate))
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setSingleChoiceItems(new String[]{"20Hz", "100Hz"}, iJY61RateSelect, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        iJY61RateSelect = i;
+                    }
+                })
+                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        try {
+                            sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) (0x64 - iJY61RateSelect)});
                         }
-                    })
-                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface arg0, int arg1) {
-                            try {
-                                sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) (0x64 - iJY61Baud)});
-                                Thread.sleep(100);
-                                if (iJY61Baud == 0) {
-                                    iBaud = 9600;
-                                }
-                                else {
-                                    iBaud = 115200;
-                                }
-                                if (MyApp.driver.isConnected()) {
-                                    MyApp.driver.SetConfig(iBaud, (byte) 8, (byte) 0, (byte) 0, (byte) 0);
-                                }
-                            }
-                            catch (Exception e) {
-                                Log.e(TAG, "onClickSetJy61Baud: ", e);
-                            }
+                        catch (Exception e) {
+                            Log.e(TAG, "onClick: ", e);
                         }
-                    })
-                    .setNegativeButton(getString(R.string.cancel), null)
-                    .show();
-        }
-        else {
-            new AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.select_return_rate))
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setSingleChoiceItems(new String[]{"20Hz", "100Hz"}, iJY61RateSelect, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            iJY61RateSelect = i;
-                        }
-                    })
-                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface arg0, int arg1) {
-                            try {
-                                sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) (0x64 - iJY61RateSelect)});
-                            }
-                            catch (Exception e) {
-                                Log.e(TAG, "onClick: ", e);
-                            }
-                        }
-                    })
-                    .setNegativeButton(getString(R.string.cancel), null)
-                    .show();
-        }
+                    }
+                })
+                .setNegativeButton(getString(R.string.cancel), null)
+                .show();
     }
+
 
     int iDirection = 0;
 
