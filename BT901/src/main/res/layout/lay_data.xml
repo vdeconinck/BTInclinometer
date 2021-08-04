@@ -23,21 +23,21 @@
         android:gravity="center_vertical">
 
         <Button
-            android:id="@+id/BtnConfig"
+            android:id="@+id/configMenuBtn"
             android:layout_width="20dp"
             android:layout_height="15dp"
             android:layout_centerVertical="true"
             android:layout_marginLeft="20dp"
-            android:onClick="onConfigClick"
+            android:onClick="onConfigMenuBtnClick"
             android:background="@drawable/icon_musen" />
 
         <Button
-            android:id="@+id/btnBluetoothSet"
+            android:id="@+id/scanBluetoothBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:onClick="OnClickConfig"
+            android:onClick="onBluetoothScanClick"
             android:background="@color/accent_1"
             android:text="@string/menu_scan"
             android:textColor="@color/white" />
@@ -66,111 +66,111 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/button0"
+                android:id="@+id/systemTabBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#33b5e5"
-                android:onClick="ControlClick"
+                android:onClick="onTabBtnClick"
                 android:text="@string/system"
                 android:textColor="@color/white"
                 android:textSize="17sp" />
 
             <Button
-                android:id="@+id/button1"
+                android:id="@+id/accelerationTabBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#33b5e5"
-                android:onClick="ControlClick"
+                android:onClick="onTabBtnClick"
                 android:text="@string/mAcc"
                 android:textColor="@color/white"
                 android:textSize="17sp" />
 
             <Button
-                android:id="@+id/button2"
+                android:id="@+id/angularVelocityTabBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#33b5e5"
-                android:onClick="ControlClick"
+                android:onClick="onTabBtnClick"
                 android:text="@string/mAngleVelocity"
                 android:textColor="@color/white"
                 android:textSize="17sp" />
 
             <Button
-                android:id="@+id/button3"
+                android:id="@+id/angleTabBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#0099cc"
-                android:onClick="ControlClick"
+                android:onClick="onTabBtnClick"
                 android:text="@string/mAngle"
                 android:textColor="@color/white"
                 android:textSize="17sp" />
 
             <Button
-                android:id="@+id/button4"
+                android:id="@+id/magneticFieldTabBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#33b5e5"
-                android:onClick="ControlClick"
+                android:onClick="onTabBtnClick"
                 android:text="@string/mMag"
                 android:textColor="@color/white"
                 android:textSize="17sp" />
 
             <Button
-                android:id="@+id/button5"
+                android:id="@+id/portTabBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#33b5e5"
-                android:onClick="ControlClick"
+                android:onClick="onTabBtnClick"
                 android:text="@string/mPort"
                 android:textColor="@color/white"
                 android:textSize="17sp" />
 
             <Button
-                android:id="@+id/button6"
+                android:id="@+id/pressureTabBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#33b5e5"
-                android:onClick="ControlClick"
+                android:onClick="onTabBtnClick"
                 android:text="@string/myPressure"
                 android:textColor="@color/white"
                 android:textSize="17sp" />
 
             <Button
-                android:id="@+id/button7"
+                android:id="@+id/locationTabBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#33b5e5"
-                android:onClick="ControlClick"
+                android:onClick="onTabBtnClick"
                 android:text="@string/lal"
                 android:textColor="@color/white"
                 android:textSize="17sp" />
 
             <Button
-                android:id="@+id/button8"
+                android:id="@+id/gpsVelocityTabBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#33b5e5"
-                android:onClick="ControlClick"
+                android:onClick="onTabBtnClick"
                 android:text="@string/gv"
                 android:textColor="@color/white"
                 android:textSize="17sp" />
 
             <Button
-                android:id="@+id/button9"
+                android:id="@+id/quaternionTabBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#33b5e5"
-                android:onClick="ControlClick"
+                android:onClick="onTabBtnClick"
                 android:text="@string/mQuater"
                 android:textColor="@color/white"
                 android:textSize="17sp" />
 
             <Button
-                android:id="@+id/buttonA"
+                android:id="@+id/satelliteNumberTabBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#33b5e5"
-                android:onClick="ControlClick"
+                android:onClick="onTabBtnClick"
                 android:text="@string/sn"
                 android:textColor="@color/white"
                 android:textSize="17sp"
@@ -193,7 +193,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:layout_marginRight="20dp"
-                android:onClick="OutputSwitchClick"
+                android:onClick="onOutputSwitchClick"
                 android:checked="true"
                 android:gravity="right|center_vertical"
                 android:text="@string/data_output" />

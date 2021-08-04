@@ -197,7 +197,7 @@
             android:layout_width="100dp"
             android:layout_height="40dp"
             android:background="@drawable/button_gray"
-            android:text="@string/abolish"
+            android:text="@string/cancel"
             android:textColor="@color/white" />
 
         <Button

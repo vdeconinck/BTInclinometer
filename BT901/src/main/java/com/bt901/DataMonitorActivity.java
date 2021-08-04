@@ -59,6 +59,19 @@ import cn.wch.ch34xuartdriver.CH34xUARTDriver;
 
 public class DataMonitorActivity extends FragmentActivity implements OnClickListener {
 
+    // Index of tabs
+    public static final int TAB_SYSTEM = 0;
+    public static final int TAB_ACCELERATION = 1;
+    public static final int TAB_ANGULAR_VELOCITY = 2;
+    public static final int TAB_ANGLE = 3;
+    public static final int TAB_MAGNETIC_FIELD = 4;
+    public static final int TAB_PORT = 5;
+    public static final int TAB_PRESSURE = 6;
+    public static final int TAB_LOCATION = 7;
+    public static final int TAB_GPS_VELOCITY = 8;
+    public static final int TAB_QUATERNION = 9;
+    public static final int TAB_SATELLITE_NUMBER = 10;
+
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothService mBluetoothService = null;
     private String mConnectedDeviceName = null;
@@ -94,7 +107,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private static short IDNow;
     private static int saveState = -1;
     private static int sDataSave = 0;
-    static int iCurrentGroup = 3;
+    static int currentTab = 3;
     private static String strDate = "", strTime = "";
     private boolean bBTConnet = false;
     private LineChart lineChart;
@@ -130,7 +143,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     static Queue<Byte> queueBuffer = new LinkedList<>();
     static boolean[] bDataUpdate = new boolean[20];
 
-    public static void HandleSerialData(int acceptedLen, byte[] tempInputBuffer) {
+    public static void handleSerialData(int acceptedLen, byte[] tempInputBuffer) {
         byte[] packBuffer = new byte[11];
         byte sHead;
         float fTemp;
@@ -319,36 +332,36 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
     private void setCurrentGroup(View v) {
-        (findViewById(R.id.button0)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.button1)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.button2)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.button3)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.button4)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.button5)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.button6)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.button7)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.button8)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.button9)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.buttonA)).setBackgroundColor(0xff33b5e5);
+        (findViewById(R.id.systemTabBtn)).setBackgroundColor(0xff33b5e5);
+        (findViewById(R.id.accelerationTabBtn)).setBackgroundColor(0xff33b5e5);
+        (findViewById(R.id.angularVelocityTabBtn)).setBackgroundColor(0xff33b5e5);
+        (findViewById(R.id.angleTabBtn)).setBackgroundColor(0xff33b5e5);
+        (findViewById(R.id.magneticFieldTabBtn)).setBackgroundColor(0xff33b5e5);
+        (findViewById(R.id.portTabBtn)).setBackgroundColor(0xff33b5e5);
+        (findViewById(R.id.pressureTabBtn)).setBackgroundColor(0xff33b5e5);
+        (findViewById(R.id.locationTabBtn)).setBackgroundColor(0xff33b5e5);
+        (findViewById(R.id.gpsVelocityTabBtn)).setBackgroundColor(0xff33b5e5);
+        (findViewById(R.id.quaternionTabBtn)).setBackgroundColor(0xff33b5e5);
+        (findViewById(R.id.satelliteNumberTabBtn)).setBackgroundColor(0xff33b5e5);
         v.setBackgroundColor(0xff0099cc);
     }
 
-    public void OutputSwitchClick(View v) {
+    public void onOutputSwitchClick(View v) {
         Log.e("--", String.format("Output:0x%x", getOutputInt()));
         if (sensor_type_numaxis == 9) {
-            OutputPackage[iCurrentGroup] = outputSwitch.isChecked();
+            outputPackage[currentTab] = outputSwitch.isChecked();
             int outputContent = getOutputInt();
             writeAndSaveReg(0x02, outputContent);
             SharedUtil.putInt("Out", outputContent);
         }
     }
 
-    public void ControlClick(View v) {
+    public void onTabBtnClick(View v) {
         lineChartManager.setbPause(true);
         int i = v.getId();
         setCurrentGroup(v);
-        if (i == R.id.button0) {
-            iCurrentGroup = 0;
+        if (i == R.id.systemTabBtn) {
+            currentTab = TAB_SYSTEM;
             setTableName(getString(R.string.Version), getString(R.string.Voltage), getString(R.string.Date), getString(R.string.Time));
             Log.e("--", "123:" + getString(R.string.Voltage));
             setTableData("1.0", "3.3V", "2020-1-1", "00:00:00.0");
@@ -368,71 +381,71 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 writeReg(0x32, byteToInt((byte) minute, (byte) second), 150);
             }
         }
-        else if (i == R.id.button1) {
-            iCurrentGroup = 1;
+        else if (i == R.id.accelerationTabBtn) {
+            currentTab = TAB_ACCELERATION;
             setTableName("ax:", "ay:", "az:", "|a|");
             setTableData("0", "0", "0", "0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("ax", "ay", "az"), qColour);
             lineChartManager.setDescription(getString(R.string.acc_chart));
         }
-        else if (i == R.id.button2) {
-            iCurrentGroup = 2;
+        else if (i == R.id.angularVelocityTabBtn) {
+            currentTab = TAB_ANGULAR_VELOCITY;
             setTableName("wx:", "wy:", "wz:", "|w|");
             setTableData("0", "0", "0", "0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("wx", "wy", "wz"), qColour);
             lineChartManager.setDescription(getString(R.string.w_chart));
         }
-        else if (i == R.id.button3) {
-            iCurrentGroup = 3;
+        else if (i == R.id.angleTabBtn) {
+            currentTab = TAB_ANGLE;
             setTableName("AgnleX:", "AngleY:", "AngleZ:", "T:");
             setTableData("0", "0", "0", "25℃");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
             lineChartManager.setDescription(getString(R.string.angle_chart));
         }
-        else if (i == R.id.button4) {
-            iCurrentGroup = 4;
+        else if (i == R.id.magneticFieldTabBtn) {
+            currentTab = TAB_MAGNETIC_FIELD;
             setTableName("hx:", "hy:", "hz:", "|h|");
             setTableData("0", "0", "0", "0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("hx", "hy", "hz"), qColour);
             lineChartManager.setDescription(getString(R.string.mag_chart));
         }
-        else if (i == R.id.button5) {
-            iCurrentGroup = 5;
+        else if (i == R.id.portTabBtn) {
+            currentTab = TAB_PORT;
             setTableName("D0:", "D1:", "D2:", "D3:");
             setTableData("0", "0", "0", "0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("D0", "D1", "D2", "D3"), qColour);
             lineChartManager.setDescription(getString(R.string.port_chart));
         }
-        else if (i == R.id.button6) {
-            iCurrentGroup = 6;
+        else if (i == R.id.pressureTabBtn) {
+            currentTab = TAB_PRESSURE;
             setTableName("Pressure:", "Altitude:", "wz:", "|w|");
             setTableData("0", "0", "0", "0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("pressure"), qColour);
             lineChartManager.setDescription(getString(R.string.pressure_chart));
         }
-        else if (i == R.id.button7) {
-            iCurrentGroup = 7;
+        else if (i == R.id.locationTabBtn) {
+            currentTab = TAB_LOCATION;
             setTableName("Longitude:", "Latitude:", "", "");
             setTableData("0", "0", "", "");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
             lineChartManager.setDescription(getString(R.string.angle_chart));
         }
-        else if (i == R.id.button8) {
-            iCurrentGroup = 8;
+        else if (i == R.id.gpsVelocityTabBtn) {
+            currentTab = TAB_GPS_VELOCITY;
             setTableName("Altitude:", "Yaw:", "Velocity:", "");
             setTableData("0", "0", "0", "");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
             lineChartManager.setDescription(getString(R.string.angle_chart));
         }
-        else if (i == R.id.button9) {
-            iCurrentGroup = 9;
+        else if (i == R.id.quaternionTabBtn) {
+            currentTab = TAB_QUATERNION;
             setTableName("q0:", "q1:", "q2:", "q3:");
             setTableData("0", "0", "0", "0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("q0", "q1", "q2", "q3"), qColour);
             lineChartManager.setDescription(getString(R.string.quaternion_chart));
         }
-        else if (i == R.id.buttonA) {
-            iCurrentGroup = 10;
+        else if (i == R.id.satelliteNumberTabBtn) {
+            currentTab = TAB_SATELLITE_NUMBER;
             setTableName("SN:", "PDOP:", "HDOP:", "VDOP");
             setTableData("0", "0", "0", "0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
@@ -440,7 +453,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
         if (sensor_type_numaxis == 9) {
             outputSwitch.setVisibility(View.VISIBLE);
-            outputSwitch.setChecked(OutputPackage[iCurrentGroup]);
+            outputSwitch.setChecked(outputPackage[currentTab]);
         }
         else {
             outputSwitch.setVisibility(View.INVISIBLE);
@@ -645,7 +658,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         setBaudrate(iBaud);
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -670,7 +683,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         setBaudrate(iBaud);
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -682,8 +695,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         MyApp.driver.SetConfig(iBaud, (byte) 8, (byte) 0, (byte) 0, (byte) 0);
     }
 
-    public void ChangeBaud() {
-        if (MyApp.driver.isConnected() == false) return;
+    public void tryOtherBaudRate() {
+        if (!MyApp.driver.isConnected()) return;
         switch (iBaud) {
             case 2400:
                 setBaudrate(4800);
@@ -725,9 +738,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private final Handler refreshHandler = new Handler(Looper.getMainLooper()) {
         public void handleMessage(Message msg) {
             if (bPause) return;
-            if (bDataUpdate[iCurrentGroup] == false) return;
-            bDataUpdate[iCurrentGroup] = false;
-            switch (iCurrentGroup) {
+            if (!bDataUpdate[currentTab]) return;
+            bDataUpdate[currentTab] = false;
+            switch (currentTab) {
                 case 0:
                     ((TextView) findViewById(R.id.tvZ)).setText(strDate);
                     ((TextView) findViewById(R.id.tvAll)).setText(strTime);
@@ -782,10 +795,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 case 10: // Number of satellites
                     setTableData(String.format("% 5.0f", sn), String.format("% 7.1f", pdop), String.format("% 7.1f", hdop), String.format("% 7.1f", vdop));
                     break;
-            }//switch
+            } // end switch
 
-            if ((iCurrentGroup == 10) || (iCurrentGroup == 8) || (iCurrentGroup == 7) || (iCurrentGroup == 3) || (iCurrentGroup == 0))//10 8 7 3 0
-            {
+            // Draw angle in groups 10 8 7 3 0
+            if ((currentTab == 10) || (currentTab == 8) || (currentTab == 7) || (currentTab == 3) || (currentTab == 0)) {
                 lineChartManager.addEntry(Arrays.asList(angle[0], angle[1], angle[2]));
             }
 
@@ -904,7 +917,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         ExpandableListView listview = findViewById(R.id.expandableLisView);
         drawerLayout = findViewById(R.id.drawerLayout);
         List<MenuItem> menuItemList = new ArrayList<>();
-        mTitle = findViewById(R.id.btnBluetoothSet);
+        mTitle = findViewById(R.id.scanBluetoothBtn);
         tvLabelX = findViewById(R.id.X);
         tvLabelY = findViewById(R.id.Y);
         tvLabelZ = findViewById(R.id.Z);
@@ -915,93 +928,87 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         tvAll = findViewById(R.id.tvAll);
 
         if (sensor_type_numaxis == 3) {
-            findViewById(R.id.button2).setVisibility(View.GONE);
-            findViewById(R.id.button4).setVisibility(View.GONE);
-            findViewById(R.id.button5).setVisibility(View.GONE);
-            findViewById(R.id.button6).setVisibility(View.GONE);
-            findViewById(R.id.button7).setVisibility(View.GONE);
-            findViewById(R.id.button8).setVisibility(View.GONE);
-            findViewById(R.id.button9).setVisibility(View.GONE);
-            findViewById(R.id.buttonA).setVisibility(View.GONE);
-            MenuGroup grop = new MenuGroup();
-            grop.setName(getString(R.string.acc_calibration));
-            grop.setChildList(menuItemList);
-            MenuGroup grop2 = new MenuGroup();
-            grop2.setName(getString(R.string.smoothing_factor));
-            grop2.setChildList(menuItemList);
-            groupList.add(grop);
-            groupList.add(grop2);
+            findViewById(R.id.angularVelocityTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.magneticFieldTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.portTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.pressureTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.locationTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.gpsVelocityTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.quaternionTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.satelliteNumberTabBtn).setVisibility(View.GONE);
+            MenuGroup group = new MenuGroup();
+            group.setName(getString(R.string.acc_calibration));
+            group.setChildList(menuItemList);
+            MenuGroup group2 = new MenuGroup();
+            group2.setName(getString(R.string.smoothing_factor));
+            group2.setChildList(menuItemList);
+            groupList.add(group);
+            groupList.add(group2);
         }
         else if (sensor_type_numaxis == 6) {
-            findViewById(R.id.button4).setVisibility(View.GONE);
-            findViewById(R.id.button5).setVisibility(View.GONE);
-            findViewById(R.id.button6).setVisibility(View.GONE);
-            findViewById(R.id.button7).setVisibility(View.GONE);
-            findViewById(R.id.button8).setVisibility(View.GONE);
-            findViewById(R.id.button9).setVisibility(View.GONE);
-            findViewById(R.id.buttonA).setVisibility(View.GONE);
-            MenuGroup grop = new MenuGroup();
-            grop.setName(getString(R.string.acc_calibration));
-            grop.setChildList(menuItemList);
-            groupList.add(grop);
-            MenuGroup grop2 = new MenuGroup();
-            grop2.setName(getString(R.string.dormancy));
-            grop2.setChildList(menuItemList);
-            groupList.add(grop2);
-            MenuGroup grop3 = new MenuGroup();
-            grop3.setName(getString(R.string.reset_Z_axis));
-            grop3.setChildList(menuItemList);
-            groupList.add(grop3);
-            MenuGroup grop4 = new MenuGroup();
+            findViewById(R.id.magneticFieldTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.portTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.pressureTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.locationTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.gpsVelocityTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.quaternionTabBtn).setVisibility(View.GONE);
+            findViewById(R.id.satelliteNumberTabBtn).setVisibility(View.GONE);
+            MenuGroup group = new MenuGroup();
+            group.setName(getString(R.string.acc_calibration));
+            group.setChildList(menuItemList);
+            groupList.add(group);
+            MenuGroup group2 = new MenuGroup();
+            group2.setName(getString(R.string.dormancy));
+            group2.setChildList(menuItemList);
+            groupList.add(group2);
+            MenuGroup group3 = new MenuGroup();
+            group3.setName(getString(R.string.reset_Z_axis));
+            group3.setChildList(menuItemList);
+            groupList.add(group3);
+            MenuGroup group4 = new MenuGroup();
             if (bUsbConnect) {
-                grop4.setName(getString(R.string.baudrate));
+                group4.setName(getString(R.string.baudrate));
             }
             else {
-                grop4.setName(getString(R.string.retrieval_rate));
+                group4.setName(getString(R.string.retrieval_rate));
             }
-            grop4.setChildList(menuItemList);
-            groupList.add(grop4);
-            MenuGroup grop5 = new MenuGroup();
-            grop5.setName(getString(R.string.installation_orientation));
-            grop5.setChildList(menuItemList);
-            groupList.add(grop5);
-            MenuGroup grop6 = new MenuGroup();
-            grop6.setName(getString(R.string.static_detection_threshold));
-            grop6.setChildList(menuItemList);
-            groupList.add(grop6);
-            MenuGroup grop7 = new MenuGroup();
-            grop7.setName(getString(R.string.measurement_bandwidth));
-            grop7.setChildList(menuItemList);
-            groupList.add(grop7);
+            group4.setChildList(menuItemList);
+            groupList.add(group4);
+            MenuGroup group5 = new MenuGroup();
+            group5.setName(getString(R.string.installation_orientation));
+            group5.setChildList(menuItemList);
+            groupList.add(group5);
+            MenuGroup group6 = new MenuGroup();
+            group6.setName(getString(R.string.static_detection_threshold));
+            group6.setChildList(menuItemList);
+            groupList.add(group6);
+            MenuGroup group7 = new MenuGroup();
+            group7.setName(getString(R.string.measurement_bandwidth));
+            group7.setChildList(menuItemList);
+            groupList.add(group7);
         }
         else if (sensor_type_numaxis == 9 || isOpen) {
             // System menu
             if (bBTConnet) {
-                findViewById(R.id.button5).setVisibility(View.GONE);
-                findViewById(R.id.button7).setVisibility(View.GONE);
-                findViewById(R.id.button8).setVisibility(View.GONE);
-                findViewById(R.id.buttonA).setVisibility(View.GONE);
+                findViewById(R.id.portTabBtn).setVisibility(View.GONE);
+                findViewById(R.id.locationTabBtn).setVisibility(View.GONE);
+                findViewById(R.id.gpsVelocityTabBtn).setVisibility(View.GONE);
+                findViewById(R.id.satelliteNumberTabBtn).setVisibility(View.GONE);
             }
             else {
-                findViewById(R.id.button5).setVisibility(View.VISIBLE);
-                findViewById(R.id.button7).setVisibility(View.VISIBLE);
-                findViewById(R.id.button8).setVisibility(View.VISIBLE);
-                findViewById(R.id.buttonA).setVisibility(View.VISIBLE);
+                findViewById(R.id.portTabBtn).setVisibility(View.VISIBLE);
+                findViewById(R.id.locationTabBtn).setVisibility(View.VISIBLE);
+                findViewById(R.id.gpsVelocityTabBtn).setVisibility(View.VISIBLE);
+                findViewById(R.id.satelliteNumberTabBtn).setVisibility(View.VISIBLE);
             }
             MenuGroup system = new MenuGroup();
             system.setName(getString(R.string.system));
-            MenuItem sys1 = new MenuItem();
-            sys1.setName(getString(R.string.factory_reset));
-            MenuItem sys2 = new MenuItem();
-            sys2.setName(getString(R.string.dormancy));
-            MenuItem sys3 = new MenuItem();
-            sys3.setName(getString(R.string.algorithm));
-            MenuItem sys4 = new MenuItem();
-            sys4.setName(getString(R.string.installation_orientation));
-            MenuItem sys5 = new MenuItem();
-            sys5.setName(getString(R.string.Instruction_start));
-            MenuItem sys6 = new MenuItem();
-            sys6.setName(getString(R.string.alarm));
+            MenuItem sys1 = new MenuItem(getString(R.string.factory_reset));
+            MenuItem sys2 = new MenuItem(getString(R.string.dormancy));
+            MenuItem sys3 = new MenuItem(getString(R.string.algorithm));
+            MenuItem sys4 = new MenuItem(getString(R.string.installation_orientation));
+            MenuItem sys5 = new MenuItem(getString(R.string.__instruction_start));
+            MenuItem sys6 = new MenuItem(getString(R.string.alarm));
             List<MenuItem> sysList = new ArrayList<>();
             sysList.add(sys1);
             sysList.add(sys2);
@@ -1015,20 +1022,13 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             // Calibration menu
             MenuGroup calibration = new MenuGroup();
             calibration.setName(getString(R.string.calibration));
-            MenuItem c1 = new MenuItem();
-            c1.setName(getString(R.string.acc_calibration));
-            MenuItem c2 = new MenuItem();
-            c2.setName(getString(R.string.magnetic_field_calibration_start));
-            MenuItem c2ok = new MenuItem();
-            c2ok.setName(getString(R.string.magnetic_field_calibration_end));
-            MenuItem c3 = new MenuItem();
-            c3.setName(getString(R.string.reset_height));
-            MenuItem c4 = new MenuItem();
-            c4.setName(getString(R.string.gyroscope_automatic_calibration));
-            MenuItem c5 = new MenuItem();
-            c5.setName(getString(R.string.Z_axis_angle_to_zero));
-            MenuItem c6 = new MenuItem();
-            c6.setName(getString(R.string.setting_angle_reference));
+            MenuItem c1 = new MenuItem(getString(R.string.acc_calibration));
+            MenuItem c2 = new MenuItem(getString(R.string.magnetic_field_calibration_start));
+            MenuItem c2ok = new MenuItem(getString(R.string.magnetic_field_calibration_end));
+            MenuItem c3 = new MenuItem(getString(R.string.reset_height));
+            MenuItem c4 = new MenuItem(getString(R.string.gyroscope_automatic_calibration));
+            MenuItem c5 = new MenuItem(getString(R.string.Z_axis_angle_to_zero));
+            MenuItem c6 = new MenuItem(getString(R.string.setting_angle_reference));
             List<MenuItem> cbList = new ArrayList<>();
             cbList.add(c1);
             cbList.add(c2);
@@ -1043,12 +1043,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             // Range menu
             MenuGroup range = new MenuGroup();
             range.setName(getString(R.string.range));
-            MenuItem range1 = new MenuItem();
-            range1.setName(getString(R.string.acceleration_range));
-            MenuItem range2 = new MenuItem();
-            range2.setName(getString(R.string.angular_velocity_range));
-            MenuItem range3 = new MenuItem();
-            range3.setName(getString(R.string.bandwidth));
+            MenuItem range1 = new MenuItem(getString(R.string.acceleration_range));
+            MenuItem range2 = new MenuItem(getString(R.string.angular_velocity_range));
+            MenuItem range3 = new MenuItem(getString(R.string.bandwidth));
             List<MenuItem> spcopeList = new ArrayList<>();
             spcopeList.add(range1);
             spcopeList.add(range2);
@@ -1060,15 +1057,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             MenuGroup communication = new MenuGroup();
             communication.setName(getString(R.string.signal_communication));
             List<MenuItem> comList = new ArrayList<>();
-            MenuItem com1 = new MenuItem();
-            com1.setName(getString(R.string.retrieval_rate));
-            MenuItem com2 = new MenuItem();
-            com2.setName(getString(R.string.address));
+            MenuItem com1 = new MenuItem(getString(R.string.retrieval_rate));
+            MenuItem com2 = new MenuItem(getString(R.string.address));
             comList.add(com1);
             comList.add(com2);
             if (isOpen) {
-                MenuItem com = new MenuItem();
-                com.setName(getString(R.string.communication_rate));
+                MenuItem com = new MenuItem(getString(R.string.communication_rate));
                 comList.add(com);
             }
             communication.setChildList(comList);
@@ -1077,14 +1071,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 // Port mode
                 MenuGroup port = new MenuGroup();
                 port.setName(getString(R.string.port_mode));
-                MenuItem prot1 = new MenuItem();
-                prot1.setName(getString(R.string.d0_mode));
-                MenuItem prot2 = new MenuItem();
-                prot2.setName(getString(R.string.d1_mode));
-                MenuItem prot3 = new MenuItem();
-                prot3.setName(getString(R.string.d2_mode));
-                MenuItem prot4 = new MenuItem();
-                prot4.setName(getString(R.string.d3_mode));
+                MenuItem prot1 = new MenuItem(getString(R.string.d0_mode));
+                MenuItem prot2 = new MenuItem(getString(R.string.d1_mode));
+                MenuItem prot3 = new MenuItem(getString(R.string.d2_mode));
+                MenuItem prot4 = new MenuItem(getString(R.string.d3_mode));
                 List<MenuItem> protLlist = new ArrayList<>();
                 protLlist.add(prot1);
                 protLlist.add(prot2);
@@ -1096,14 +1086,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 // Port PWM pulse width
                 MenuGroup pwm = new MenuGroup();
                 pwm.setName(getString(R.string.port_PWM_pulse_width));
-                MenuItem pwm1 = new MenuItem();
-                pwm1.setName(getString(R.string.D0PWM_pulse_width));
-                MenuItem pwm2 = new MenuItem();
-                pwm2.setName(getString(R.string.D1PWM_pulse_width));
-                MenuItem pwm3 = new MenuItem();
-                pwm3.setName(getString(R.string.D2PWM_pulse_width));
-                MenuItem pwm4 = new MenuItem();
-                pwm4.setName(getString(R.string.D3PWM_pulse_width));
+                MenuItem pwm1 = new MenuItem(getString(R.string.D0PWM_pulse_width));
+                MenuItem pwm2 = new MenuItem(getString(R.string.D1PWM_pulse_width));
+                MenuItem pwm3 = new MenuItem(getString(R.string.D2PWM_pulse_width));
+                MenuItem pwm4 = new MenuItem(getString(R.string.D3PWM_pulse_width));
                 List<MenuItem> pwmList = new ArrayList<>();
                 pwmList.add(pwm1);
                 pwmList.add(pwm2);
@@ -1115,14 +1101,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 // Port PWM cycle
                 MenuGroup cycle = new MenuGroup();
                 cycle.setName(getString(R.string.port_PWM_cycle));
-                MenuItem cycle1 = new MenuItem();
-                cycle1.setName(getString(R.string.D0PWM_cycle));
-                MenuItem cycle2 = new MenuItem();
-                cycle2.setName(getString(R.string.D1PWM_cycle));
-                MenuItem cycle3 = new MenuItem();
-                cycle3.setName(getString(R.string.D2PWM_cycle));
-                MenuItem cycle4 = new MenuItem();
-                cycle4.setName(getString(R.string.D3PWM_cycle));
+                MenuItem cycle1 = new MenuItem(getString(R.string.D0PWM_cycle));
+                MenuItem cycle2 = new MenuItem(getString(R.string.D1PWM_cycle));
+                MenuItem cycle3 = new MenuItem(getString(R.string.D2PWM_cycle));
+                MenuItem cycle4 = new MenuItem(getString(R.string.D3PWM_cycle));
                 List<MenuItem> cycleList = new ArrayList<>();
                 cycleList.add(cycle1);
                 cycleList.add(cycle2);
@@ -1172,6 +1154,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 @Override
                 public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
                     drawerLayout.closeDrawer(GravityCompat.START);
+                    // TODO switch
                     if (i == 0) {
                         sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x67});
                     }
@@ -1228,11 +1211,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 1) {
+                        // TODO switch
                         if (i1 == 0) {
                             accCali();
                         }
                         else if (i1 == 1) {
-                            writeLockReg(0x01, 0x07);//开始校准
+                            writeLockReg(0x01, 0x07); // Start calibration
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_calibrating), Toast.LENGTH_LONG).show();
                         }
                         else if (i1 == 2) {
@@ -1262,6 +1246,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         }
                     }
                     if (i == 2) {
+                        // TODO switch
                         if (i1 == 0) {
                             accelartionRange();
                         }
@@ -1274,6 +1259,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 3) {
+                        // TODO switch
                         if (i1 == 0) {
                             outputRate();
                         }
@@ -1286,6 +1272,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 4) {
+                        // TODO switch
                         if (i1 == 0) {
                             String value = getString(R.string.select_D0_port_mode);
                             dMode(i1, value);
@@ -1305,6 +1292,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 5) {
+                        // TODO wtf
                         if (i1 == 0) {
                             pwm(i1);
                         }
@@ -1320,6 +1308,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 6) {
+                        // TODO wtf
                         if (i1 == 0) {
                             pwmCycle(i1);
                         }
@@ -1356,7 +1345,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private void ccSpeed() {
         String[] s = new String[]{"2400", "4800", "9600", "19200", "38400", "57600", "115200", "230400", "460800", "921600"};
         new AlertDialog.Builder(this)
-                .setTitle("请选择通信速率:")
+                .setTitle("Please select the communication rate:")
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setSingleChoiceItems(s, iChipBaudSelect, new DialogInterface.OnClickListener() {
                     @Override
@@ -1364,13 +1353,13 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         iChipBaudSelect = i;
                     }
                 })
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                         sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x04, (byte) iChipBaudSelect, (byte) 0x00});
                     }
                 })
-                .setNegativeButton("取消", null)
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 
@@ -1440,7 +1429,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         writeAndSaveReg(0x03, (byte) (iRetrivalRateSelect + 1));
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -1470,7 +1459,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         writeAndSaveReg(0x0e + index, iPortMode[index]);
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -1494,7 +1483,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         writeAndSaveReg(0x1f, (byte) iBandwidth901);
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -1520,7 +1509,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         SharedUtil.putInt("av", av);
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -1546,7 +1535,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         SharedUtil.putInt("ar", ar);
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -1569,7 +1558,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         writeAndSaveReg(0x63, (byte) iAutoCali);
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -1583,7 +1572,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             bMagCali = false;
         }
         else {//End calibration
-            writeLockReg(0x01, 0x07);//Start calibration
+            writeLockReg(0x01, 0x07); // Start calibration
             groupList.get(1).getChildList().get(1).setName(getString(R.string.finish));
             adapter.notifyDataSetChanged();
             bMagCali = true;
@@ -1648,7 +1637,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         }
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -1662,12 +1651,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     private boolean serialPortOpen() {
         retval = MyApp.driver.ResumeUsbList();
-        if (retval == -1)// ResumeUsbList方法用于枚举CH34X设备以及打开相关设备
+        if (retval == -1) // The ResumeUsbList() method is used to enumerate CH34X devices and open related devices
         {
             MyApp.driver.CloseDevice();
         }
         else if (retval == 0) {
-            if (!MyApp.driver.UartInit()) {//对串口设备进行初始化操作
+            if (!MyApp.driver.UartInit()) { // Initialize the serial device
                 Toast.makeText(DataMonitorActivity.this, getString(R.string.open_device_failure), Toast.LENGTH_SHORT).show();
                 return false;
             }
@@ -1706,7 +1695,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public void onClickedBTSet(View v) {
         try {
             if (mBluetoothService == null) {
-                mBluetoothService = new BluetoothService(this, mHandler); // 用来管理蓝牙的连接
+                mBluetoothService = new BluetoothService(this, mHandler); // Used to manage Bluetooth connections
             }
             else {
                 mBluetoothService.stop();
@@ -1719,34 +1708,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
     }
 
-//    @SuppressLint("NewApi")
-//    private void SelectFragment(int Index) {
-//        // TODO Auto-generated method stub
-//        android.support.v4.app.FragmentManager manager = getSupportFragmentManager();
-//        android.support.v4.app.FragmentTransaction transaction = manager.beginTransaction();
-//        if (dataFragment == null) {
-//            dataFragment = new DataFragment();
-//            transaction.add(R.id.id_content, dataFragment);
-//        }
-//        if (usFragment == null) {
-//            usFragment = new UsFragment();
-//            transaction.add(R.id.id_content, usFragment);
-//        }
-//        switch (Index) {
-//            case 0:
-//                transaction.show(dataFragment);
-//                transaction.hide(usFragment);
-//                break;
-//            case 1:
-//                transaction.hide(dataFragment);
-//                transaction.show(usFragment);
-//                break;
-//            default:
-//                break;
-//        }
-//        transaction.commit();
-//    }
-
     @Override
     public void onStart() {
         super.onStart();
@@ -1755,7 +1716,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public synchronized void onResume() {
         super.onResume();
         initButton();
-        if (bUsbConnect == false) {
+        if (!bUsbConnect) {
             if (!mBluetoothAdapter.isEnabled()) {
                 mBluetoothAdapter.enable();
             }
@@ -1772,7 +1733,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         String address = SharedUtil.getString("BTName");
                         if (address != null) {
                             Log.e("--", "BTName = " + address);
-                            mBluetoothService = new BluetoothService(getApplicationContext(), mHandler); // 用来管理蓝牙的连接
+                            mBluetoothService = new BluetoothService(getApplicationContext(), mHandler); // Used to manage Bluetooth connections
                             device = mBluetoothAdapter.getRemoteDevice(address);// Get the BLuetoothDevice object
                             mBluetoothService.connect(device);// Attempt to connect to the device
                         }
@@ -1784,11 +1745,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             }, 1000);
         }
         if (lineChart == null) {
-            lineChart = (LineChart) findViewById(R.id.lineChart);
+            lineChart = findViewById(R.id.lineChart);
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
             lineChartManager.setDescription(getString(R.string.angle_chart));
         }
-        outputSwitch = (Switch) findViewById(R.id.dataSwitch);
+        outputSwitch = findViewById(R.id.dataSwitch);
         if (sensor_type_numaxis == 9) {
             outputSwitch.setVisibility(View.VISIBLE);
         }
@@ -1796,14 +1757,14 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             outputSwitch.setVisibility(View.INVISIBLE);
         }
         if (readThread == null) {
+            // Open the reader thread to read the data received by the serial port
             readThread = new Thread(new Runnable() {
                 public void run() {
                     byte[] buffer = new byte[4096];
-                    while (true) {
-                        if (!isOpen) break;
+                    while (isOpen) {
                         int length = MyApp.driver.ReadData(buffer, 4096);
                         if (length > 0) {
-                            HandleSerialData(length, buffer);
+                            handleSerialData(length, buffer);
                         }
                     }
                     try {
@@ -1814,7 +1775,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 }
             });
             readThread.start();
-        }//开启读线程读取串口接收的数据
+        }
     }
 
     @Override
@@ -1838,14 +1799,19 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public BluetoothDevice device;
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
-            case REQUEST_CONNECT_DEVICE:// When DeviceListActivity returns with a device to connect
+            case REQUEST_CONNECT_DEVICE:
+                // When DeviceListActivity returns with a device to connect
                 if (resultCode == Activity.RESULT_OK) {
-                    String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);// Get the device MAC address
-                    device = mBluetoothAdapter.getRemoteDevice(address);// Get the BLuetoothDevice object
+                    // Get the device MAC address
+                    String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+                    // Get the BluetoothDevice object
+                    device = mBluetoothAdapter.getRemoteDevice(address);
                     SharedUtil.putString("BTName", address);
-                    mBluetoothService.connect(device);// Attempt to connect to the device
+                    // Attempt to connect to the device
+                    mBluetoothService.connect(device);
                 }
                 break;
             case GPS_REQUEST_CODE:
@@ -1896,7 +1862,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             }
                         }
                     })
-                    .setNegativeButton(getString(R.string.abolish), null)
+                    .setNegativeButton(getString(R.string.cancel), null)
                     .show();
         }
         else {
@@ -1919,7 +1885,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             }
                         }
                     })
-                    .setNegativeButton(getString(R.string.abolish), null)
+                    .setNegativeButton(getString(R.string.cancel), null)
                     .show();
         }
     }
@@ -1947,7 +1913,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         }
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -1969,7 +1935,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         writeAndSaveReg(0x23, 0x01 - getiDirection901);
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -1977,7 +1943,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     public void cmdStartUp() {
         new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.Whether_or_not))
+                .setTitle(getString(R.string.__whether_or_not))
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setSingleChoiceItems(new String[]{"Yes", "No"}, iCmdStartup, new DialogInterface.OnClickListener() {
                     @Override
@@ -1991,7 +1957,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         writeAndSaveReg(0x2d, iCmdStartup);
                     }
                 })
-                .setNegativeButton((R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -2015,7 +1981,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) (0x71 + iStaticDetect61)});
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -2038,7 +2004,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) (0x81 + iBandwidth61)});
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
@@ -2061,76 +2027,35 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) (0x61 + iMode61)});
                     }
                 })
-                .setNegativeButton(getString(R.string.abolish), null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show();
     }
 
-//    int[] iBauds = new int[]{2400, 4800, 9600, 19200, 38400, 5760, 115200, 230400, 460800, 921600};
-//    int iBaudIndex = 2;
-//    public void OnClickSetJy901Baud(View v) {
-//        for (int i = 0; i < iBauds.length; i++) {
-//            if (iBauds[i] == iBaud) {
-//                iBaudIndex = i;
-//                break;
-//            }
-//        }
-//        new AlertDialog.Builder(this)
-//                .setTitle("请选择波特率:")
-//                .setIcon(android.R.drawable.ic_dialog_alert)
-//                .setSingleChoiceItems(new String[]{"2400", "4800", "9600", "19200", "38400", "57600", "115200", "230400", "460800", "921600"}, iBaudIndex, new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialogInterface, int i) {
-//                        iBaudIndex = i;
-//                    }
-//                })
-//                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface arg0, int arg1) {
-//                        SharedPreferences mySharedPreferences = getSharedPreferences("Output", Activity.MODE_PRIVATE);
-//                        SharedPreferences.Editor editor = mySharedPreferences.edit();
-//                        editor.putString("Baud", String.format("%d", iBaudIndex));
-//                        editor.commit();
-//                        try {
-//                            SendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x04, (byte) iBaudIndex, (byte) 0});
-//                            Thread.sleep(100);
-//                            if (MyApp.driver.isConnected()) {
-//                                MyApp.driver.SetConfig(iBauds[iBaudIndex], (byte) 8, (byte) 0, (byte) 0, (byte) 0);
-//                                iBaud = iBauds[iBaudIndex];
-//                                ;
-//                            }
-//                        } catch (Exception err) {
-//                        }
-//                    }
-//                })
-//                .setNegativeButton("取消", null)
-//                .show();
-//    }
-
-    public void OnClickConfig(View v) {
-        if (v.getId() == R.id.btnBluetoothSet) {
+    public void onBluetoothScanClick(View v) {
+        if (v.getId() == R.id.scanBluetoothBtn) {
             onClickedBTSet(v);
         }
     }
 
 
-    static boolean[] OutputPackage = new boolean[]{true, true, true, true, true, true, true, true, true, true, true};
+    static boolean[] outputPackage = new boolean[]{true, true, true, true, true, true, true, true, true, true, true};
 
     public void setOutputBoolean(int iOut) {
         if (iOut == -1) iOut = 0x0F;
-        for (int i = 0; i < OutputPackage.length; i++) {
-            OutputPackage[i] = ((iOut >> i) & 0x01) == 0x01;
+        for (int i = 0; i < outputPackage.length; i++) {
+            outputPackage[i] = ((iOut >> i) & 0x01) == 0x01;
         }
     }
 
     public int getOutputInt() {
         int iTemp = 0;
-        for (int i = 0; i < OutputPackage.length; i++) {
-            if (OutputPackage[i]) iTemp |= 0x01 << i;
+        for (int i = 0; i < outputPackage.length; i++) {
+            if (outputPackage[i]) iTemp |= 0x01 << i;
         }
         return iTemp;
     }
 
-    public void onConfigClick(View v) {
+    public void onConfigMenuBtnClick(View v) {
         drawerLayout.openDrawer(GravityCompat.START);
     }
 
@@ -2141,7 +2066,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
     public void onClickRecord(View v) {
-        if (this.recordStartorStop == false) {
+        if (!this.recordStartorStop) {
             this.recordStartorStop = true;
             setRecord(true);
             ((Button) v).setText(getString(R.string.stop));
@@ -2169,7 +2094,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             }
                         }
                     })
-                    .setNegativeButton(getString(R.string.abolish), null)
+                    .setNegativeButton(getString(R.string.cancel), null)
                     .show();
         }
     }

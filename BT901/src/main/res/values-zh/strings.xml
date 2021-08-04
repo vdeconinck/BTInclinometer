@@ -6,12 +6,12 @@
     <string name="send">发送</string>
     <string name="not_connected">你没有连接到一个设备</string>
     <string name="bt_not_enabled_leaving">蓝牙未被打开</string>
-    <string name="title_connecting">正在连接...</string>
+    <string name="title_connecting">正在连接…</string>
     <string name="title_connected_to">已连接: </string>
     <string name="title_not_connected">断开</string>
 
     <!--  DeviceListActivity -->
-    <string name="scanning">搜索设备...</string>
+    <string name="scanning">搜索设备…</string>
     <string name="select_device">选择一个设备</string>
     <string name="none_paired">无已经匹配的设备</string>
     <string name="none_found">未发现设备</string>
@@ -35,7 +35,6 @@
     <string name="shop_name">维特智能</string>
 
     <string name="end">确定</string>
-    <string name="abolish">取消</string>
     <string name="put_datal">请输入平滑系数</string>
     <string name="put_start">（范围0～1000）</string>
     <string name="put_end">结束值（范围0～1000）</string>
@@ -98,7 +97,7 @@
     <string name="system">系统</string>
     <string name="factory_reset">恢复出厂</string>
     <string name="algorithm">算法</string>
-    <string name="Instruction_start">指令启动</string>
+    <string name="__instruction_start">指令启动</string>
     <string name="calibration">校准</string>
     <string name="magnetic_field_calibration_start">磁场校准</string>
     <string name="magnetic_field_calibration_end">磁场校准完成</string>
@@ -145,7 +144,7 @@
     <string name="six_axis_algorithm">六轴算法</string>
     <string name="nine_axis_algorithm">九轴算法</string>
     <string name="choose_algorithm">请选择算法：</string>
-    <string name="Whether_or_not">是否指令启动：</string>
+    <string name="__whether_or_not">是否指令启动：</string>
     <string name="X_axis_minimum">X轴最小值：</string>
     <string name="X_axis_maximum">X轴最大值：</string>
     <string name="Y_axis_minimum">Y轴最小值：</string>

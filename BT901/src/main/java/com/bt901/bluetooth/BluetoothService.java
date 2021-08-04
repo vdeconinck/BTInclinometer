@@ -277,7 +277,7 @@ public class BluetoothService {
                 try {
                     acceptedLen = mmInStream.read(tempInputBuffer);
                     if (acceptedLen > 0) {
-                         DataMonitorActivity.HandleSerialData(acceptedLen,tempInputBuffer);
+                         DataMonitorActivity.handleSerialData(acceptedLen,tempInputBuffer);
 //                        Message msg = mHandler.obtainMessage(DataMonitor.MESSAGE_READ);
 //                        Bundle bundle = new Bundle();
 //                        bundle.putInt("Type", type);

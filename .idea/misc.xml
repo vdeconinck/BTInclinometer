@@ -13,9 +13,14 @@
         <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/BT901/src/main/res/drawable/button_gray.xml" value="0.15625" />
         <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/BT901/src/main/res/drawable/button_yellow.xml" value="0.15625" />
         <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/BT901/src/main/res/layout/device_list.xml" value="0.13958333333333334" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/BT901/src/main/res/layout/lay_address_dialog.xml" value="0.103125" />
         <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/BT901/src/main/res/layout/lay_bt_graph.xml" value="0.14010416666666667" />
         <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/BT901/src/main/res/layout/lay_data.xml" value="0.18541666666666667" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/BT901/src/main/res/layout/lay_dev_dialog.xml" value="0.103125" />
         <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/BT901/src/main/res/layout/lay_group_item.xml" value="0.11296296296296296" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/BT901/src/main/res/layout/lay_police_dialog.xml" value="0.103125" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/BT901/src/main/res/layout/lay_pwm_dialog.xml" value="0.103125" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/BT901/src/main/res/layout/lay_pwmcycle_dialog.xml" value="0.103125" />
         <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/Main/src/main/res/layout/device_selection_activity.xml" value="0.18541666666666667" />
         <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/Main/src/main/res/layout/splash_activity.xml" value="0.14010416666666667" />
         <entry key="..\:/Users/HP/AndroidStudioProjects/Inclinometer/Main/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.2015625" />
