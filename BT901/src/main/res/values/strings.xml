@@ -68,12 +68,6 @@
     <string name="confirm_quit">Are you sure you want to quit?</string>
     <string name="back">Back</string>
 
-    <string name="date">Date：</string>
-    <string name="Date">Date:</string>
-    <string name="time">Time</string>
-    <string name="Time">Time:</string>
-    <string name="mTime">Time：</string>
-
     <string name="scanning">Searching for sensor…</string>
     <string name="select_device">Select a sensor</string>
     <string name="none_paired">No paired sensor found</string>
@@ -146,7 +140,7 @@
     <string name="horizontal_installation">Horizontal orientation</string>
     <string name="vertical_installation">Vertical orientation</string>
     <string name="choose_bandwith">Please select bandwidth:</string>
-    <string name="choose_modle">Please select the mode:</string>
+    <string name="choose_model">Please select the mode:</string>
     <string name="sdt">Static detection threshold:</string>
     <string name="six_axis_algorithm">Six-axis algorithm</string>
     <string name="nine_axis_algorithm">Nine-axis algorithm</string>
@@ -198,20 +192,22 @@
     <string name="put_end">End (0~1000)</string>
     <string name="send">Send</string>
     <string name="shop_name">Wit Motion</string>
-    <string name="title_connected_to">Connected:</string>
-    <string name="title_connecting">Connecting:</string>
+    <string name="title_connecting">Connecting…</string>
+    <string name="title_connected_to">Connected: %1$s</string>
     <string name="title_not_connected">Disconnect</string>
     <string name="xmax_null">X max cannot be null!</string>
     <string name="xmin_null">X min cannot be null!</string>
     <string name="xy_time">Keep time cannot be null!</string>
     <string name="ymax_null">Y max cannot be null!</string>
     <string name="ymin_null">Y min cannot be null!</string>
-    <string name="Voltage">Voltage:</string>
-    <string name="Version">Version:</string>
+    <string name="voltage">Voltage:</string>
+    <string name="version">Version:</string>
     <string name="website_url">http://www.wit-motion.com/english.php</string>
     <string name="wiki_url">https://wiki.wit-motion.com/english/doku.php</string>
     <string name="acc_chart">Acceleration chart</string>
     <string name="w_chart">Angle rate chart</string>
+    <string name="time">Time:</string>
+    <string name="date">Date:</string>
     <string name="angle_chart">Angle chart</string>
     <string name="mag_chart">Magnetic chart</string>
     <string name="port_chart">Port chart</string>

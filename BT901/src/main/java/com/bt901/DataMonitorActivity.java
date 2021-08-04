@@ -1,6 +1,7 @@
 package com.bt901;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -57,7 +58,10 @@ import java.util.Queue;
 
 import cn.wch.ch34xuartdriver.CH34xUARTDriver;
 
+@SuppressWarnings("ALL")
+@SuppressLint("DefaultLocale")
 public class DataMonitorActivity extends FragmentActivity implements OnClickListener {
+    public static final String TAG = DataMonitorActivity.class.getName();
 
     // Index of tabs
     public static final int TAB_SYSTEM = 0;
@@ -72,35 +76,40 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public static final int TAB_QUATERNION = 9;
     public static final int TAB_SATELLITE_NUMBER = 10;
 
+    public static final int UNSELECTED_BACKGROUND_COLOR = 0xff33b5e5;
+    public static final int SELECTED_BACKGROUND_COLOR = 0xff0099cc;
+
+    public static final int MESSAGE_STATE_CHANGE = 1;
+    public static final int MESSAGE_READ = 2;
+    public static final int MESSAGE_WRITE = 3;
+    public static final int MESSAGE_DEVICE_NAME = 4;
+    public static final int MESSAGE_TOAST = 5;
+
+    private static final int REQUEST_CONNECT_DEVICE = 1;
+
+    private static int sensor_type_numaxis;
+
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothService mBluetoothService = null;
     private String mConnectedDeviceName = null;
     private static final String ACTION_USB_PERMISSION = "cn.wch.wchusbdriver.USB_PERMISSION";
     private Button mTitle;
     private boolean recordStartorStop = false;
-    public static final int MESSAGE_STATE_CHANGE = 1;
-    public static final int MESSAGE_READ = 2;
-    public static final int MESSAGE_WRITE = 3;
-    public static final int MESSAGE_DEVICE_NAME = 4;
-    public static final int MESSAGE_TOAST = 5;
-    private static final int REQUEST_CONNECT_DEVICE = 1;
     public byte[] writeBuffer;
     public byte[] readBuffer;
     private boolean isOpen;
-    private int retval;
-    private static int sensor_type_numaxis;
     static MyFile myFile;
     DrawerLayout drawerLayout;
     ExLisViewAdapter adapter;
     private Switch outputSwitch;
     List<MenuGroup> groupList = new ArrayList<>();
     private static int ar = 16, av = 2000;
-    private static float[] ac = new float[]{0, 0, 0};
-    private static float[] w = new float[]{0, 0, 0};
-    private static float[] h = new float[]{0, 0, 0};
-    private static float[] angle = new float[]{0, 0, 0};
-    private static float[] d = new float[]{0, 0, 0, 0};
-    private static float[] q = new float[]{0, 0, 0, 0};
+    private static final float[] ac = new float[]{0, 0, 0};
+    private static final float[] w = new float[]{0, 0, 0};
+    private static final float[] h = new float[]{0, 0, 0};
+    private static final float[] angle = new float[]{0, 0, 0};
+    private static final float[] d = new float[]{0, 0, 0, 0};
+    private static final float[] q = new float[]{0, 0, 0, 0};
     private static float T = 20;
     private static float pressure, height, longitude, latitude, altitude, yaw, velocity, sn, pdop, hdop, vdop, voltage, version;
     private static short IDSave = 0;
@@ -112,7 +121,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private boolean bBTConnet = false;
     private LineChart lineChart;
     private LineChartManager lineChartManager;
-    private List<Integer> qColour = new ArrayList<Integer>(Arrays.asList(Color.RED, Color.GREEN, Color.BLUE, Color.GRAY)); //Polyline color collection
+    private final List<Integer> qColour = new ArrayList<>(Arrays.asList(Color.RED, Color.GREEN, Color.BLUE, Color.GRAY)); //Polyline color collection
 
     private float norm(float x[]) {
         return (float) Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
@@ -169,7 +178,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 checksum = (byte) (checksum + packBuffer[i]);
             }
             if (checksum != packBuffer[8]) {
-                Log.e("--", String.format("%2x %2x %2x %2x %2x %2x %2x %2x %2x SUM:%2x %2x", sHead, packBuffer[0], packBuffer[1], packBuffer[2], packBuffer[3], packBuffer[4], packBuffer[5], packBuffer[6], packBuffer[7], packBuffer[8], checksum));
+                Log.e(TAG, String.format("handleSerialData: %2x %2x %2x %2x %2x %2x %2x %2x %2x SUM:%2x %2x", sHead, packBuffer[0], packBuffer[1], packBuffer[2], packBuffer[3], packBuffer[4], packBuffer[5], packBuffer[6], packBuffer[7], packBuffer[8], checksum));
                 continue;
             }
 
@@ -281,12 +290,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     hdop = ((((short) packBuffer[5]) << 8) | ((short) packBuffer[4] & 0xff)) / 100.0f;
                     vdop = ((((short) packBuffer[7]) << 8) | ((short) packBuffer[6] & 0xff)) / 100.0f;
                     break;
-            }//switch
+            } //switch
 
             if ((sHead >= 0x50) && (sHead <= 0x5a)) {
                 recordData(sHead);
                 bDataUpdate[sHead - 0x50] = true;
-                continue;
             }
         }
     }
@@ -331,23 +339,23 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         saveReg(100);//save
     }
 
-    private void setCurrentGroup(View v) {
-        (findViewById(R.id.systemTabBtn)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.accelerationTabBtn)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.angularVelocityTabBtn)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.angleTabBtn)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.magneticFieldTabBtn)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.portTabBtn)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.pressureTabBtn)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.locationTabBtn)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.gpsVelocityTabBtn)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.quaternionTabBtn)).setBackgroundColor(0xff33b5e5);
-        (findViewById(R.id.satelliteNumberTabBtn)).setBackgroundColor(0xff33b5e5);
-        v.setBackgroundColor(0xff0099cc);
+    private void highlightCurrentTab(View v) {
+        (findViewById(R.id.systemTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
+        (findViewById(R.id.accelerationTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
+        (findViewById(R.id.angularVelocityTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
+        (findViewById(R.id.angleTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
+        (findViewById(R.id.magneticFieldTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
+        (findViewById(R.id.portTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
+        (findViewById(R.id.pressureTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
+        (findViewById(R.id.locationTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
+        (findViewById(R.id.gpsVelocityTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
+        (findViewById(R.id.quaternionTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
+        (findViewById(R.id.satelliteNumberTabBtn)).setBackgroundColor(UNSELECTED_BACKGROUND_COLOR);
+        v.setBackgroundColor(SELECTED_BACKGROUND_COLOR);
     }
 
     public void onOutputSwitchClick(View v) {
-        Log.e("--", String.format("Output:0x%x", getOutputInt()));
+        Log.e(TAG, "onOutputSwitchClick: " + String.format("Output:0x%x", getOutputInt()));
         if (sensor_type_numaxis == 9) {
             outputPackage[currentTab] = outputSwitch.isChecked();
             int outputContent = getOutputInt();
@@ -359,11 +367,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public void onTabBtnClick(View v) {
         lineChartManager.setbPause(true);
         int i = v.getId();
-        setCurrentGroup(v);
+        highlightCurrentTab(v);
         if (i == R.id.systemTabBtn) {
             currentTab = TAB_SYSTEM;
-            setTableName(getString(R.string.Version), getString(R.string.Voltage), getString(R.string.Date), getString(R.string.Time));
-            Log.e("--", "123:" + getString(R.string.Voltage));
+            setTableName(getString(R.string.version), getString(R.string.voltage), getString(R.string.date), getString(R.string.time));
+            Log.i(TAG, "Voltage:" + getString(R.string.voltage));
             setTableData("1.0", "3.3V", "2020-1-1", "00:00:00.0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
             lineChartManager.setDescription(getString(R.string.angle_chart));
@@ -459,13 +467,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             outputSwitch.setVisibility(View.INVISIBLE);
         }
 
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                lineChartManager.setbPause(false);
-            }
-        }, 100);
+        new Handler().postDelayed(() -> lineChartManager.setbPause(false), 100);
     }
 
     public static void recordData(byte ID) {
@@ -553,7 +555,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     break;
             }
         }
-        catch (Exception err) {
+        catch (Exception e) {
+            Log.e(TAG, "recordData: ", e);
         }
     }
 
@@ -567,7 +570,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
     private final Handler mHandler = new Handler(Looper.getMainLooper()) {
-        @Override        // Anonymous inner class, implementing some of the Handler interface
+        // Anonymous inner class, implementing some of the Handler interface
+        @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MESSAGE_STATE_CHANGE:
@@ -576,7 +580,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             bBTConnet = true;
                             initButton();
                             if (mTitle != null) {
-                                mTitle.setText(getString(R.string.title_connected_to) + mConnectedDeviceName);
+                                mTitle.setText(getString(R.string.title_connected_to, mConnectedDeviceName));
                             }
                             break;
                         case BluetoothService.STATE_CONNECTING:
@@ -597,7 +601,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     break;
                 case MESSAGE_DEVICE_NAME:
                     mConnectedDeviceName = msg.getData().getString("device_name");
-                    Toast.makeText(getApplicationContext(), "Connected to " + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.title_connected_to, mConnectedDeviceName), Toast.LENGTH_SHORT).show();
                     break;
                 case MESSAGE_TOAST:
                     Toast.makeText(getApplicationContext(), msg.getData().getString("toast"), Toast.LENGTH_SHORT).show();
@@ -695,109 +699,70 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         MyApp.driver.SetConfig(iBaud, (byte) 8, (byte) 0, (byte) 0, (byte) 0);
     }
 
-    public void tryOtherBaudRate() {
-        if (!MyApp.driver.isConnected()) return;
-        switch (iBaud) {
-            case 2400:
-                setBaudrate(4800);
-                break;
-            case 4800:
-                setBaudrate(9600);
-                break;
-            case 9600:
-                setBaudrate(19200);
-                break;
-            case 19200:
-                setBaudrate(38400);
-                break;
-            case 38400:
-                setBaudrate(57600);
-                break;
-            case 57600:
-                setBaudrate(115200);
-                break;
-            case 115200:
-                setBaudrate(230400);
-                break;
-            case 230400:
-                setBaudrate(460800);
-                break;
-            case 460800:
-                setBaudrate(921600);
-                break;
-            case 921600:
-                setBaudrate(2400);
-                break;
-            default:
-                setBaudrate(9600);
-                break;
-        }
-        Toast.makeText(this, String.format("Try baudrate %d", iBaud), Toast.LENGTH_SHORT).show();
-    }
-
     private final Handler refreshHandler = new Handler(Looper.getMainLooper()) {
         public void handleMessage(Message msg) {
             if (bPause) return;
             if (!bDataUpdate[currentTab]) return;
             bDataUpdate[currentTab] = false;
             switch (currentTab) {
-                case 0:
+                case TAB_SYSTEM:
                     ((TextView) findViewById(R.id.tvZ)).setText(strDate);
                     ((TextView) findViewById(R.id.tvAll)).setText(strTime);
                     ((TextView) findViewById(R.id.tvY)).setText(String.format("%10.2fV", voltage));
                     ((TextView) findViewById(R.id.tvX)).setText(String.format("% 10.0f", version));
                     break;
 
-                case 1:
+                case TAB_ACCELERATION:
                     setTableData("% 10.4fg", ac[0], ac[1], ac[2], norm(ac));
-                    // Log.e("--",String.format("acc:% 10.2fg,% 10.2fg,% 10.2fg,% 10.2fg", ac[0], ac[1], ac[2], norm(ac)));
+                    // Log.d("--",String.format("acc:% 10.2fg,% 10.2fg,% 10.2fg,% 10.2fg", ac[0], ac[1], ac[2], norm(ac)));
                     lineChartManager.addEntry(Arrays.asList(ac[0], ac[1], ac[2]));
                     break;
 
-                case 2:
+                case TAB_ANGULAR_VELOCITY:
                     setTableData("% 10.4f°/s", w[0], w[1], w[2], norm(w));
-                    //  Log.e("--", String.format("axw:% 10.2f,% 10.2f,% 10.2f,% 10.2f", w[0], w[1], w[2], norm(w)));
+                    //  Log.d("--", String.format("axw:% 10.2f,% 10.2f,% 10.2f,% 10.2f", w[0], w[1], w[2], norm(w)));
                     lineChartManager.addEntry(Arrays.asList(w[0], w[1], w[2]));
                     break;
 
-                case 3:
+                case TAB_ANGLE:
                     setTableData(String.format("%10.4f°", angle[0]), String.format("%10.4f°", angle[1]), String.format("%10.4f°", angle[2]), String.format("%10.2f℃", T));
                     break;
 
-                case 4: // Magnetic field
+                case TAB_MAGNETIC_FIELD:
                     setTableData("% 10.0f", h[0], h[1], h[2], norm(h));
                     lineChartManager.addEntry(Arrays.asList(h[0], h[1], h[2]));
                     break;
 
-                case 5: // Port
+                case TAB_PORT:
                     setTableData("% 10.0f", d[0], d[1], d[2], d[3]);
                     lineChartManager.addEntry(Arrays.asList(d[0], d[1], d[2], d[3]));
                     break;
 
-                case 6: // Air pressure, altitude
+                case TAB_PRESSURE: // Air pressure, altitude
                     setTableData(String.format("% 10.2fPa", pressure), String.format("% 10.2fPa", height), "", "");
                     lineChartManager.addEntry(Arrays.asList(pressure));
                     break;
 
-                case 7: // Latitude and longitude
+                case TAB_LOCATION: // Latitude and longitude
                     setTableData(String.format("% 14.6f°", longitude), String.format("% 14.6f°", latitude), "", "");
                     break;
 
-                case 8: // Altitude, heading, ground speed
+                case TAB_GPS_VELOCITY: // Altitude, heading, ground speed
                     setTableData(String.format("% 10.2f", altitude), String.format("% 10.2f°", yaw), String.format("% 10.2fkm/s", velocity), "");
                     break;
 
-                case 9: // Quaternion
+                case TAB_QUATERNION: // Quaternion
                     setTableData("% 7.4f", q[0], q[1], q[2], q[3]);
                     lineChartManager.addEntry(Arrays.asList(q[0], q[1], q[2], q[3]));
                     break;
 
-                case 10: // Number of satellites
+                case TAB_SATELLITE_NUMBER: // Number of satellites
                     setTableData(String.format("% 5.0f", sn), String.format("% 7.1f", pdop), String.format("% 7.1f", hdop), String.format("% 7.1f", vdop));
                     break;
             } // end switch
 
-            // Draw angle in groups 10 8 7 3 0
+            // TODO Why do we draw angles in those tabs
+            // Draw angle in tabs 10 8 7 3 0
             if ((currentTab == 10) || (currentTab == 8) || (currentTab == 7) || (currentTab == 3) || (currentTab == 0)) {
                 lineChartManager.addEntry(Arrays.asList(angle[0], angle[1], angle[2]));
             }
@@ -847,8 +812,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         Window window = getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
-                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
         setContentView(R.layout.lay_data);
         SharedUtil.init(getApplicationContext());
@@ -889,7 +853,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 return;
             }
         }
-        catch (Exception err) {
+        catch (Exception e) {
+            Log.e(TAG, "onCreate: ", e);
         }
 
         if (displayThread == null) {
@@ -900,7 +865,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     try {
                         Thread.sleep(100);
                     }
-                    catch (Exception err) {
+                    catch (Exception ignored) {
                     }
                 }
             });
@@ -1003,53 +968,37 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             }
             MenuGroup system = new MenuGroup();
             system.setName(getString(R.string.system));
-            MenuItem sys1 = new MenuItem(getString(R.string.factory_reset));
-            MenuItem sys2 = new MenuItem(getString(R.string.dormancy));
-            MenuItem sys3 = new MenuItem(getString(R.string.algorithm));
-            MenuItem sys4 = new MenuItem(getString(R.string.installation_orientation));
-            MenuItem sys5 = new MenuItem(getString(R.string.__instruction_start));
-            MenuItem sys6 = new MenuItem(getString(R.string.alarm));
             List<MenuItem> sysList = new ArrayList<>();
-            sysList.add(sys1);
-            sysList.add(sys2);
-            sysList.add(sys3);
-            sysList.add(sys4);
-            sysList.add(sys5);
-            sysList.add(sys6);
+            sysList.add(new MenuItem(getString(R.string.factory_reset)));
+            sysList.add(new MenuItem(getString(R.string.dormancy)));
+            sysList.add(new MenuItem(getString(R.string.algorithm)));
+            sysList.add(new MenuItem(getString(R.string.installation_orientation)));
+            sysList.add(new MenuItem(getString(R.string.__instruction_start)));
+            sysList.add(new MenuItem(getString(R.string.alarm)));
             system.setChildList(sysList);
             groupList.add(system);
 
             // Calibration menu
             MenuGroup calibration = new MenuGroup();
             calibration.setName(getString(R.string.calibration));
-            MenuItem c1 = new MenuItem(getString(R.string.acc_calibration));
-            MenuItem c2 = new MenuItem(getString(R.string.magnetic_field_calibration_start));
-            MenuItem c2ok = new MenuItem(getString(R.string.magnetic_field_calibration_end));
-            MenuItem c3 = new MenuItem(getString(R.string.reset_height));
-            MenuItem c4 = new MenuItem(getString(R.string.gyroscope_automatic_calibration));
-            MenuItem c5 = new MenuItem(getString(R.string.Z_axis_angle_to_zero));
-            MenuItem c6 = new MenuItem(getString(R.string.setting_angle_reference));
             List<MenuItem> cbList = new ArrayList<>();
-            cbList.add(c1);
-            cbList.add(c2);
-            cbList.add(c2ok);
-            cbList.add(c3);
-            cbList.add(c4);
-            cbList.add(c5);
-            cbList.add(c6);
+            cbList.add(new MenuItem(getString(R.string.acc_calibration)));
+            cbList.add(new MenuItem(getString(R.string.magnetic_field_calibration_start)));
+            cbList.add(new MenuItem(getString(R.string.magnetic_field_calibration_end)));
+            cbList.add(new MenuItem(getString(R.string.reset_height)));
+            cbList.add(new MenuItem(getString(R.string.gyroscope_automatic_calibration)));
+            cbList.add(new MenuItem(getString(R.string.Z_axis_angle_to_zero)));
+            cbList.add(new MenuItem(getString(R.string.setting_angle_reference)));
             calibration.setChildList(cbList);
             groupList.add(calibration);
 
             // Range menu
             MenuGroup range = new MenuGroup();
             range.setName(getString(R.string.range));
-            MenuItem range1 = new MenuItem(getString(R.string.acceleration_range));
-            MenuItem range2 = new MenuItem(getString(R.string.angular_velocity_range));
-            MenuItem range3 = new MenuItem(getString(R.string.bandwidth));
             List<MenuItem> spcopeList = new ArrayList<>();
-            spcopeList.add(range1);
-            spcopeList.add(range2);
-            spcopeList.add(range3);
+            spcopeList.add(new MenuItem(getString(R.string.acceleration_range)));
+            spcopeList.add(new MenuItem(getString(R.string.angular_velocity_range)));
+            spcopeList.add(new MenuItem(getString(R.string.bandwidth)));
             range.setChildList(spcopeList);
             groupList.add(range);
 
@@ -1057,13 +1006,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             MenuGroup communication = new MenuGroup();
             communication.setName(getString(R.string.signal_communication));
             List<MenuItem> comList = new ArrayList<>();
-            MenuItem com1 = new MenuItem(getString(R.string.retrieval_rate));
-            MenuItem com2 = new MenuItem(getString(R.string.address));
-            comList.add(com1);
-            comList.add(com2);
+            comList.add(new MenuItem(getString(R.string.retrieval_rate)));
+            comList.add(new MenuItem(getString(R.string.address)));
             if (isOpen) {
-                MenuItem com = new MenuItem(getString(R.string.communication_rate));
-                comList.add(com);
+                comList.add(new MenuItem(getString(R.string.communication_rate)));
             }
             communication.setChildList(comList);
             groupList.add(communication);
@@ -1071,45 +1017,33 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 // Port mode
                 MenuGroup port = new MenuGroup();
                 port.setName(getString(R.string.port_mode));
-                MenuItem prot1 = new MenuItem(getString(R.string.d0_mode));
-                MenuItem prot2 = new MenuItem(getString(R.string.d1_mode));
-                MenuItem prot3 = new MenuItem(getString(R.string.d2_mode));
-                MenuItem prot4 = new MenuItem(getString(R.string.d3_mode));
-                List<MenuItem> protLlist = new ArrayList<>();
-                protLlist.add(prot1);
-                protLlist.add(prot2);
-                protLlist.add(prot3);
-                protLlist.add(prot4);
-                port.setChildList(protLlist);
+                List<MenuItem> portList = new ArrayList<>();
+                portList.add(new MenuItem(getString(R.string.d0_mode)));
+                portList.add(new MenuItem(getString(R.string.d1_mode)));
+                portList.add(new MenuItem(getString(R.string.d2_mode)));
+                portList.add(new MenuItem(getString(R.string.d3_mode)));
+                port.setChildList(portList);
                 groupList.add(port);
 
                 // Port PWM pulse width
                 MenuGroup pwm = new MenuGroup();
                 pwm.setName(getString(R.string.port_PWM_pulse_width));
-                MenuItem pwm1 = new MenuItem(getString(R.string.D0PWM_pulse_width));
-                MenuItem pwm2 = new MenuItem(getString(R.string.D1PWM_pulse_width));
-                MenuItem pwm3 = new MenuItem(getString(R.string.D2PWM_pulse_width));
-                MenuItem pwm4 = new MenuItem(getString(R.string.D3PWM_pulse_width));
                 List<MenuItem> pwmList = new ArrayList<>();
-                pwmList.add(pwm1);
-                pwmList.add(pwm2);
-                pwmList.add(pwm3);
-                pwmList.add(pwm4);
+                pwmList.add(new MenuItem(getString(R.string.D0PWM_pulse_width)));
+                pwmList.add(new MenuItem(getString(R.string.D1PWM_pulse_width)));
+                pwmList.add(new MenuItem(getString(R.string.D2PWM_pulse_width)));
+                pwmList.add(new MenuItem(getString(R.string.D3PWM_pulse_width)));
                 pwm.setChildList(pwmList);
                 groupList.add(pwm);
 
                 // Port PWM cycle
                 MenuGroup cycle = new MenuGroup();
                 cycle.setName(getString(R.string.port_PWM_cycle));
-                MenuItem cycle1 = new MenuItem(getString(R.string.D0PWM_cycle));
-                MenuItem cycle2 = new MenuItem(getString(R.string.D1PWM_cycle));
-                MenuItem cycle3 = new MenuItem(getString(R.string.D2PWM_cycle));
-                MenuItem cycle4 = new MenuItem(getString(R.string.D3PWM_cycle));
                 List<MenuItem> cycleList = new ArrayList<>();
-                cycleList.add(cycle1);
-                cycleList.add(cycle2);
-                cycleList.add(cycle3);
-                cycleList.add(cycle4);
+                cycleList.add(new MenuItem(getString(R.string.D0PWM_cycle)));
+                cycleList.add(new MenuItem(getString(R.string.D1PWM_cycle)));
+                cycleList.add(new MenuItem(getString(R.string.D2PWM_cycle)));
+                cycleList.add(new MenuItem(getString(R.string.D3PWM_cycle)));
                 cycle.setChildList(cycleList);
                 groupList.add(cycle);
             }
@@ -1133,13 +1067,14 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             public void save(String value) {
                                 byte[] values = value.getBytes();
                                 if (values.length == 1) {
-                                    values[1] = 0x00;
+                                    values[0] = 0x00;
                                 }
                                 writeReg(0x6c, byteToInt(values[0], values[1]));
                             }
 
                             @Override
                             public void back() {
+                                // noop
                             }
                         });
                         devDialog.show(getSupportFragmentManager());
@@ -1197,7 +1132,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             writeLockReg(0x22, 0x01);
                         }
                         else if (i1 == 2) {
-                            algrithmSet();
+                            selectAlgorithm();
                         }
                         else if (i1 == 3) {
                             orientation901();
@@ -1206,7 +1141,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             cmdStartUp();
                         }
                         else if (i1 == 5) {
-                            alarmSet();
+                            setAlarm();
                         }
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
@@ -1588,7 +1523,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         new Handler().postDelayed(() -> Toast.makeText(getApplicationContext(), getString(R.string.calibrated), Toast.LENGTH_SHORT).show(), 3000);
     }
 
-    private void alarmSet() {
+    private void setAlarm() {
         AlarmDialog alarmDialog = new AlarmDialog();
         alarmDialog.setPoliceDialogCallBack(new AlarmDialog.PoliceDialogCallBack() {
             @Override
@@ -1615,7 +1550,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iAlgrithm = 1;
 
-    private void algrithmSet() {
+    private void selectAlgorithm() {
         String[] s = new String[]{getString(R.string.six_axis_algorithm), getString(R.string.nine_axis_algorithm)};
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.choose_algorithm))
@@ -1650,7 +1585,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     boolean bUsbConnect = false;
 
     private boolean serialPortOpen() {
-        retval = MyApp.driver.ResumeUsbList();
+        int retval = MyApp.driver.ResumeUsbList();
         if (retval == -1) // The ResumeUsbList() method is used to enumerate CH34X devices and open related devices
         {
             MyApp.driver.CloseDevice();
@@ -1695,7 +1630,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public void onClickedBTSet(View v) {
         try {
             if (mBluetoothService == null) {
-                mBluetoothService = new BluetoothService(this, mHandler); // Used to manage Bluetooth connections
+                // Used to manage Bluetooth connections
+                mBluetoothService = new BluetoothService(this, mHandler);
             }
             else {
                 mBluetoothService.stop();
@@ -1703,8 +1639,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             Intent serverIntent = new Intent(this, DeviceListActivity.class);
             startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
         }
-        catch (Exception err) {
-
+        catch (Exception e) {
+            Log.e(TAG, "onClickedBTSet: ", e);
         }
     }
 
@@ -1729,7 +1665,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         }
                     }
                     else {
-                        Log.e("--", "service is null");
+                        Log.e(TAG, "onResume.run: service is null");
                         String address = SharedUtil.getString("BTName");
                         if (address != null) {
                             Log.e("--", "BTName = " + address);
@@ -1758,34 +1694,22 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
         if (readThread == null) {
             // Open the reader thread to read the data received by the serial port
-            readThread = new Thread(new Runnable() {
-                public void run() {
-                    byte[] buffer = new byte[4096];
-                    while (isOpen) {
-                        int length = MyApp.driver.ReadData(buffer, 4096);
-                        if (length > 0) {
-                            handleSerialData(length, buffer);
-                        }
+            readThread = new Thread(() -> {
+                byte[] buffer = new byte[4096];
+                while (isOpen) {
+                    int length = MyApp.driver.ReadData(buffer, 4096);
+                    if (length > 0) {
+                        handleSerialData(length, buffer);
                     }
-                    try {
-                        Thread.sleep(10);
-                    }
-                    catch (Exception err) {
-                    }
+                }
+                try {
+                    Thread.sleep(10);
+                }
+                catch (Exception ignored) {
                 }
             });
             readThread.start();
         }
-    }
-
-    @Override
-    public synchronized void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
     }
 
     @Override
@@ -1858,7 +1782,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                                     MyApp.driver.SetConfig(iBaud, (byte) 8, (byte) 0, (byte) 0, (byte) 0);
                                 }
                             }
-                            catch (Exception err) {
+                            catch (Exception e) {
+                                Log.e(TAG, "onClickSetJy61Baud: ", e);
                             }
                         }
                     })
@@ -1881,7 +1806,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             try {
                                 sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) (0x64 - iJY61RateSelect)});
                             }
-                            catch (Exception err) {
+                            catch (Exception e) {
+                                Log.e(TAG, "onClick: ", e);
                             }
                         }
                     })
@@ -1941,6 +1867,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iCmdStartup = 1;
 
+    // No idea what this is about...
     public void cmdStartUp() {
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.__whether_or_not))
@@ -2013,7 +1940,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public void mode601() {
         String[] s = new String[]{"Serial", "IIC"};
         new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.choose_modle))
+                .setTitle(getString(R.string.choose_model))
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setSingleChoiceItems(s, iMode61, new DialogInterface.OnClickListener() {
                     @Override
@@ -2089,8 +2016,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             try {
                                 myFile.openFile(getApplicationContext());
                             }
-                            catch (Exception err) {
-                                Log.e("--", err.toString());
+                            catch (Exception e) {
+                                Log.e(TAG, "myFile.openFile: ", e);
                             }
                         }
                     })

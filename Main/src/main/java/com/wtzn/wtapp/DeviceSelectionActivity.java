@@ -1,40 +1,40 @@
 package com.wtzn.wtapp;
+
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.bt901.DataMonitorActivity;
 import com.bt901.db.SQLite;
 
 public class DeviceSelectionActivity extends AppCompatActivity implements View.OnClickListener {
+    public static final String TAG = DeviceSelectionActivity.class.getName();
 
-    private static final int REQUEST_CODE_SCAN = 1;
-    private static final int REQUEST_WIFI_MODULE = 3;
-    private static final int TAKE_PHOTO_REQUEST_CODE = 2;
-
-    private SQLite sqLite;
     TextView title;
-    private View mContentView;
 
     private BluetoothAdapter mBluetoothAdapter = null;
+
     @RequiresApi(api = Build.VERSION_CODES.ECLAIR)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mContentView = LayoutInflater.from(this).inflate(R.layout.device_selection_activity, null);
+        View mContentView = LayoutInflater.from(this).inflate(R.layout.device_selection_activity, null);
         setContentView(mContentView);
-//        ButterKnife.inject(this);
         Window window = getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
@@ -44,7 +44,7 @@ public class DeviceSelectionActivity extends AppCompatActivity implements View.O
 
         title = findViewById(R.id.title_text);
         title.setText(getString(R.string.select_module));
-        sqLite = SQLite.init(getApplicationContext());
+        SQLite sqLite = SQLite.init(getApplicationContext());
         sqLite.open();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -61,7 +61,9 @@ public class DeviceSelectionActivity extends AppCompatActivity implements View.O
                 Toast.makeText(this, R.string.error_bluetooth_not_supported, Toast.LENGTH_LONG).show();
                 return;
             }
-        } catch (Exception err) {
+        }
+        catch (Exception e) {
+            Log.e(TAG, "onCreate: ", e);
         }
         if (!mBluetoothAdapter.isEnabled()) {
             mBluetoothAdapter.enable();
@@ -69,22 +71,22 @@ public class DeviceSelectionActivity extends AppCompatActivity implements View.O
         findViewById(R.id.bt_three).setOnClickListener(this);
         findViewById(R.id.bt_six).setOnClickListener(this);
         findViewById(R.id.bt_nine).setOnClickListener(this);
-
-
     }
 
     @Override
     public void onClick(View view) {
         int id = view.getId();
-        if (id==R.id.bt_three){
+        if (id == R.id.bt_three) {
             Intent intent = new Intent(this, DataMonitorActivity.class);
             intent.putExtra("type", 3);
             startActivity(intent);
-        }else if (id == R.id.bt_six){
+        }
+        else if (id == R.id.bt_six) {
             Intent intent = new Intent(this, DataMonitorActivity.class);
             intent.putExtra("type", 6);
             startActivity(intent);
-        }else if (id==R.id.bt_nine){
+        }
+        else if (id == R.id.bt_nine) {
             Intent intent = new Intent(this, DataMonitorActivity.class);
             intent.putExtra("type", 9);
             startActivity(intent);
