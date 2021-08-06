@@ -17,6 +17,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -46,6 +47,7 @@ import java.util.Queue;
 import info.deconinck.bt901.bluetooth.BluetoothService;
 import info.deconinck.bt901.dialog.AddressDialog;
 import info.deconinck.bt901.dialog.SmoothingDialog;
+import info.deconinck.bt901.view.InclinometerView;
 import info.deconinck.wtfile.util.MyFile;
 import info.deconinck.wtfile.util.SharedUtil;
 
@@ -98,7 +100,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private static final float[] ac = new float[]{0, 0, 0};
     private static final float[] w = new float[]{0, 0, 0};
     private static final float[] h = new float[]{0, 0, 0};
-    private static final float[] angle = new float[]{0, 0, 0};
+    public static final float[] angle = new float[]{0, 0, 0};
     private static final float[] d = new float[]{0, 0, 0, 0};
     private static final float[] q = new float[]{0, 0, 0, 0};
     private static float T = 20;
@@ -113,6 +115,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private LineChart lineChart;
     private LineChartManager lineChartManager;
     private final List<Integer> qColour = new ArrayList<>(Arrays.asList(Color.RED, Color.GREEN, Color.BLUE, Color.GRAY)); //Polyline color collection
+    private static InclinometerView inclinometerView;
 
     private float norm(float x[]) {
         return (float) Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
@@ -237,6 +240,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     else {
                         version = 0;
                     }
+                    inclinometerView.setAngleArray(angle);
                     break;
 
                 case 0x54: // Magnetic field
@@ -398,7 +402,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
         else if (i == R.id.angleTabBtn) {
             currentTab = TAB_ANGLE;
-            setTableName("AgnleX:", "AngleY:", "AngleZ:", "T:");
+            setTableName("AngleX:", "AngleY:", "AngleZ:", "T:");
             setTableData("0", "0", "0", "25℃");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
             lineChartManager.setDescription(getString(R.string.angle_chart));
@@ -644,6 +648,14 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         sensorTypeNumaxis = intent.getIntExtra("type", 0);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // Keep the screen always on
+
+        inclinometerView = findViewById(R.id.inclinometer);
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        inclinometerView.init(metrics);
+
+        findViewById(R.id.dataArea).setVisibility(View.GONE);
+        inclinometerView.setVisibility(View.VISIBLE);
 
         writeBuffer = new byte[512];
         readBuffer = new byte[512];

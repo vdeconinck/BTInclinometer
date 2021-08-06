@@ -129,7 +129,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="100dp"
             android:orientation="vertical">
 
             <Switch
@@ -150,6 +150,12 @@
                 android:layout_alignParentBottom="true" />
         </LinearLayout>
     </ScrollView>
+
+    <info.deconinck.bt901.view.InclinometerView
+        android:id="@+id/inclinometer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
     </LinearLayout>
 
     <com.google.android.material.navigation.NavigationView
