@@ -185,7 +185,7 @@
                 android:layout_margin="20dp"
                 android:layout_gravity="center_horizontal"
                 android:background="#33b5e5"
-                android:onClick="onClickPause"
+                android:onClick="onPauseClick"
                 android:text="@string/pause"
                 android:textColor="#fff"
                 android:textSize="20sp" />
@@ -197,7 +197,7 @@
                 android:layout_gravity="center_horizontal"
                 android:background="#33b5e5"
                 android:layout_margin="20dp"
-                android:onClick="onClickRecord"
+                android:onClick="onRecordClick"
                 android:text="@string/record"
                 android:textColor="#fff"
                 android:textSize="20sp" />

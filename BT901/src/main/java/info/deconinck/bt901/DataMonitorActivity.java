@@ -70,6 +70,13 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public static final int MESSAGE_DEVICE_NAME = 4;
     public static final int MESSAGE_TOAST = 5;
 
+    public static final int RECORDING_STOPPED = -1;
+    public static final int RECORDING_STOP_REQUESTED = 0;
+    public static final int RECORDING_START_REQUESTED = 1;
+    public static final int RECORDING_STARTED = 2;
+
+    public static final int MESSAGE_START_BYTE = 0x55;
+
     private static final int REQUEST_CONNECT_DEVICE = 1;
 
     private static int sensor_type_numaxis;
@@ -96,11 +103,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private static final float[] q = new float[]{0, 0, 0, 0};
     private static float T = 20;
     private static float pressure, height, longitude, latitude, altitude, yaw, velocity, sn, pdop, hdop, vdop, voltage, version;
-    private static short IDSave = 0;
-    private static short IDNow;
-    private static int saveState = -1;
+    private static short fieldsToSaveBitmap = 0;
+    private static short currentFieldsBitmap;
+    private static int recordingState = RECORDING_STOPPED;
     private static int sDataSave = 0;
-    static int currentTab = 3;
+    static int currentTab = TAB_SYSTEM;
     private static String strDate = "", strTime = "";
     private boolean isBtConnection = false;
     private LineChart lineChart;
@@ -134,44 +141,51 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     static float fTempT;
     static int iError = 0;
     static Queue<Byte> queueBuffer = new LinkedList<>();
-    static boolean[] bDataUpdate = new boolean[20];
+    static boolean[] hasPendingUpdate = new boolean[20];
 
     public static void handleSerialData(int acceptedLen, byte[] tempInputBuffer) {
-        byte[] packBuffer = new byte[11];
-        byte sHead;
+        byte[] dataBuffer = new byte[11];
+        byte fieldTypeByte;
         float fTemp;
         for (int i = 0; i < acceptedLen; i++) {
             queueBuffer.add(tempInputBuffer[i]);// The data read from the buffer is stored in the queue
         }
         while (queueBuffer.size() >= 11) {
-            // Decode message : 0x55 + head + payload buffer
+            // Decode message.
+            // Format is: 0x55 (MESSAGE_START) + header byte (data_type) + data buffer (8 bytes)
             // Note: peek() returns to the first item but does not delete it. poll() removes and returns
-            if ((queueBuffer.poll()) != 0x55) {
+            if ((queueBuffer.poll()) != MESSAGE_START_BYTE) {
                 iError++;
                 continue;
             }
-            sHead = queueBuffer.poll();
-            if ((sHead & 0xF0) == 0x50) iError = 0;
-            for (int j = 0; j < 9; j++) {
-                packBuffer[j] = queueBuffer.poll();
+            // First byte is a header indicating the type of data received
+            fieldTypeByte = queueBuffer.poll();
+            if ((fieldTypeByte & 0xF0) == 0x50) {
+                // OK, this is a valid data type. Reset error count.
+                iError = 0;
             }
 
-            // Check message validity
-            byte checksum = (byte) (0x55 + sHead);
-            for (int i = 0; i < 8; i++) {
-                checksum = (byte) (checksum + packBuffer[i]);
+            // Copy the 8 data bytes in the dataBuffer
+            for (int j = 0; j < 9; j++) {
+                dataBuffer[j] = queueBuffer.poll();
             }
-            if (checksum != packBuffer[8]) {
-                Log.e(TAG, String.format("handleSerialData: %2x %2x %2x %2x %2x %2x %2x %2x %2x SUM:%2x %2x", sHead, packBuffer[0], packBuffer[1], packBuffer[2], packBuffer[3], packBuffer[4], packBuffer[5], packBuffer[6], packBuffer[7], packBuffer[8], checksum));
+
+            // Check message validity (checksum)
+            byte checksum = (byte) (MESSAGE_START_BYTE + fieldTypeByte);
+            for (int i = 0; i < 8; i++) {
+                checksum = (byte) (checksum + dataBuffer[i]);
+            }
+            if (checksum != dataBuffer[8]) {
+                Log.e(TAG, String.format("handleSerialData: %2x %2x %2x %2x %2x %2x %2x %2x %2x SUM:%2x %2x", fieldTypeByte, dataBuffer[0], dataBuffer[1], dataBuffer[2], dataBuffer[3], dataBuffer[4], dataBuffer[5], dataBuffer[6], dataBuffer[7], dataBuffer[8], checksum));
                 continue;
             }
 
             // Interpret message
-            switch (sHead) {
+            switch (fieldTypeByte) {
                 case 0x50: // Time
-                    int ms = ((((short) packBuffer[7]) << 8) | ((short) packBuffer[6] & 0xff));
-                    strDate = String.format("20%02d-%02d-%02d", packBuffer[0], packBuffer[1], packBuffer[2]);
-                    strTime = String.format("%02d:%02d:%02d.%03d", packBuffer[3], packBuffer[4], packBuffer[5], ms);
+                    int ms = ((((short) dataBuffer[7]) << 8) | ((short) dataBuffer[6] & 0xff));
+                    strDate = String.format("20%02d-%02d-%02d", dataBuffer[0], dataBuffer[1], dataBuffer[2]);
+                    strTime = String.format("%02d:%02d:%02d.%03d", dataBuffer[3], dataBuffer[4], dataBuffer[5], ms);
                     break;
 
                 case 0x51:
@@ -180,10 +194,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     }
                     // ac[3], 16-bit each
                     for (int i = 0; i < 3; i++) {
-                        ac[i] = ((((short) packBuffer[i * 2 + 1]) << 8) | ((short) packBuffer[i * 2] & 0xff)) / 32768.0f * ar;
+                        ac[i] = ((((short) dataBuffer[i * 2 + 1]) << 8) | ((short) dataBuffer[i * 2] & 0xff)) / 32768.0f * ar;
                     }
                     // temperature, 16-bit too
-                    fTempT = ((((short) packBuffer[7]) << 8) | ((short) packBuffer[6] & 0xff)) / 100.0f;
+                    fTempT = ((((short) dataBuffer[7]) << 8) | ((short) dataBuffer[6] & 0xff)) / 100.0f;
                     if (sensor_type_numaxis == 6) {
                         T = (float) (fTempT / 340 + 36.53);
                     }
@@ -198,10 +212,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     }
                     // w[3], 16-bit each
                     for (int i = 0; i < 3; i++) {
-                        w[i] = ((((short) packBuffer[i * 2 + 1]) << 8) | ((short) packBuffer[i * 2] & 0xff)) / 32768.0f * av;
+                        w[i] = ((((short) dataBuffer[i * 2 + 1]) << 8) | ((short) dataBuffer[i * 2] & 0xff)) / 32768.0f * av;
                     }
                     // voltage, 16-bit too
-                    fTemp = ((((short) packBuffer[7]) << 8) | ((short) packBuffer[6] & 0xff)) / 100.0f;
+                    fTemp = ((((short) dataBuffer[7]) << 8) | ((short) dataBuffer[6] & 0xff)) / 100.0f;
                     if (fTemp != fTempT) {
                         voltage = fTemp;
                     }
@@ -213,10 +227,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 case 0x53: // Angle
                     // angle[3], 16-bit each
                     for (int i = 0; i < 3; i++) {
-                        angle[i] = ((((short) packBuffer[i * 2 + 1]) << 8) | ((short) packBuffer[i * 2] & 0xff)) / 32768.0f * 180;
+                        angle[i] = ((((short) dataBuffer[i * 2 + 1]) << 8) | ((short) dataBuffer[i * 2] & 0xff)) / 32768.0f * 180;
                     }
                     // version, 16-bit too
-                    fTemp = ((((short) packBuffer[7]) << 8) | ((short) packBuffer[6] & 0xff)) / 100.0f;
+                    fTemp = ((((short) dataBuffer[7]) << 8) | ((short) dataBuffer[6] & 0xff)) / 100.0f;
                     if (fTemp != fTempT) {
                         version = fTemp * 100;
                     }
@@ -228,57 +242,58 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 case 0x54: // Magnetic field
                     // h[3], 16-bit each
                     for (int i = 0; i < 3; i++) {
-                        h[i] = ((((short) packBuffer[i * 2 + 1]) << 8) | ((short) packBuffer[i * 2] & 0xff));
+                        h[i] = ((((short) dataBuffer[i * 2 + 1]) << 8) | ((short) dataBuffer[i * 2] & 0xff));
                     }
                     break;
 
                 case 0x55: // port
                     // d[4], 16-bit each
                     for (int i = 0; i < 4; i++) {
-                        d[i] = ((((short) packBuffer[i * 2 + 1]) << 8) | ((short) packBuffer[i * 2] & 0xff));
+                        d[i] = ((((short) dataBuffer[i * 2 + 1]) << 8) | ((short) dataBuffer[i * 2] & 0xff));
                     }
                     break;
 
                 case 0x56: // Air pressure, height
                     // pressure, 32-bit
-                    pressure = ((((long) packBuffer[3]) << 24) & 0xff000000) | ((((long) packBuffer[2]) << 16) & 0xff0000) | ((((long) packBuffer[1]) << 8) & 0xff00) | ((((long) packBuffer[0]) & 0xff));
+                    pressure = ((((long) dataBuffer[3]) << 24) & 0xff000000) | ((((long) dataBuffer[2]) << 16) & 0xff0000) | ((((long) dataBuffer[1]) << 8) & 0xff00) | ((((long) dataBuffer[0]) & 0xff));
                     // altitude, 32-bit
-                    height = (((((long) packBuffer[7]) << 24) & 0xff000000) | ((((long) packBuffer[6]) << 16) & 0xff0000) | ((((long) packBuffer[5]) << 8) & 0xff00) | ((((long) packBuffer[4]) & 0xff))) / 100.0f;
+                    height = (((((long) dataBuffer[7]) << 24) & 0xff000000) | ((((long) dataBuffer[6]) << 16) & 0xff0000) | ((((long) dataBuffer[5]) << 8) & 0xff00) | ((((long) dataBuffer[4]) & 0xff))) / 100.0f;
                     break;
 
                 case 0x57: // Latitude and longitude
                     // longitude, 32-bit
-                    long binLongitude = ((((long) packBuffer[3]) << 24) & 0xff000000) | ((((long) packBuffer[2]) << 16) & 0xff0000) | ((((long) packBuffer[1]) << 8) & 0xff00) | ((((long) packBuffer[0]) & 0xff));
+                    long binLongitude = ((((long) dataBuffer[3]) << 24) & 0xff000000) | ((((long) dataBuffer[2]) << 16) & 0xff0000) | ((((long) dataBuffer[1]) << 8) & 0xff00) | ((((long) dataBuffer[0]) & 0xff));
                     longitude = (float) (binLongitude / 10000000 + ((float) (binLongitude % 10000000) / 100000.0 / 60.0));
                     // latitude, 32-bit
-                    long binLatitude = (((((long) packBuffer[7]) << 24) & 0xff000000) | ((((long) packBuffer[6]) << 16) & 0xff0000) | ((((long) packBuffer[5]) << 8) & 0xff00) | ((((long) packBuffer[4]) & 0xff)));
+                    long binLatitude = (((((long) dataBuffer[7]) << 24) & 0xff000000) | ((((long) dataBuffer[6]) << 16) & 0xff0000) | ((((long) dataBuffer[5]) << 8) & 0xff00) | ((((long) dataBuffer[4]) & 0xff)));
                     latitude = (float) (binLatitude / 10000000 + ((float) (binLatitude % 10000000) / 100000.0 / 60.0));
                     break;
 
                 case 0x58: // Altitude, heading, ground speed
-                    altitude = (float) ((((short) packBuffer[1]) << 8) | ((short) packBuffer[0] & 0xff)) / 10;
-                    yaw = (float) ((((short) packBuffer[3]) << 8) | ((short) packBuffer[2] & 0xff)) / 100;
-                    velocity = (float) (((((long) packBuffer[7]) << 24) & 0xff000000) | ((((long) packBuffer[6]) << 16) & 0xff0000) | ((((long) packBuffer[5]) << 8) & 0xff00) | ((((long) packBuffer[4]) & 0xff))) / 1000;
+                    altitude = (float) ((((short) dataBuffer[1]) << 8) | ((short) dataBuffer[0] & 0xff)) / 10;
+                    yaw = (float) ((((short) dataBuffer[3]) << 8) | ((short) dataBuffer[2] & 0xff)) / 100;
+                    velocity = (float) (((((long) dataBuffer[7]) << 24) & 0xff000000) | ((((long) dataBuffer[6]) << 16) & 0xff0000) | ((((long) dataBuffer[5]) << 8) & 0xff00) | ((((long) dataBuffer[4]) & 0xff))) / 1000;
                     break;
 
                 case 0x59: // Quaternion
                     // q[4], 16-bit each
                     for (int i = 0; i < 4; i++) {
-                        q[i] = ((((short) packBuffer[i * 2 + 1]) << 8) | ((short) packBuffer[i * 2] & 0xff)) / 32768.0f;
+                        q[i] = ((((short) dataBuffer[i * 2 + 1]) << 8) | ((short) dataBuffer[i * 2] & 0xff)) / 32768.0f;
                     }
                     break;
 
                 case 0x5a: // Number of satellites
-                    sn = ((((short) packBuffer[1]) << 8) | ((short) packBuffer[0] & 0xff));
-                    pdop = ((((short) packBuffer[3]) << 8) | ((short) packBuffer[2] & 0xff)) / 100.0f;
-                    hdop = ((((short) packBuffer[5]) << 8) | ((short) packBuffer[4] & 0xff)) / 100.0f;
-                    vdop = ((((short) packBuffer[7]) << 8) | ((short) packBuffer[6] & 0xff)) / 100.0f;
+                    sn = ((((short) dataBuffer[1]) << 8) | ((short) dataBuffer[0] & 0xff));
+                    pdop = ((((short) dataBuffer[3]) << 8) | ((short) dataBuffer[2] & 0xff)) / 100.0f;
+                    hdop = ((((short) dataBuffer[5]) << 8) | ((short) dataBuffer[4] & 0xff)) / 100.0f;
+                    vdop = ((((short) dataBuffer[7]) << 8) | ((short) dataBuffer[6] & 0xff)) / 100.0f;
                     break;
             } //switch
 
-            if ((sHead >= 0x50) && (sHead <= 0x5a)) {
-                recordData(sHead);
-                bDataUpdate[sHead - 0x50] = true;
+            if ((fieldTypeByte >= 0x50) && (fieldTypeByte <= 0x5a)) {
+                recordData(fieldTypeByte);
+                int fieldTypeId = fieldTypeByte - 0x50;
+                hasPendingUpdate[fieldTypeId] = true;
             }
         }
     }
@@ -333,10 +348,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
     public void onOutputSwitchClick(View v) {
-        Log.e(TAG, "onOutputSwitchClick: " + String.format("Output:0x%x", getOutputInt()));
+        Log.e(TAG, "onOutputSwitchClick: " + String.format("Output:0x%x", getOutputEnabledBitmap()));
         if (sensor_type_numaxis == 9) {
-            outputPackage[currentTab] = outputSwitch.isChecked();
-            int outputContent = getOutputInt();
+            isOutputEnabled[currentTab] = outputSwitch.isChecked();
+            int outputContent = getOutputEnabledBitmap();
             writeAndSaveReg(0x02, outputContent);
             SharedUtil.putInt("Out", outputContent);
         }
@@ -398,7 +413,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
         if (sensor_type_numaxis == 9) {
             outputSwitch.setVisibility(View.VISIBLE);
-            outputSwitch.setChecked(outputPackage[currentTab]);
+            outputSwitch.setChecked(isOutputEnabled[currentTab]);
         }
         else {
             outputSwitch.setVisibility(View.INVISIBLE);
@@ -407,82 +422,93 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         new Handler().postDelayed(() -> lineChartManager.setbPause(false), 100);
     }
 
-    public static void recordData(byte ID) {
+    public static void recordData(byte fieldTypeByte) {
         try {
             boolean isRepeat = false;
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
             Date curDate = new Date(System.currentTimeMillis()); // Get the current time
-            short sData = (short) (0x01 << (ID & 0x0f));
-            if (((IDNow & sData) == sData) && (sData < sDataSave)) {
-                IDSave = IDNow;
-                IDNow = sData;
+
+            // Convert the data type byte (0x50 - 0x5a) into a mask
+            // Only keep last nibble (0x0 - 0xa)
+            int fieldTypeId = fieldTypeByte & 0x0f;
+            // Create corresponding mask
+            short fieldTypeMask = (short) (0x01 << fieldTypeId);
+            // If this data bit is set in the current mask and ... ? TODO
+            if (((currentFieldsBitmap & fieldTypeMask) == fieldTypeMask) && (fieldTypeMask < sDataSave)) {
+                fieldsToSaveBitmap = currentFieldsBitmap;
+                currentFieldsBitmap = fieldTypeMask;
                 isRepeat = true;
             }
             else {
-                IDNow |= sData;
+                // Add the current data type to the current list
+                currentFieldsBitmap |= fieldTypeMask;
             }
-            sDataSave = sData;
-            switch (saveState) {
-                case 0:
+            sDataSave = fieldTypeMask;
+
+            switch (recordingState) {
+                case RECORDING_STOP_REQUESTED:
                     myFile.close();
-                    saveState = -1;
+                    recordingState = RECORDING_STOPPED;
                     break;
 
-                case 1:
+                case RECORDING_START_REQUESTED:
+                    // Create file
                     SimpleDateFormat formatterFileName = new SimpleDateFormat("MMdd_HHmmss");
                     Date curDateFileName = new Date(System.currentTimeMillis()); // Get the current time
                     myFile = new MyFile(Environment.getExternalStorageDirectory() + "/Records/Rec_" + formatterFileName.format(curDateFileName) + ".txt");
+                    // Write header line
                     String s = "Start time:" + formatter.format(curDate) + "\r\n" + "Record Time:";
-                    if ((IDSave & 0x01) > 0) s += " ChipTime:";
-                    if ((IDSave & 0x02) > 0) s += " ax: ay: az:";
-                    if ((IDSave & 0x04) > 0) s += "  wx: wy: wz:";
-                    if ((IDSave & 0x08) > 0) s += "    AngleX:   AngleY:   AngleZ:";
-                    if ((IDSave & 0x10) > 0) s += "   hx:   hy:   hz:";
-                    if ((IDSave & 0x20) > 0) s += "d0:d1:d2:d3:";
-                    if ((IDSave & 0x40) > 0) s += "    Pressure:    Height:";
-                    if ((IDSave & 0x80) > 0) s += "        Longitude:        Latitude:";
-                    if ((IDSave & 0x100) > 0) s += "    ALtitude:    Yaw:    Velocity:";
-                    if ((IDSave & 0x200) > 0) s += "   q0:   q1:   q2:   q3:";
-                    if ((IDSave & 0x400) > 0) s += "SN:PDOP: HDOP: VDOP:";
+                    if ((fieldsToSaveBitmap & 0x01) > 0) s += " ChipTime:";
+                    if ((fieldsToSaveBitmap & 0x02) > 0) s += " ax: ay: az:";
+                    if ((fieldsToSaveBitmap & 0x04) > 0) s += "  wx: wy: wz:";
+                    if ((fieldsToSaveBitmap & 0x08) > 0) s += "    AngleX:   AngleY:   AngleZ:";
+                    if ((fieldsToSaveBitmap & 0x10) > 0) s += "   hx:   hy:   hz:";
+                    if ((fieldsToSaveBitmap & 0x20) > 0) s += "d0:d1:d2:d3:";
+                    if ((fieldsToSaveBitmap & 0x40) > 0) s += "    Pressure:    Height:";
+                    if ((fieldsToSaveBitmap & 0x80) > 0) s += "        Longitude:        Latitude:";
+                    if ((fieldsToSaveBitmap & 0x100) > 0) s += "    ALtitude:    Yaw:    Velocity:";
+                    if ((fieldsToSaveBitmap & 0x200) > 0) s += "   q0:   q1:   q2:   q3:";
+                    if ((fieldsToSaveBitmap & 0x400) > 0) s += "SN:PDOP: HDOP: VDOP:";
                     myFile.write(s);
-                    saveState = 2;
+                    // Switch to "recording"
+                    recordingState = RECORDING_STARTED;
                     break;
 
-                case 2:
+                case RECORDING_STARTED:
                     if (isRepeat) {
                         myFile.write("  \r\n");
                         myFile.write(formatter.format(curDate) + " ");
-                        if ((IDSave & 0x01) > 0) {
+                        if ((fieldsToSaveBitmap & 0x01) > 0) {
                             myFile.write(strDate + " " + strTime + " ");
                         }
-                        if ((IDSave & 0x02) > 0) {
+                        if ((fieldsToSaveBitmap & 0x02) > 0) {
                             myFile.write(String.format("% 10.4f", ac[0]) + String.format("% 10.4f", ac[1]) + String.format("% 10.4f", ac[2]) + " ");
                         }
-                        if ((IDSave & 0x04) > 0) {
+                        if ((fieldsToSaveBitmap & 0x04) > 0) {
                             myFile.write(String.format("% 10.4f", w[0]) + String.format("% 10.4f", w[1]) + String.format("% 10.4f", w[2]) + " ");
                         }
-                        if ((IDSave & 0x08) > 0) {
+                        if ((fieldsToSaveBitmap & 0x08) > 0) {
                             myFile.write(String.format("% 10.4f", angle[0]) + String.format("% 10.4f", angle[1]) + String.format("% 10.4f", angle[2]));
                         }
-                        if ((IDSave & 0x10) > 0) {
+                        if ((fieldsToSaveBitmap & 0x10) > 0) {
                             myFile.write(String.format("% 10.0f", h[0]) + String.format("% 10.0f", h[1]) + String.format("% 10.0f", h[2]));
                         }
-                        if ((IDSave & 0x20) > 0) {
+                        if ((fieldsToSaveBitmap & 0x20) > 0) {
                             myFile.write(String.format("% 7.0f", d[0]) + String.format("% 7.0f", d[1]) + String.format("% 7.0f", d[2]) + String.format("% 7.0f", d[3]));
                         }
-                        if ((IDSave & 0x40) > 0) {
+                        if ((fieldsToSaveBitmap & 0x40) > 0) {
                             myFile.write(String.format("% 10.0f", pressure) + String.format("% 10.2f", height));
                         }
-                        if ((IDSave & 0x80) > 0) {
+                        if ((fieldsToSaveBitmap & 0x80) > 0) {
                             myFile.write(String.format("% 14.6f", longitude) + String.format("% 14.6f", latitude));
                         }
-                        if ((IDSave & 0x100) > 0) {
+                        if ((fieldsToSaveBitmap & 0x100) > 0) {
                             myFile.write(String.format("% 10.4f", altitude) + String.format("% 10.2f", yaw) + String.format("% 10.2f", velocity));
                         }
-                        if ((IDSave & 0x200) > 0) {
+                        if ((fieldsToSaveBitmap & 0x200) > 0) {
                             myFile.write(String.format("% 7.4f", q[0]) + String.format("% 7.4f", q[1]) + String.format("% 7.4f", q[2]) + String.format("% 7.4f", q[3]));
                         }
-                        if ((IDSave & 0x400) > 0) {
+                        if ((fieldsToSaveBitmap & 0x400) > 0) {
                             myFile.write(String.format("% 5.0f", sn) + String.format("% 7.1f", pdop) + String.format("% 7.1f", hdop) + String.format("% 7.1f", vdop));
                         }
                     }
@@ -497,12 +523,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
     }
 
-    public void setRecord(boolean record) {
+    public void setRecording(boolean record) {
         if (record) {
-            saveState = 1;
+            recordingState = RECORDING_START_REQUESTED;
         }
         else {
-            saveState = 0;
+            recordingState = RECORDING_STOP_REQUESTED;
         }
     }
 
@@ -549,9 +575,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     private final Handler refreshHandler = new Handler(Looper.getMainLooper()) {
         public void handleMessage(Message msg) {
-            if (bPause) return;
-            if (!bDataUpdate[currentTab]) return;
-            bDataUpdate[currentTab] = false;
+            if (isPaused) return;
+            // If there is no pending update for this tab, exit
+            if (!hasPendingUpdate[currentTab]) return;
+
+            hasPendingUpdate[currentTab] = false;
             switch (currentTab) {
                 case TAB_SYSTEM:
                     ((TextView) findViewById(R.id.tvZ)).setText(strDate);
@@ -583,7 +611,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
             } // end switch
 
-            // TODO Why do we draw angles in those tabs
+            // TODO Why do we draw angles in tabs 0
             // Draw angle in tabs 10 8 7 3 0
             if ((currentTab == 10) || (currentTab == 8) || (currentTab == 7) || (currentTab == 3) || (currentTab == 0)) {
                 lineChartManager.addEntry(Arrays.asList(angle[0], angle[1], angle[2]));
@@ -603,7 +631,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
         setContentView(R.layout.lay_data);
         SharedUtil.init(getApplicationContext());
-        setOutputBoolean(SharedUtil.getInt("Out"));
+        setOutputEnabledBitmap(SharedUtil.getInt("Out"));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -1411,19 +1439,19 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
 
-    static boolean[] outputPackage = new boolean[]{true, true, true, true, true, true, true, true, true, true, true};
+    static boolean[] isOutputEnabled = new boolean[]{true, true, true, true, true, true, true, true, true, true, true};
 
-    public void setOutputBoolean(int iOut) {
+    public void setOutputEnabledBitmap(int iOut) {
         if (iOut == -1) iOut = 0x0F;
-        for (int i = 0; i < outputPackage.length; i++) {
-            outputPackage[i] = ((iOut >> i) & 0x01) == 0x01;
+        for (int i = 0; i < isOutputEnabled.length; i++) {
+            isOutputEnabled[i] = ((iOut >> i) & 0x01) == 0x01;
         }
     }
 
-    public int getOutputInt() {
+    public int getOutputEnabledBitmap() {
         int iTemp = 0;
-        for (int i = 0; i < outputPackage.length; i++) {
-            if (outputPackage[i]) iTemp |= 0x01 << i;
+        for (int i = 0; i < isOutputEnabled.length; i++) {
+            if (isOutputEnabled[i]) iTemp |= 0x01 << i;
         }
         return iTemp;
     }
@@ -1432,21 +1460,21 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         drawerLayout.openDrawer(GravityCompat.START);
     }
 
-    boolean bPause = false;
+    boolean isPaused = false;
 
-    public void onClickPause(View v) {
-        bPause = !bPause;
+    public void onPauseClick(View v) {
+        isPaused = !isPaused;
     }
 
-    public void onClickRecord(View v) {
+    public void onRecordClick(View v) {
         if (!this.recordStartorStop) {
             this.recordStartorStop = true;
-            setRecord(true);
+            setRecording(true);
             ((Button) v).setText(getString(R.string.stop));
         }
         else {
             this.recordStartorStop = false;
-            setRecord(false);
+            setRecording(false);
             ((Button) findViewById(R.id.btnRecord)).setText(getString(R.string.record));
             if (myFile == null) {
                 Toast.makeText(DataMonitorActivity.this, "No file recorded!", Toast.LENGTH_SHORT).show();
