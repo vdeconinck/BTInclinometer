@@ -50,10 +50,10 @@ public class AddressDialog extends BDialog implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.lay_address_dialog, container, false);
         startName = view.findViewById(R.id.et_putStart);
-        Button sure = view.findViewById(R.id.bt_save);
-        Button abli = view.findViewById(R.id.bt_abolish);
-        sure.setOnClickListener(this);
-        abli.setOnClickListener(this);
+        Button okBtn = view.findViewById(R.id.bt_save);
+        Button cancelBtn = view.findViewById(R.id.bt_cancel);
+        okBtn.setOnClickListener(this);
+        cancelBtn.setOnClickListener(this);
         return view;
     }
 
@@ -85,7 +85,7 @@ public class AddressDialog extends BDialog implements View.OnClickListener {
                 addressDialogCallBack.save(value);
             }
             dismiss();
-        } else if (i == R.id.bt_abolish) {
+        } else if (i == R.id.bt_cancel) {
             if (addressDialogCallBack != null) {
                 addressDialogCallBack.back();
             }

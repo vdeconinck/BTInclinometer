@@ -53,7 +53,7 @@ public class DevDialog extends BDialog implements View.OnClickListener {
         View view = inflater.inflate(R.layout.lay_dev_dialog, container, false);
         startName = view.findViewById(R.id.et_putStart);
         Button sure = view.findViewById(R.id.bt_save);
-        Button abli = view.findViewById(R.id.bt_abolish);
+        Button abli = view.findViewById(R.id.bt_cancel);
         sure.setOnClickListener(this);
         abli.setOnClickListener(this);
         return view;
@@ -88,7 +88,7 @@ public class DevDialog extends BDialog implements View.OnClickListener {
                 devDialogCallBack.save(value);
             }
             dismiss();
-        } else if (i == R.id.bt_abolish) {
+        } else if (i == R.id.bt_cancel) {
             if (devDialogCallBack != null) {
                 devDialogCallBack.back();
             }

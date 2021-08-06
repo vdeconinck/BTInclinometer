@@ -919,25 +919,25 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     }
                     if (i == 2) {
                         if (i1 == 0) {
-                            accelartionRange();
+                            selectAccelerationRange();
                         }
                         else if (i1 == 1) {
-                            angularVelocityRange();
+                            selectAngularVelocityRange();
                         }
                         else if (i1 == 2) {
-                            bandwidth901();
+                            selectBandwidth901();
                         }
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 3) {
                         if (i1 == 0) {
-                            outputRate();
+                            selectOutputRate();
                         }
                         else if (i1 == 1) {
-                            myAddress();
+                            selectAddress();
                         }
                         else if (i1 == 2) {
-                            ccSpeed();
+                            selectCommunicationBaudrate();
                         }
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
@@ -955,7 +955,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iChipBaudSelect = 2;
 
-    private void ccSpeed() {
+    private void selectCommunicationBaudrate() {
         String[] s = new String[]{"2400", "4800", "9600", "19200", "38400", "57600", "115200", "230400", "460800", "921600"};
         new AlertDialog.Builder(this)
                 .setTitle("Please select the communication rate:")
@@ -976,7 +976,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 .show();
     }
 
-    private void myAddress() {
+    private void selectAddress() {
         AddressDialog addDialog = AddressDialog.newInstance();
         addDialog.setAddressDialogCallBack(new AddressDialog.AddressDialogCallBack() {
             @Override
@@ -995,7 +995,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iRetrivalRateSelect = 5;
 
-    private void outputRate() {
+    private void selectOutputRate() {
         String[] s = new String[]{"0.2Hz", "0.5Hz", "1Hz", "2Hz", "5Hz", "10HZ", "20Hz", "50Hz", "100Hz", "125Hz", "200Hz"};
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.select_return_rate))
@@ -1018,7 +1018,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iBandwidth901 = 4;
 
-    private void bandwidth901() {
+    private void selectBandwidth901() {
         String[] s = new String[]{"256HZ", "184HZ", "94HZ", "42HZ", "21HZ", "10HZ", "5HZ"};
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.choose_bandwith))
@@ -1041,7 +1041,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int angularVelocityRangeParam = 3;
 
-    private void angularVelocityRange() {
+    private void selectAngularVelocityRange() {
         String[] s = new String[]{"250deg/s", "500deg/s", "1000deg/s", "2000deg/s"};
         new AlertDialog.Builder(this)
                 .setTitle((R.string.choose_angle))
@@ -1067,7 +1067,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int accRangeParam = 3;
 
-    private void accelartionRange() {
+    private void selectAccelerationRange() {
         String[] s = new String[]{"2g", "4g", "8g", "16g"};
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.choose_range))
