@@ -49,7 +49,7 @@ public class AddressDialog extends BDialog implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.lay_address_dialog, container, false);
-        startName = view.findViewById(R.id.et_putStart);
+        startName = view.findViewById(R.id.value_field);
         Button okBtn = view.findViewById(R.id.bt_save);
         Button cancelBtn = view.findViewById(R.id.bt_cancel);
         okBtn.setOnClickListener(this);

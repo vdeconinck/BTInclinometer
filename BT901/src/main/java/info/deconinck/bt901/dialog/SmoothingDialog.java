@@ -21,20 +21,20 @@ import info.deconinck.bt901.R;
  * 平滑系数
  * 2017/5/9.
  */
-public class DevDialog extends BDialog implements View.OnClickListener {
+public class SmoothingDialog extends BDialog implements View.OnClickListener {
 
     EditText startName;
 
 
     private String value;
 
-    private DevDialogCallBack devDialogCallBack;
+    private SmoothingDialogCallBack smoothingDialogCallBack;
 
-    public DevDialog() {
+    public SmoothingDialog() {
     }
 
-    public static DevDialog newInstance() {
-        DevDialog dialog = new DevDialog();
+    public static SmoothingDialog newInstance() {
+        SmoothingDialog dialog = new SmoothingDialog();
         return dialog;
     }
 
@@ -50,12 +50,12 @@ public class DevDialog extends BDialog implements View.OnClickListener {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.lay_dev_dialog, container, false);
-        startName = view.findViewById(R.id.et_putStart);
-        Button sure = view.findViewById(R.id.bt_save);
-        Button abli = view.findViewById(R.id.bt_cancel);
-        sure.setOnClickListener(this);
-        abli.setOnClickListener(this);
+        View view = inflater.inflate(R.layout.lay_smoothing_dialog, container, false);
+        startName = view.findViewById(R.id.value_field);
+        Button okBtn = view.findViewById(R.id.bt_save);
+        Button cancelBtn = view.findViewById(R.id.bt_cancel);
+        okBtn.setOnClickListener(this);
+        cancelBtn.setOnClickListener(this);
         return view;
     }
 
@@ -66,12 +66,12 @@ public class DevDialog extends BDialog implements View.OnClickListener {
     }
 
 
-    public DevDialogCallBack getDevDialogCallBack() {
-        return devDialogCallBack;
+    public SmoothingDialogCallBack getDevDialogCallBack() {
+        return smoothingDialogCallBack;
     }
 
-    public void setDevDialogCallBack(DevDialogCallBack devDialogCallBack) {
-        this.devDialogCallBack = devDialogCallBack;
+    public void setDevDialogCallBack(SmoothingDialogCallBack smoothingDialogCallBack) {
+        this.smoothingDialogCallBack = smoothingDialogCallBack;
     }
 
 
@@ -84,20 +84,20 @@ public class DevDialog extends BDialog implements View.OnClickListener {
                 Toast.makeText(getContext(), R.string.data_null, Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (devDialogCallBack != null) {
-                devDialogCallBack.save(value);
+            if (smoothingDialogCallBack != null) {
+                smoothingDialogCallBack.save(value);
             }
             dismiss();
         } else if (i == R.id.bt_cancel) {
-            if (devDialogCallBack != null) {
-                devDialogCallBack.back();
+            if (smoothingDialogCallBack != null) {
+                smoothingDialogCallBack.back();
             }
             dismiss();
         }
     }
 
 
-    public interface DevDialogCallBack {
+    public interface SmoothingDialogCallBack {
 
         void save(String value);
 

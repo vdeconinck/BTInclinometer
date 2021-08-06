@@ -45,7 +45,7 @@ import java.util.Queue;
 
 import info.deconinck.bt901.bluetooth.BluetoothService;
 import info.deconinck.bt901.dialog.AddressDialog;
-import info.deconinck.bt901.dialog.DevDialog;
+import info.deconinck.bt901.dialog.SmoothingDialog;
 import info.deconinck.wtfile.util.MyFile;
 import info.deconinck.wtfile.util.SharedUtil;
 
@@ -802,8 +802,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x01, (byte) 0x01, (byte) 0x00});
                     }
                     else if (i == 1) {
-                        DevDialog devDialog = DevDialog.newInstance();
-                        devDialog.setDevDialogCallBack(new DevDialog.DevDialogCallBack() {
+                        SmoothingDialog smoothingDialog = SmoothingDialog.newInstance();
+                        smoothingDialog.setDevDialogCallBack(new SmoothingDialog.SmoothingDialogCallBack() {
                             @Override
                             public void save(String value) {
                                 byte[] values = value.getBytes();
@@ -818,7 +818,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                                 // noop
                             }
                         });
-                        devDialog.show(getSupportFragmentManager());
+                        smoothingDialog.show(getSupportFragmentManager());
                     }
                     return false;
                 }
