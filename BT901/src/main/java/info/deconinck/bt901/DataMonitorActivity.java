@@ -79,13 +79,13 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     private static final int REQUEST_CONNECT_DEVICE = 1;
 
-    private static int sensor_type_numaxis;
+    private static int sensorTypeNumaxis;
 
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothService mBluetoothService = null;
     private String mConnectedDeviceName = null;
     private static final String ACTION_USB_PERMISSION = "cn.wch.wchusbdriver.USB_PERMISSION";
-    private Button mTitle;
+    private Button bluetoothScanButton;
     private boolean recordStartorStop = false;
     public byte[] writeBuffer;
     public byte[] readBuffer;
@@ -198,7 +198,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     }
                     // temperature, 16-bit too
                     fTempT = ((((short) dataBuffer[7]) << 8) | ((short) dataBuffer[6] & 0xff)) / 100.0f;
-                    if (sensor_type_numaxis == 6) {
+                    if (sensorTypeNumaxis == 6) {
                         T = (float) (fTempT / 340 + 36.53);
                     }
                     else {
@@ -349,7 +349,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     public void onOutputSwitchClick(View v) {
         Log.e(TAG, "onOutputSwitchClick: " + String.format("Output:0x%x", getOutputEnabledBitmap()));
-        if (sensor_type_numaxis == 9) {
+        if (sensorTypeNumaxis == 9) {
             isOutputEnabled[currentTab] = outputSwitch.isChecked();
             int outputContent = getOutputEnabledBitmap();
             writeAndSaveReg(0x02, outputContent);
@@ -368,7 +368,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             setTableData("1.0", "3.3V", "2020-1-1", "00:00:00.0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
             lineChartManager.setDescription(getString(R.string.angle_chart));
-            if (sensor_type_numaxis == 9) {
+            if (sensorTypeNumaxis == 9) {
                 unLockReg(0);
                 Calendar calendar = Calendar.getInstance();
                 int year = calendar.get(Calendar.YEAR);
@@ -411,7 +411,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             lineChartManager.setDescription(getString(R.string.mag_chart));
         }
 
-        if (sensor_type_numaxis == 9) {
+        if (sensorTypeNumaxis == 9) {
             outputSwitch.setVisibility(View.VISIBLE);
             outputSwitch.setChecked(isOutputEnabled[currentTab]);
         }
@@ -542,20 +542,20 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         case BluetoothService.STATE_CONNECTED:
                             isBtConnection = true;
                             initButton();
-                            if (mTitle != null) {
-                                mTitle.setText(getString(R.string.title_connected_to, mConnectedDeviceName));
+                            if (bluetoothScanButton != null) {
+                                bluetoothScanButton.setText(getString(R.string.title_connected_to, mConnectedDeviceName));
                             }
                             break;
                         case BluetoothService.STATE_CONNECTING:
-                            if (mTitle != null) {
-                                mTitle.setText(getString(R.string.title_connecting));
+                            if (bluetoothScanButton != null) {
+                                bluetoothScanButton.setText(getString(R.string.title_connecting));
                             }
                             break;
                         case BluetoothService.STATE_LISTEN:
                         case BluetoothService.STATE_NONE:
                             isBtConnection = false;
-                            if (mTitle != null) {
-                                mTitle.setText(getString(R.string.title_not_connected));
+                            if (bluetoothScanButton != null) {
+                                bluetoothScanButton.setText(getString(R.string.title_not_connected));
                             }
                             break;
                     }
@@ -641,7 +641,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
 
         Intent intent = getIntent();
-        sensor_type_numaxis = intent.getIntExtra("type", 0);
+        sensorTypeNumaxis = intent.getIntExtra("type", 0);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // Keep the screen always on
 
@@ -678,25 +678,31 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private boolean bDisplay = true;
     private Thread displayThread;
 
+    // Warning : menu actions are triggered by position!
+    // Do not change menu order without reflecting the change in onGroupClick()/onChildClick()
     private void initButton() {
-        // ? Sideslip
+        // Side menu
         if (!groupList.isEmpty()) groupList.clear();
         ExpandableListView listview = findViewById(R.id.expandableLisView);
         drawerLayout = findViewById(R.id.drawerLayout);
         List<MenuItem> menuItemList = new ArrayList<>();
-        mTitle = findViewById(R.id.scanBluetoothBtn);
+
+        bluetoothScanButton = findViewById(R.id.bluetoothScanButton);
         tvLabelX = findViewById(R.id.X);
         tvLabelY = findViewById(R.id.Y);
         tvLabelZ = findViewById(R.id.Z);
-        tvLabelAll = findViewById(R.id.All);
+        tvLabelAll = findViewById(R.id.all);
         tvX = findViewById(R.id.tvX);
         tvY = findViewById(R.id.tvY);
         tvZ = findViewById(R.id.tvZ);
         tvAll = findViewById(R.id.tvAll);
 
-        if (sensor_type_numaxis == 3) {
+        if (sensorTypeNumaxis == 3) {
+            // Hide most tabs
             findViewById(R.id.angularVelocityTabBtn).setVisibility(View.GONE);
             findViewById(R.id.magneticFieldTabBtn).setVisibility(View.GONE);
+
+            // Menu is only made of 2 top-level entries
             MenuGroup group = new MenuGroup();
             group.setName(getString(R.string.acc_calibration));
             group.setChildList(menuItemList);
@@ -706,8 +712,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             groupList.add(group);
             groupList.add(group2);
         }
-        else if (sensor_type_numaxis == 6) {
+        else if (sensorTypeNumaxis == 6) {
+            // Hide some tabs
             findViewById(R.id.magneticFieldTabBtn).setVisibility(View.GONE);
+
+            // Menu is only made of 7 top-level entries
             MenuGroup group = new MenuGroup();
             group.setName(getString(R.string.acc_calibration));
             group.setChildList(menuItemList);
@@ -737,22 +746,21 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             group7.setChildList(menuItemList);
             groupList.add(group7);
         }
-        else if (sensor_type_numaxis == 9) {
-            // System menu
-            MenuGroup system = new MenuGroup();
-            system.setName(getString(R.string.system));
+        else if (sensorTypeNumaxis == 9) {
+            // Menu is a full-fledged two-level structure
+            MenuGroup systemMenu = new MenuGroup();
+            systemMenu.setName(getString(R.string.system));
             List<MenuItem> sysList = new ArrayList<>();
             sysList.add(new MenuItem(getString(R.string.factory_reset)));
             sysList.add(new MenuItem(getString(R.string.dormancy)));
             sysList.add(new MenuItem(getString(R.string.algorithm)));
             sysList.add(new MenuItem(getString(R.string.installation_orientation)));
             sysList.add(new MenuItem(getString(R.string.__instruction_start)));
-            system.setChildList(sysList);
-            groupList.add(system);
+            systemMenu.setChildList(sysList);
+            groupList.add(systemMenu);
 
-            // Calibration menu
-            MenuGroup calibration = new MenuGroup();
-            calibration.setName(getString(R.string.calibration));
+            MenuGroup calibrationMenu = new MenuGroup();
+            calibrationMenu.setName(getString(R.string.calibration));
             List<MenuItem> cbList = new ArrayList<>();
             cbList.add(new MenuItem(getString(R.string.acc_calibration)));
             cbList.add(new MenuItem(getString(R.string.magnetic_field_calibration_start)));
@@ -761,33 +769,31 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             cbList.add(new MenuItem(getString(R.string.gyroscope_automatic_calibration)));
             cbList.add(new MenuItem(getString(R.string.Z_axis_angle_to_zero)));
             cbList.add(new MenuItem(getString(R.string.setting_angle_reference)));
-            calibration.setChildList(cbList);
-            groupList.add(calibration);
+            calibrationMenu.setChildList(cbList);
+            groupList.add(calibrationMenu);
 
-            // Range menu
-            MenuGroup range = new MenuGroup();
-            range.setName(getString(R.string.range));
+            MenuGroup rangeMenu = new MenuGroup();
+            rangeMenu.setName(getString(R.string.range));
             List<MenuItem> spcopeList = new ArrayList<>();
             spcopeList.add(new MenuItem(getString(R.string.acceleration_range)));
             spcopeList.add(new MenuItem(getString(R.string.angular_velocity_range)));
             spcopeList.add(new MenuItem(getString(R.string.bandwidth)));
-            range.setChildList(spcopeList);
-            groupList.add(range);
+            rangeMenu.setChildList(spcopeList);
+            groupList.add(rangeMenu);
 
-            // Communication menu
-            MenuGroup communication = new MenuGroup();
-            communication.setName(getString(R.string.signal_communication));
+            MenuGroup communicationMenu = new MenuGroup();
+            communicationMenu.setName(getString(R.string.signal_communication));
             List<MenuItem> comList = new ArrayList<>();
             comList.add(new MenuItem(getString(R.string.retrieval_rate)));
             comList.add(new MenuItem(getString(R.string.address)));
-            communication.setChildList(comList);
-            groupList.add(communication);
+            communicationMenu.setChildList(comList);
+            groupList.add(communicationMenu);
         }
         adapter = new ExLisViewAdapter(this, groupList);
         listview.setAdapter(adapter);
         listview.setGroupIndicator(null);
 
-        if (sensor_type_numaxis == 3) {
+        if (sensorTypeNumaxis == 3) {
             listview.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
                 @Override
                 public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
@@ -819,12 +825,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             });
         }
 
-        if (sensor_type_numaxis == 6) {
+        if (sensorTypeNumaxis == 6) {
             listview.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
                 @Override
                 public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
                     drawerLayout.closeDrawer(GravityCompat.START);
-                    // TODO switch
                     if (i == 0) {
                         sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x67});
                     }
@@ -854,11 +859,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             });
         }
 
-        if (sensor_type_numaxis == 9) {
+        if (sensorTypeNumaxis == 9) {
             listview.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
                 @Override
                 public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
-                    // TODO switch
+                    // Warning : menu actions are triggered by position!
+                    // Do not change menu order without reflecting the change here
                     if (i == 0) {
                         if (i1 == 0) {
                             writeLockReg(0x00, 0x01);
@@ -878,7 +884,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 1) {
-                        // TODO switch
                         if (i1 == 0) {
                             accCali();
                         }
@@ -913,7 +918,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         }
                     }
                     if (i == 2) {
-                        // TODO switch
                         if (i1 == 0) {
                             accelartionRange();
                         }
@@ -926,7 +930,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
                     if (i == 3) {
-                        // TODO switch
                         if (i1 == 0) {
                             outputRate();
                         }
@@ -1223,7 +1226,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             lineChartManager.setDescription(getString(R.string.angle_chart));
         }
         outputSwitch = findViewById(R.id.dataSwitch);
-        if (sensor_type_numaxis == 9) {
+        if (sensorTypeNumaxis == 9) {
             outputSwitch.setVisibility(View.VISIBLE);
         }
         else {
@@ -1430,8 +1433,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 .show();
     }
 
-    public void onBluetoothScanClick(View v) {
-        if (v.getId() == R.id.scanBluetoothBtn) {
+    public void onBluetoothScanButtonClick(View v) {
+        if (v.getId() == R.id.bluetoothScanButton) {
             onClickedBTSet(v);
         }
     }
@@ -1454,7 +1457,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         return iTemp;
     }
 
-    public void onConfigMenuBtnClick(View v) {
+    public void onSideMenuButtonClick(View v) {
         drawerLayout.openDrawer(GravityCompat.START);
     }
 
