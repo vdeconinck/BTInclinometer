@@ -586,6 +586,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     ((TextView) findViewById(R.id.tvAll)).setText(strTime);
                     ((TextView) findViewById(R.id.tvY)).setText(String.format("%10.2fV", voltage));
                     ((TextView) findViewById(R.id.tvX)).setText(String.format("% 10.0f", version));
+
+                    // Fill chart with angle data, just to see some animation...
+                    lineChartManager.addEntry(Arrays.asList(angle[0], angle[1], angle[2]));
                     break;
 
                 case TAB_ACCELERATION:
@@ -602,6 +605,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
                 case TAB_ANGLE:
                     setTableData(String.format("%10.4f°", angle[0]), String.format("%10.4f°", angle[1]), String.format("%10.4f°", angle[2]), String.format("%10.2f℃", T));
+                    lineChartManager.addEntry(Arrays.asList(angle[0], angle[1], angle[2]));
                     break;
 
                 case TAB_MAGNETIC_FIELD:
@@ -610,12 +614,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     break;
 
             } // end switch
-
-            // TODO Why do we draw angles in tabs 0
-            // Draw angle in tabs 10 8 7 3 0
-            if ((currentTab == 10) || (currentTab == 8) || (currentTab == 7) || (currentTab == 3) || (currentTab == 0)) {
-                lineChartManager.addEntry(Arrays.asList(angle[0], angle[1], angle[2]));
-            }
 
         }
     };
