@@ -651,8 +651,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
         inclinometerView = findViewById(R.id.inclinometer);
         DisplayMetrics metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        inclinometerView.init(metrics);
 
         findViewById(R.id.dataArea).setVisibility(View.GONE);
         inclinometerView.setVisibility(View.VISIBLE);
