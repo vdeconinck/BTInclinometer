@@ -60,8 +60,8 @@ public class DeviceListActivity extends Activity {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.device_list);
 
-        // Set result CANCELED incase the user backs out
-        //如果一个activity要返回数据到启动它的那个activity，可以调用setResult()方法
+        // Set result CANCELED in case the user backs out
+        // If an activity wants to return data to the activity that started it, it can call the setResult() method
         setResult(Activity.RESULT_CANCELED);
         getPermission();
         // Initialize the button to perform device discovery
@@ -144,9 +144,10 @@ public class DeviceListActivity extends Activity {
         switch (requestCode){
             case ACCESS_LOCATION:
                 if(hasAllPermissionGranted(grantResults)){
-                    Log.e("--","用户允许权限");
-                }else{
-                    Log.e("--","用户禁止权限");
+                    Log.e("--","User allows permission");
+                }
+                else{
+                    Log.e("--","User refuses permission");
                 }
                 break;
         }
@@ -181,13 +182,13 @@ public class DeviceListActivity extends Activity {
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
             String address = info.substring(info.length() - 17);
-            Log.e("--", "经典蓝牙" + info + "~" + address);
+            Log.e("--", "Classic Bluetooth " + info + "~" + address);
             // Create the result Intent and include the MAC address
             Intent intent = new Intent();
             intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
             // Set result and finish this Activity
             setResult(Activity.RESULT_OK, intent);
-            finish();    //程序自动返回之前的activity
+            finish();  // The program automatically returns to the previous activity
         }
     };
 
