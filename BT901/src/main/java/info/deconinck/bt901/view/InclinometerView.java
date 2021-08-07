@@ -1,20 +1,31 @@
 package info.deconinck.bt901.view;
 
+import static android.graphics.Color.GREEN;
+import static android.graphics.Color.RED;
+import static android.graphics.Color.YELLOW;
+
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.view.View;
 
 import androidx.annotation.Nullable;
 
 public class InclinometerView extends View {
+    public static final int MAX_ROLL = 42;
+    public static final int MAX_TILT = 42;
+
     private Bitmap backgroundImage;
-    private Paint staticLinePaint, dynamicLinePaint, dynamicTextPaint, dynamicRectPaint;
+
+    private Paint staticLinePaint, staticTextPaint;
+    private Paint dynamicRollLinePaint, dynamicRollTextPaint;
+    private Paint dynamicTiltRectPaint, dynamicTiltTextPaint;
+    private Paint debugTextPaint;
     private Paint bitmapPaint;
 
     private float[] angleArray;
@@ -35,27 +46,39 @@ public class InclinometerView extends View {
         staticLinePaint.setAntiAlias(true);
         staticLinePaint.setDither(true);
         staticLinePaint.setStrokeWidth(2f);
-        
-        dynamicLinePaint = new Paint();
-        dynamicLinePaint.setColor(Color.GREEN);
-        dynamicLinePaint.setStyle(Paint.Style.STROKE);
-        dynamicLinePaint.setAntiAlias(true);
-        dynamicLinePaint.setDither(true);
-        dynamicLinePaint.setStrokeWidth(2f);
 
-        dynamicTextPaint = new Paint();
-        dynamicTextPaint.setTextSize(40);
-        dynamicTextPaint.setColor(Color.GREEN);
-        dynamicTextPaint.setAntiAlias(true);
+        staticTextPaint = new Paint();
+        staticTextPaint.setColor(Color.WHITE);
+        staticTextPaint.setAntiAlias(true);
+        staticTextPaint.setDither(true);
 
-        dynamicRectPaint = new Paint();
-        dynamicRectPaint.setColor(Color.GREEN);
-        dynamicRectPaint.setStyle(Paint.Style.FILL);
-        dynamicRectPaint.setAntiAlias(true);
-        dynamicRectPaint.setDither(true);
-        dynamicRectPaint.setStrokeWidth(2f);
 
-        bitmapPaint = new Paint(Paint.DITHER_FLAG);
+        dynamicRollLinePaint = new Paint();
+        dynamicRollLinePaint.setStyle(Paint.Style.STROKE);
+        dynamicRollLinePaint.setAntiAlias(true);
+        dynamicRollLinePaint.setDither(true);
+        dynamicRollLinePaint.setStrokeWidth(4f);
+
+        dynamicRollTextPaint = new Paint();
+        dynamicRollTextPaint.setAntiAlias(true);
+
+        dynamicTiltRectPaint = new Paint();
+        dynamicTiltRectPaint.setStyle(Paint.Style.FILL);
+        dynamicTiltRectPaint.setAntiAlias(true);
+        dynamicTiltRectPaint.setDither(true);
+        dynamicTiltRectPaint.setStrokeWidth(2f);
+
+        dynamicTiltTextPaint = new Paint();
+        dynamicTiltTextPaint.setAntiAlias(true);
+
+        debugTextPaint = new Paint();
+        debugTextPaint.setTextSize(40);
+        debugTextPaint.setColor(Color.YELLOW);
+        debugTextPaint.setAntiAlias(true);
+
+        bitmapPaint = new Paint();
+        bitmapPaint.setDither(true);
+        bitmapPaint.setFilterBitmap(true);
     }
 
     public void setAngleArray(float[] angleArray) {
@@ -83,6 +106,11 @@ public class InclinometerView extends View {
         centerY = height / 2f;
         radius = 0.45f * Math.min(width, height);
 
+        // Also prepare angle font sizes (relative to circle size)
+        staticTextPaint.setTextSize(radius / 10);
+        dynamicRollTextPaint.setTextSize(radius / 5);
+        dynamicTiltTextPaint.setTextSize(radius / 5);
+
         // Prepare a new background image
         backgroundImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         // Take its Canvas
@@ -90,11 +118,41 @@ public class InclinometerView extends View {
         // And draw the static parts on it
         // Fill background
         backgroundCanvas.drawColor(Color.BLACK);
+
+        // Remember orientation
+        backgroundCanvas.save();
+
+        // Shift
+        backgroundCanvas.translate(centerX, centerY);
+
         // Main circle
-        backgroundCanvas.drawCircle(centerX, centerY, radius, staticLinePaint);
+        backgroundCanvas.drawCircle(0, 0, radius, staticLinePaint);
         // 0° reference
-        backgroundCanvas.drawLine(centerX - radius, centerY, centerX - radius /2, centerY, staticLinePaint);
-        backgroundCanvas.drawLine(centerX + radius /2, centerY, centerX + radius, centerY, staticLinePaint);
+        backgroundCanvas.drawLine(-radius / 2, 0, -radius, 0, staticLinePaint);
+        backgroundCanvas.drawLine(radius / 2, 0, radius, 0, staticLinePaint);
+
+        // Angle ticks
+        int startAngle = -50;
+        int angleStep = 5;
+        int stopAngle = 50;
+        backgroundCanvas.rotate(startAngle);
+
+        for (int currentAngle = startAngle; currentAngle <= stopAngle; currentAngle += angleStep) {
+            backgroundCanvas.drawLine(-radius * 0.9f, 0, -radius, 0, staticLinePaint);
+            backgroundCanvas.drawLine(radius * 0.9f, 0, radius, 0, staticLinePaint);
+            if (currentAngle % 10 == 0) {
+                String text = Math.abs(currentAngle) + "°";
+                // Text dimensions: See https://stackoverflow.com/a/42091739
+                Rect bounds = new Rect();
+                staticTextPaint.getTextBounds(text, 0, text.length(), bounds);
+                backgroundCanvas.drawText(text, -radius * 0.85f, bounds.height() / 2f, staticTextPaint);
+                backgroundCanvas.drawText(text, radius * 0.85f - bounds.width(), bounds.height() / 2f, staticTextPaint);
+            }
+            backgroundCanvas.rotate(angleStep);
+        }
+
+        // Restore orientation
+        backgroundCanvas.restore();
     }
 
     @Override
@@ -105,36 +163,81 @@ public class InclinometerView extends View {
         }
         canvas.drawBitmap(backgroundImage, 0, 0, bitmapPaint);
 
-        // Now draw the dynamic parts
         if (angleArray != null) {
             // Angle values have been received, draw dynamic contents
-            float cosX = (float) Math.cos(Math.toRadians(angleArray[0]));
-            float sinX = (float) Math.sin(Math.toRadians(angleArray[0]));
+
+            // Roll color
+            int rollColor = GREEN;
+            if (Math.abs(angleArray[0]) > MAX_ROLL * .7f) {
+                rollColor = YELLOW;
+                if (Math.abs(angleArray[0]) > MAX_ROLL * .9f) {
+                    rollColor = RED;
+                }
+            }
+            dynamicRollLinePaint.setColor(rollColor);
+            dynamicRollTextPaint.setColor(rollColor);
+            // Tilt color
+            int tiltColor = GREEN;
+            if (Math.abs(angleArray[1]) > MAX_TILT * .7f) {
+                tiltColor = YELLOW;
+                if (Math.abs(angleArray[1]) > MAX_TILT * .9f) {
+                    tiltColor = RED;
+                }
+            }
+            dynamicTiltTextPaint.setColor(tiltColor);
+            dynamicTiltRectPaint.setColor(tiltColor);
+
+            // 1. Draw roll
+            // Remember orientation
+            canvas.save();
+
+            canvas.translate(centerX, centerY);
+            canvas.rotate(angleArray[0]);
+
+            // Draw current roll lines
+            canvas.drawLine(-radius / 2, 0, -radius, 0, dynamicRollLinePaint);
+            canvas.drawLine(radius / 2, 0, radius, 0, dynamicRollLinePaint);
+
+            // Draw current roll value
+            String text = Math.round(Math.abs(angleArray[0])) + "°";
+            // Text dimensions: See https://stackoverflow.com/a/42091739
+            Rect bounds = new Rect();
+            dynamicRollTextPaint.getTextBounds(text, 0, text.length(), bounds);
+            if (angleArray[0] > 0) {
+                canvas.drawText(text, -radius * 0.7f, -bounds.height() * 0.1f, dynamicRollTextPaint);
+            }
+            else {
+                canvas.drawText(text, radius * 0.7f - bounds.width(), -bounds.height() * 0.1f, dynamicRollTextPaint);
+            }
+
+            // Restore orientation
+            canvas.restore();
+
+            // 2. Draw tilt
+            // Remember orientation
+            canvas.save();
+
+            canvas.translate(centerX, centerY);
+
             float sinY = (float) Math.sin(Math.toRadians(angleArray[1]));
+            canvas.drawRect(-radius / 3, 0, radius / 3, radius * sinY, dynamicTiltRectPaint);
 
-            canvas.drawLine(
-                    centerX - radius/2 * cosX,
-                    centerY - radius/2 * sinX,
-                    centerX - radius * cosX,
-                    centerY - radius * sinX,
-                    dynamicLinePaint
-            );
-            canvas.drawLine(
-                    centerX + radius/2 * cosX,
-                    centerY + radius/2 * sinX,
-                    centerX + radius * cosX,
-                    centerY + radius * sinX,
-                    dynamicLinePaint
-            );
+            // Draw current tilt value
+            text = Math.round(Math.abs(angleArray[1])) + "°";
+            // Text dimensions: See https://stackoverflow.com/a/42091739
+            dynamicRollTextPaint.getTextBounds(text, 0, text.length(), bounds);
+            if (angleArray[1] > 0) {
+                canvas.drawText(text, -bounds.width() / 2f, -bounds.height() * 0.1f, dynamicTiltTextPaint);
+            }
+            else {
+                canvas.drawText(text, -bounds.width() / 2f, bounds.height() * 1.1f, dynamicTiltTextPaint);
+            }
 
-            canvas.drawRect(
-                    centerX - radius/3,
-                    centerY,
-                    centerX + radius/3,
-                    centerY + radius * sinY,
-                    dynamicRectPaint);
+            // Restore orientation
+            canvas.restore();
 
-            canvas.drawText("" + angleArray[0] + " - " + angleArray[1] + " - " + angleArray[2], 0, 60, dynamicTextPaint);
+            // 3. Debug
+            canvas.drawText("" + angleArray[0] + " ; " + angleArray[1] + " ; " + angleArray[2], 0, canvas.getHeight(), debugTextPaint);
         }
 
 // double-buffering ?
