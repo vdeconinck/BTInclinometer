@@ -1,7 +1,7 @@
 package info.deconinck.inclinometer;
 
 import android.app.Application;
-import info.deconinck.wtfile.util.SharedUtil;
+import info.deconinck.inclinometer.util.SharedUtil;
 
 public class InitApplication extends Application {
 

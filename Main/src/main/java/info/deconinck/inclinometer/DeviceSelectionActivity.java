@@ -19,10 +19,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import info.deconinck.inclinometer.R;
-
-import info.deconinck.bt901.DataMonitorActivity;
-import info.deconinck.bt901.db.SQLite;
+import info.deconinck.inclinometer.db.SQLite;
 
 public class DeviceSelectionActivity extends AppCompatActivity implements View.OnClickListener {
     public static final String TAG = DeviceSelectionActivity.class.getName();
