@@ -4,11 +4,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="30dp"
         android:background="@color/accent_1" />
-    <include layout="@layout/title_bar"></include>
+
+    <include layout="@layout/device_selection_title_bar"></include>
 
 
 

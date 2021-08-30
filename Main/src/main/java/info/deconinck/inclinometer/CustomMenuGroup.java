@@ -5,9 +5,9 @@ import java.util.List;
 /**
  * Created by 葛文博 on 2017/11/21.
  */
-public class MenuGroup {
+public class CustomMenuGroup {
     private String name;
-    private List<MenuItem> childList;
+    private List<CustomMenuItem> childList;
 
     public String getName() {
         return name;
@@ -17,11 +17,11 @@ public class MenuGroup {
         this.name = name;
     }
 
-    public List<MenuItem> getChildList() {
+    public List<CustomMenuItem> getChildList() {
         return childList;
     }
 
-    public void setChildList(List<MenuItem> childList) {
+    public void setChildList(List<CustomMenuItem> childList) {
         this.childList = childList;
     }
 }

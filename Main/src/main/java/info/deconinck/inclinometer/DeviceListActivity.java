@@ -49,7 +49,8 @@ public class DeviceListActivity extends Activity {
     private ArrayAdapter<String> mNewDevicesArrayAdapter;
 
     List<String> DeviceList = new ArrayList<String>();
-    List<String> DeviceNameFilter = Arrays.asList("HC-06","");
+    List<String> DeviceNameFilter = Arrays.asList("HC-06", "");
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,13 +103,12 @@ public class DeviceListActivity extends Activity {
         if (pairedDevices.size() > 0) {
             findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);
             for (BluetoothDevice device : pairedDevices) {
-                if (DeviceNameFilter.contains(device.getName())){
+                if (DeviceNameFilter.contains(device.getName())) {
                     mPairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
                 }
             }
         } else {
-        String noDevices = getResources().getText(R.string.none_paired).toString();
-        mPairedDevicesArrayAdapter.add(noDevices);
+            mPairedDevicesArrayAdapter.add(getResources().getText(R.string.none_paired).toString());
         }
     }
 
@@ -123,38 +123,40 @@ public class DeviceListActivity extends Activity {
         this.unregisterReceiver(mReceiver);
     }
 
-    private  final int ACCESS_LOCATION=1;
+    private final int ACCESS_LOCATION = 1;
+
     @SuppressLint("WrongConstant")
-    private void getPermission(){
-        if (Build.VERSION.SDK_INT>Build.VERSION_CODES.M){
+    private void getPermission() {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
             int permissionCheck = 0;
             permissionCheck = this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
             permissionCheck += this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION);
-            if (permissionCheck != PackageManager.PERMISSION_GRANTED){
+            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
                 this.requestPermissions(
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION},ACCESS_LOCATION
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, ACCESS_LOCATION
                 );
             }
         }
     }
+
     @Override
-    public void onRequestPermissionsResult(int requestCode,String[] permissions,int[]grantResults){
-        switch (requestCode){
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
             case ACCESS_LOCATION:
-                if(hasAllPermissionGranted(grantResults)){
-                    Log.e("--","User allows permission");
-                }
-                else{
-                    Log.e("--","User refuses permission");
+                if (hasAllPermissionGranted(grantResults)) {
+                    Log.e("--", "User allows permission");
+                } else {
+                    Log.e("--", "User refuses permission");
                 }
                 break;
         }
     }
-    private boolean hasAllPermissionGranted(int[] grantResults){
-        for (int grantResult:grantResults){
+
+    private boolean hasAllPermissionGranted(int[] grantResults) {
+        for (int grantResult : grantResults) {
             if (grantResult == PackageManager.PERMISSION_DENIED) return false;
         }
-        return  true;
+        return true;
     }
 
     private void doDiscovery() {
@@ -202,20 +204,20 @@ public class DeviceListActivity extends Activity {
                 // If it's already paired, skip it, because it's been listed already
                 if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
                     Log.e("--", "device=" + device.getName() + "--" + device.getAddress());
-                    if(DeviceList.contains(device.getAddress())){
+                    if (DeviceList.contains(device.getAddress())) {
 
                         int i = DeviceList.indexOf(device.getAddress());
-                        Log.e("--", "find device at " +i);
-                        mNewDevicesArrayAdapter.insert(device.getName() + "(" + rssi + "db)" + "\n" + device.getAddress(),i);
-                        mNewDevicesArrayAdapter.remove(mNewDevicesArrayAdapter.getItem(i+1));
+                        Log.e("--", "find device at " + i);
+                        mNewDevicesArrayAdapter.insert(device.getName() + "(" + rssi + "db)" + "\n" + device.getAddress(), i);
+                        mNewDevicesArrayAdapter.remove(mNewDevicesArrayAdapter.getItem(i + 1));
                         return;
                     }
-                    if ((DeviceNameFilter.contains(device.getName()))||(device.getName()==null)){
-                            Log.e("--", "device=" + device.getName() + "--" + device.getAddress());
-                            mNewDevicesArrayAdapter.add(device.getName() + "(" + rssi + "db)" + "\n" + device.getAddress());
-                            DeviceList.add(device.getAddress());
+                    if ((DeviceNameFilter.contains(device.getName())) || (device.getName() == null)) {
+                        Log.e("--", "device=" + device.getName() + "--" + device.getAddress());
+                        mNewDevicesArrayAdapter.add(device.getName() + "(" + rssi + "db)" + "\n" + device.getAddress());
+                        DeviceList.add(device.getAddress());
                     }
-                  //  }
+                    //  }
 
 //                    if (device.getName()!=null) {
 //                        if (DeviceNameFilter.contains(device.getName())){

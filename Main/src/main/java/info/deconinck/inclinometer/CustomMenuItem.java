@@ -3,11 +3,11 @@ package info.deconinck.inclinometer;
 /**
  * Created by 葛文博 on 2017/11/21.
  */
-public class MenuItem {
+public class CustomMenuItem {
 
     private String name;
 
-    public MenuItem(String name) {
+    public CustomMenuItem(String name) {
         this.name = name;
     }
 

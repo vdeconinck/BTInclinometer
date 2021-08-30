@@ -200,5 +200,6 @@
     <string name="angley">AngleY:</string>
     <string name="anglez">AngleZ:</string>
     <string name="t">T:</string>
+    <string name="item2">item2</string>
 
 </resources>

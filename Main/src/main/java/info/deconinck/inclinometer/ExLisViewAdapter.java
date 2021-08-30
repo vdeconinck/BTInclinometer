@@ -16,9 +16,9 @@ import java.util.List;
 public class ExLisViewAdapter extends BaseExpandableListAdapter {
 
     private Context context;
-    private List<MenuGroup> groupList;
+    private List<CustomMenuGroup> groupList;
 
-    public ExLisViewAdapter(Context context, List<MenuGroup> groups) {
+    public ExLisViewAdapter(Context context, List<CustomMenuGroup> groups) {
         this.context = context;
         this.groupList = groups;
     }
@@ -61,12 +61,12 @@ public class ExLisViewAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getGroupView(int i, boolean b, View view, ViewGroup viewGroup) {
-        view = LayoutInflater.from(context).inflate(R.layout.lay_group_item, viewGroup, false);
+        view = LayoutInflater.from(context).inflate(R.layout.lay_menu_group, viewGroup, false);
         TextView tvName = (TextView) view.findViewById(R.id.tvName);
-        MenuGroup menuGroup = groupList.get(i);
-        tvName.setText(menuGroup.getName());
+        CustomMenuGroup customMenuGroup = groupList.get(i);
+        tvName.setText(customMenuGroup.getName());
         ImageView arrow = (ImageView) view.findViewById(R.id.iv_arrow);
-        if (menuGroup.getChildList().size() > 0) {
+        if (customMenuGroup.getChildList().size() > 0) {
             arrow.setVisibility(View.VISIBLE);
         } else {
             arrow.setVisibility(View.INVISIBLE);
@@ -81,11 +81,11 @@ public class ExLisViewAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getChildView(int i, int i1, boolean b, View view, ViewGroup viewGroup) {
-        view = LayoutInflater.from(context).inflate(R.layout.lay_rv_item, viewGroup, false);
+        view = LayoutInflater.from(context).inflate(R.layout.lay_menu_item, viewGroup, false);
         TextView tvName = (TextView) view.findViewById(R.id.tvName);
         if (groupList.get(i).getChildList() != null) {
-            MenuItem menuItem = groupList.get(i).getChildList().get(i1);
-            tvName.setText(menuItem.getName());
+            CustomMenuItem customMenuItem = groupList.get(i).getChildList().get(i1);
+            tvName.setText(customMenuItem.getName());
         }
 
         return view;
