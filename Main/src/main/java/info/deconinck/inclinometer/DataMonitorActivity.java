@@ -31,11 +31,9 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -52,9 +50,9 @@ import java.util.Queue;
 import info.deconinck.inclinometer.bluetooth.BluetoothService;
 import info.deconinck.inclinometer.dialog.AddressDialog;
 import info.deconinck.inclinometer.dialog.SmoothingDialog;
-import info.deconinck.inclinometer.view.InclinometerView;
 import info.deconinck.inclinometer.util.MyFile;
 import info.deconinck.inclinometer.util.SharedUtil;
+import info.deconinck.inclinometer.view.InclinometerView;
 
 @SuppressWarnings("ALL")
 @SuppressLint("DefaultLocale")
@@ -121,7 +119,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private LineChartManager lineChartManager;
     private final List<Integer> qColour = new ArrayList<>(Arrays.asList(Color.RED, Color.GREEN, Color.BLUE, Color.GRAY)); //Polyline color collection
     private static InclinometerView inclinometerView;
-    private String connectionStatus;
 
     private float norm(float x[]) {
         return (float) Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
@@ -548,6 +545,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MESSAGE_STATE_CHANGE:
+                    String connectionStatus;
                     switch (msg.arg1) {
                         case BluetoothService.STATE_CONNECTED:
                             isBtConnection = true;
@@ -555,12 +553,14 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             if (bluetoothScanButton != null) {
                                 connectionStatus = getString(R.string.title_connected_to, mConnectedDeviceName);
                                 bluetoothScanButton.setText(connectionStatus);
+                                inclinometerView.setConnectionStatus(connectionStatus);
                             }
                             break;
                         case BluetoothService.STATE_CONNECTING:
                             if (bluetoothScanButton != null) {
                                 connectionStatus = getString(R.string.title_connecting);
                                 bluetoothScanButton.setText(connectionStatus);
+                                inclinometerView.setConnectionStatus(connectionStatus);
                             }
                             break;
                         case BluetoothService.STATE_LISTEN:
@@ -569,6 +569,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             if (bluetoothScanButton != null) {
                                 connectionStatus = getString(R.string.title_not_connected);
                                 bluetoothScanButton.setText(connectionStatus);
+                                inclinometerView.setConnectionStatus(connectionStatus);
                             }
                             break;
                     }

@@ -174,7 +174,7 @@
 
     <string name="title_connecting">Connecting…</string>
     <string name="title_connected_to">Connected: %1$s</string>
-    <string name="title_not_connected">Disconnect</string>
+    <string name="title_not_connected">Disconnected</string>
     <string name="xmax_null">X max cannot be null!</string>
     <string name="xmin_null">X min cannot be null!</string>
     <string name="xy_time">Keep time cannot be null!</string>

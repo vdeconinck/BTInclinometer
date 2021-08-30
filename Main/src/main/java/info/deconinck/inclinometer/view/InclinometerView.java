@@ -25,10 +25,11 @@ public class InclinometerView extends View {
     private Paint staticLinePaint, staticTextPaint;
     private Paint dynamicRollLinePaint, dynamicRollTextPaint;
     private Paint dynamicTiltRectPaint, dynamicTiltTextPaint;
-    private Paint debugTextPaint;
+    private Paint debugTextPaint, connectionStatusTextPaint;
     private Paint bitmapPaint;
 
     private float[] angleArray;
+    private String connectionStatus;
     private int orientation;
     private float centerX;
     private float centerY;
@@ -76,6 +77,11 @@ public class InclinometerView extends View {
         debugTextPaint.setColor(Color.YELLOW);
         debugTextPaint.setAntiAlias(true);
 
+        connectionStatusTextPaint = new Paint();
+        connectionStatusTextPaint.setTextSize(40);
+        connectionStatusTextPaint.setColor(Color.LTGRAY);
+        connectionStatusTextPaint.setAntiAlias(true);
+
         bitmapPaint = new Paint();
         bitmapPaint.setDither(true);
         bitmapPaint.setFilterBitmap(true);
@@ -83,6 +89,11 @@ public class InclinometerView extends View {
 
     public void setAngleArray(float[] angleArray) {
         this.angleArray = angleArray;
+        invalidate();
+    }
+
+    public void setConnectionStatus(String connectionStatus) {
+        this.connectionStatus = connectionStatus;
         invalidate();
     }
 
@@ -236,8 +247,12 @@ public class InclinometerView extends View {
             // Restore orientation
             canvas.restore();
 
-            // 3. Debug
-            canvas.drawText("" + angleArray[0] + " ; " + angleArray[1] + " ; " + angleArray[2], 0, canvas.getHeight(), debugTextPaint);
+            // 3. Connection status
+            connectionStatusTextPaint.getTextBounds(connectionStatus, 0, connectionStatus.length(), bounds);
+            canvas.drawText(connectionStatus, canvas.getWidth() - bounds.width() - 5, canvas.getHeight() - 5, connectionStatusTextPaint);
+
+            // 4. Debug
+            canvas.drawText("" + angleArray[0] + " ; " + angleArray[1] + " ; " + angleArray[2], 0, canvas.getHeight() - 5, debugTextPaint);
         }
 
 // double-buffering ?
