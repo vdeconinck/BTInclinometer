@@ -25,7 +25,6 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="select_port_mode">Please select port mode:</string>
-    <string name="finish">Finish</string>
     <string name="mag_cali">Mag. calib.</string>
     <string name="acceleration">Accleration</string>
     <string name="velocity">Velocity</string>
@@ -84,8 +83,7 @@
 
     <string name="acc_calibration">Acceleration calibration</string>
     <string name="smoothing_factor">Smoothing factor</string>
-    <string name="dormancy">Sleep</string>
-    <string name="reset_Z_axis">Reset Z axis to zero</string>
+    <string name="sleep">Sleep</string>
     <string name="baud_rate">Baud rate setting</string>
     <string name="installation_orientation">Installation orientation</string>
     <string name="static_detection_threshold">Static detection threshold</string>
@@ -103,12 +101,11 @@
     <string name="magnetic_field_calibration_end">Magnetic calibration - end</string>
     <string name="reset_height">Reset height to zero</string>
     <string name="gyroscope_automatic_calibration">Automatic gyroscope calibration</string>
-    <string name="Z_axis_angle_to_zero">Reset Z-axis angle to zero</string>
+    <string name="reset_Z_axis">Reset Z-axis to zero</string>
     <string name="setting_angle_reference">Set Angle Reference</string>
     <string name="range">Range</string>
     <string name="acceleration_range">Acceleration range</string>
     <string name="angular_velocity_range">Angular velocity range</string>
-    <string name="bandwidth">Bandwidth</string>
     <string name="content">\? Output Content</string>
     <string name="signal_communication">Communication</string>
     <string name="retrieval_rate">Retrieval rate</string>

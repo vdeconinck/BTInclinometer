@@ -20,7 +20,7 @@ import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -119,6 +119,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private LineChartManager lineChartManager;
     private final List<Integer> qColour = new ArrayList<>(Arrays.asList(Color.RED, Color.GREEN, Color.BLUE, Color.GRAY)); //Polyline color collection
     private static InclinometerView inclinometerView;
+    private Menu menu;
 
     private float norm(float x[]) {
         return (float) Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
@@ -655,22 +656,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
 
         Toolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitle("Toolbar");
+        toolbar.setTitle(R.string.app_name);
+        // Options menu
         toolbar.inflateMenu(R.menu.option_menu);
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(android.view.MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.scanItem:
-                        onBluetoothClicked(null);
-                        return true;
-                    case R.id.item2:
-                        // TODO
-                        return true;
-                }
-                return false;
-            }
-        });
+        // customize menu for other sensors
+        enableMenuItems(toolbar.getMenu());
+        installMenuClickListener(toolbar);
 
         Intent intent = getIntent();
         sensorTypeNumaxis = intent.getIntExtra("type", 0);
@@ -713,16 +704,208 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater menuInflater = getMenuInflater();
-        menuInflater.inflate(R.menu.option_menu, menu);
-        return true;
+    private void enableMenuItems(Menu menu) {
+    /*
+        show/hide/modify standard options menu dynamically according to sensor type
+
+        int menuId = R.id.btnAdd;//The ID of the menu
+        MenuItem menuItem = menu.findItem(menuId);//Find menu objects by menu ID
+
+        //Modify a menu item
+        menuItem.setTitle("New Title");
+        //Disable a menu item
+        menuItem.setEnabled(false);
+        //Delete a menu item
+        mMenu.removeItem(menuId);
+        //Hide a menu item
+        menuItem.setVisible(false);
+        //Add a menu item
+        mMenu.add("Add Menu");
+    */
+        enableMenu(menu, R.id.system, sensorTypeNumaxis != 3);
+        enableMenu(menu, R.id.factory_reset, sensorTypeNumaxis == 9);
+        enableMenu(menu, R.id.sleep, sensorTypeNumaxis != 3);
+        enableMenu(menu, R.id.algorithm, sensorTypeNumaxis == 9);
+        enableMenu(menu, R.id.installation_orientation, sensorTypeNumaxis != 3);
+        enableMenu(menu, R.id.static_detection_threshold, sensorTypeNumaxis == 6);
+        enableMenu(menu, R.id.__instruction_start, sensorTypeNumaxis == 9);
+
+        enableMenu(menu, R.id.calibration, true);
+        enableMenu(menu, R.id.acc_calibration, true);
+        enableMenu(menu, R.id.smoothing_factor, sensorTypeNumaxis == 3);
+        enableMenu(menu, R.id.magnetic_field_calibration_start, sensorTypeNumaxis == 9);
+        enableMenu(menu, R.id.magnetic_field_calibration_end, sensorTypeNumaxis == 9);
+        enableMenu(menu, R.id.reset_height, sensorTypeNumaxis == 9);
+        enableMenu(menu, R.id.gyroscope_automatic_calibration, sensorTypeNumaxis == 9);
+        enableMenu(menu, R.id.reset_Z_axis, sensorTypeNumaxis != 3);
+        enableMenu(menu, R.id.setting_angle_reference, sensorTypeNumaxis == 9);
+
+        enableMenu(menu, R.id.range, sensorTypeNumaxis != 3);
+        enableMenu(menu, R.id.acceleration_range, sensorTypeNumaxis == 9);
+        enableMenu(menu, R.id.angular_velocity_range, sensorTypeNumaxis == 9);
+        enableMenu(menu, R.id.measurement_bandwidth, sensorTypeNumaxis != 3);
+
+        enableMenu(menu, R.id.signal_communication, sensorTypeNumaxis != 3);
+        enableMenu(menu, R.id.retrieval_rate, sensorTypeNumaxis != 3);
+        enableMenu(menu, R.id.address, sensorTypeNumaxis == 9);
+
     }
+
+    private void enableMenu(Menu menu, int id, boolean enabled) {
+        MenuItem item = menu.findItem(id);
+        item.setEnabled(enabled);
+        item.setVisible(enabled);
+    }
+
+    private void installMenuClickListener(Toolbar toolbar) {
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.scanItem:
+                        onBtConnectClicked(null);
+                        return true;
+
+                    // system menu
+
+                    case R.id.factory_reset:
+                        factoryReset9();
+                        return true;
+                    case R.id.sleep:
+                        switch (sensorTypeNumaxis) {
+                            case 6:
+                                sleep6();
+                                return true;
+                            case 9:
+                                sleep9();
+                                return true;
+                        }
+                    case R.id.algorithm:
+                        selectAlgorithm9();
+                        return true;
+                    case R.id.installation_orientation:
+                        switch (sensorTypeNumaxis) {
+                            case 6:
+                                selectOrientation6();
+                                return true;
+                            case 9:
+                                selectOrientation9();
+                                return true;
+                        }
+                    case R.id.static_detection_threshold: // Only exists for 6 axis
+                        if (sensorTypeNumaxis == 6) {
+                            selectStaticDetect6();
+                        }
+                    case R.id.__instruction_start:
+                        cmdStartUp9();
+                        return true;
+
+                    // calibration menu
+
+                    case R.id.acc_calibration:
+                        switch (sensorTypeNumaxis) {
+                            case 3:
+                                calibrateAcceleration3();
+                                return true;
+                            case 6:
+                                calibrateAcceleration6();
+                                return true;
+                            case 9:
+                                calibrateAcceleration9();
+                                return true;
+                        }
+                        return true;
+                    case R.id.smoothing_factor: // Only exists for 3 axis
+                        if (sensorTypeNumaxis == 3) {
+                            selectSmoothingFactor3();
+                        }
+                    case R.id.magnetic_field_calibration_start:
+                        calibrateMagneticField9Start(); // Start calibration
+                        Toast.makeText(getApplicationContext(), getString(R.string.toast_calibrating), Toast.LENGTH_LONG).show();
+                        return true;
+                    case R.id.magnetic_field_calibration_end:
+                        calibrateMagneticField9End();
+                        Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
+                        return true;
+                    case R.id.reset_height:
+                        resetHeight9();
+                        Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
+                        return true;
+                    case R.id.gyroscope_automatic_calibration:
+                        calibrateGyro9();
+                        Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
+                        return true;
+                    case R.id.reset_Z_axis:
+                        switch (sensorTypeNumaxis) {
+                            case 6:
+                                calibrateZAxisAngleToZero6();
+                                return true;
+                            case 9:
+                                calibrateZAxisAngleToZero9();
+                                return true;
+                        }
+                    case R.id.setting_angle_reference:
+                        setAngleReference9();
+                        Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
+                        return true;
+
+                    // range menu
+
+                    case R.id.acceleration_range:
+                        selectAccelerationRange9();
+                        return true;
+                    case R.id.angular_velocity_range:
+                        selectAngularVelocityRange9();
+                        return true;
+                    case R.id.measurement_bandwidth:
+                        switch (sensorTypeNumaxis) {
+                            case 6:
+                                selectBandwidth6();
+                                return true;
+                            case 9:
+                                selectBandwidth9();
+                                return true;
+                        }
+
+                        // signal_communication menu
+
+                    case R.id.retrieval_rate:
+                        switch (sensorTypeNumaxis) {
+                            case 6:
+                                selectRetrievelRate6();
+                                return true;
+                            case 9:
+                                selectRetrievelRate9();
+                                return true;
+                        }
+                    case R.id.address:
+                        selectAddress9();
+                        return true;
+                }
+                return false;
+            }
+        });
+    }
+
+
+    private void calibrateZAxisAngleToZero9() {
+        writeAndSaveReg(0x01, 0x04);
+        Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
+    }
+
+    private void calibrateMagneticField9End() {
+        writeAndSaveReg(0x01, 0x00);
+    }
+
+    private void sleep9() {
+        writeLockReg(0x22, 0x01);
+    }
+
 
     private boolean bDisplay = true;
     private Thread displayThread;
 
+    // Custom Witmotion Menu
     // Warning : menu actions are triggered by position!
     // Do not change menu order without reflecting the change in onGroupClick()/onChildClick()
     private void initButton() {
@@ -767,7 +950,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             group.setChildList(customMenuItemList);
             groupList.add(group);
             CustomMenuGroup group2 = new CustomMenuGroup();
-            group2.setName(getString(R.string.dormancy));
+            group2.setName(getString(R.string.sleep));
             group2.setChildList(customMenuItemList);
             groupList.add(group2);
             CustomMenuGroup group3 = new CustomMenuGroup();
@@ -797,7 +980,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             systemMenu.setName(getString(R.string.system));
             List<CustomMenuItem> sysList = new ArrayList<>();
             sysList.add(new CustomMenuItem(getString(R.string.factory_reset)));
-            sysList.add(new CustomMenuItem(getString(R.string.dormancy)));
+            sysList.add(new CustomMenuItem(getString(R.string.sleep)));
             sysList.add(new CustomMenuItem(getString(R.string.algorithm)));
             sysList.add(new CustomMenuItem(getString(R.string.installation_orientation)));
             sysList.add(new CustomMenuItem(getString(R.string.__instruction_start)));
@@ -812,7 +995,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             cbList.add(new CustomMenuItem(getString(R.string.magnetic_field_calibration_end)));
             cbList.add(new CustomMenuItem(getString(R.string.reset_height)));
             cbList.add(new CustomMenuItem(getString(R.string.gyroscope_automatic_calibration)));
-            cbList.add(new CustomMenuItem(getString(R.string.Z_axis_angle_to_zero)));
+            cbList.add(new CustomMenuItem(getString(R.string.reset_Z_axis)));
             cbList.add(new CustomMenuItem(getString(R.string.setting_angle_reference)));
             calibrationMenu.setChildList(cbList);
             groupList.add(calibrationMenu);
@@ -822,7 +1005,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             List<CustomMenuItem> spcopeList = new ArrayList<>();
             spcopeList.add(new CustomMenuItem(getString(R.string.acceleration_range)));
             spcopeList.add(new CustomMenuItem(getString(R.string.angular_velocity_range)));
-            spcopeList.add(new CustomMenuItem(getString(R.string.bandwidth)));
+            spcopeList.add(new CustomMenuItem(getString(R.string.measurement_bandwidth)));
             rangeMenu.setChildList(spcopeList);
             groupList.add(rangeMenu);
 
@@ -843,27 +1026,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 @Override
                 public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
                     drawerLayout.closeDrawer(GravityCompat.START);
-                    if (i == 0) {
-                        sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x01, (byte) 0x01, (byte) 0x00});
+                    if (i == 0) { // acc_calibration
+                        calibrateAcceleration3();
                     }
-                    else if (i == 1) {
-                        SmoothingDialog smoothingDialog = SmoothingDialog.newInstance();
-                        smoothingDialog.setDevDialogCallBack(new SmoothingDialog.SmoothingDialogCallBack() {
-                            @Override
-                            public void save(String value) {
-                                byte[] values = value.getBytes();
-                                if (values.length == 1) {
-                                    values[0] = 0x00;
-                                }
-                                writeReg(0x6c, byteToInt(values[0], values[1]));
-                            }
-
-                            @Override
-                            public void back() {
-                                // noop
-                            }
-                        });
-                        smoothingDialog.show(getSupportFragmentManager());
+                    else if (i == 1) { // smoothing_factor
+                        selectSmoothingFactor3();
                     }
                     return false;
                 }
@@ -875,29 +1042,26 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 @Override
                 public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
                     drawerLayout.closeDrawer(GravityCompat.START);
-                    if (i == 0) {
-                        sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x67});
+                    if (i == 0) { // acc_calibration
+                        calibrateAcceleration6();
                     }
-                    else if (i == 1) {
-                        sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x60});
+                    else if (i == 1) { // sleep
+                        sleep6();
                     }
-                    else if (i == 2) {
-                        sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x52});
+                    else if (i == 2) { // reset_Z_axis
+                        calibrateZAxisAngleToZero6();
                     }
-                    else if (i == 3) {
-                        onClickSetJy61Baud();
+                    else if (i == 3) { // retrieval_rate
+                        selectRetrievelRate6();
                     }
-                    else if (i == 4) {
-                        orientation601();
+                    else if (i == 4) { // installation_orientation
+                        selectOrientation6();
                     }
-                    else if (i == 5) {
-                        staticDetect601();
+                    else if (i == 5) { // static_detection_threshold
+                        selectStaticDetect6();
                     }
-                    else if (i == 6) {
-                        bandwidth601();
-                    }
-                    else if (i == 7) {
-                        mode601();
+                    else if (i == 6) { // measurement_bandwidth
+                        selectBandwidth6();
                     }
                     return false;
                 }
@@ -910,79 +1074,72 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
                     // Warning : menu actions are triggered by position!
                     // Do not change menu order without reflecting the change here
-                    if (i == 0) {
-                        if (i1 == 0) {
-                            writeLockReg(0x00, 0x01);
+                    if (i == 0) { // system
+                        if (i1 == 0) { // factory_reset
+                            factoryReset9();
                         }
-                        else if (i1 == 1) {
-                            writeLockReg(0x22, 0x01);
+                        else if (i1 == 1) { // sleep
+                            sleep9();
                         }
-                        else if (i1 == 2) {
-                            selectAlgorithm();
+                        else if (i1 == 2) { // algorithm
+                            selectAlgorithm9();
                         }
-                        else if (i1 == 3) {
-                            orientation901();
+                        else if (i1 == 3) { // installation_orientation
+                            selectOrientation9();
                         }
-                        else if (i1 == 4) {
-                            cmdStartUp();
+                        else if (i1 == 4) { // __instruction_start
+                            cmdStartUp9();
                         }
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
-                    if (i == 1) {
-                        if (i1 == 0) {
-                            accCali();
+                    if (i == 1) { // calibration
+                        if (i1 == 0) { // acc_calibration
+                            calibrateAcceleration9();
                         }
-                        else if (i1 == 1) {
-                            writeLockReg(0x01, 0x07); // Start calibration
+                        else if (i1 == 1) { // magnetic_field_calibration_start
+                            calibrateMagneticField9Start(); // Start calibration
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_calibrating), Toast.LENGTH_LONG).show();
                         }
-                        else if (i1 == 2) {
-                            writeAndSaveReg(0x01, 0x00);
+                        else if (i1 == 2) { // magnetic_field_calibration_end
+                            calibrateMagneticField9End();
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                            drawerLayout.closeDrawer(GravityCompat.START);
                         }
-                        else if (i1 == 3) {
-                            writeAndSaveReg(0x01, 0x03);
+                        else if (i1 == 3) { // reset_height
+                            resetHeight9();
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                            drawerLayout.closeDrawer(GravityCompat.START);
                         }
-                        else if (i1 == 4) {
-                            autoCalibrate();
+                        else if (i1 == 4) { // gyroscope_automatic_calibration
+                            calibrateGyro9();
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                            drawerLayout.closeDrawer(GravityCompat.START);
                         }
-                        else if (i1 == 5) {
-                            writeAndSaveReg(0x01, 0x04);
+                        else if (i1 == 5) { // Z_axis_angle_to_zero
+                            calibrateZAxisAngleToZero9();
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                            drawerLayout.closeDrawer(GravityCompat.START);
                         }
-                        else if (i1 == 6) {
-                            writeAndSaveReg(0x01, 0x08);
+                        else if (i1 == 6) { // setting_angle_reference
+                            setAngleReference9();
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                            drawerLayout.closeDrawer(GravityCompat.START);
-                        }
-                    }
-                    if (i == 2) {
-                        if (i1 == 0) {
-                            selectAccelerationRange();
-                        }
-                        else if (i1 == 1) {
-                            selectAngularVelocityRange();
-                        }
-                        else if (i1 == 2) {
-                            selectBandwidth901();
                         }
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
-                    if (i == 3) {
-                        if (i1 == 0) {
-                            selectOutputRate();
+                    if (i == 2) { // range
+                        if (i1 == 0) { // acceleration_range
+                            selectAccelerationRange9();
                         }
-                        else if (i1 == 1) {
-                            selectAddress();
+                        else if (i1 == 1) { // angular_velocity_range
+                            selectAngularVelocityRange9();
                         }
-                        else if (i1 == 2) {
-                            selectCommunicationBaudrate();
+                        else if (i1 == 2) { // measurement_bandwidth
+                            selectBandwidth9();
+                        }
+                        drawerLayout.closeDrawer(GravityCompat.START);
+                    }
+                    if (i == 3) { // signal_communication
+                        if (i1 == 0) { // retrieval_rate
+                            selectRetrievelRate9();
+                        }
+                        else if (i1 == 1) { // address
+                            selectAddress9();
                         }
                         drawerLayout.closeDrawer(GravityCompat.START);
                     }
@@ -992,36 +1149,66 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
     }
 
+    private void selectSmoothingFactor3() {
+        SmoothingDialog smoothingDialog = SmoothingDialog.newInstance();
+        smoothingDialog.setDevDialogCallBack(new SmoothingDialog.SmoothingDialogCallBack() {
+            @Override
+            public void save(String value) {
+                byte[] values = value.getBytes();
+                if (values.length == 1) {
+                    values[0] = 0x00;
+                }
+                writeReg(0x6c, byteToInt(values[0], values[1]));
+            }
+
+            @Override
+            public void back() {
+                // noop
+            }
+        });
+        smoothingDialog.show(getSupportFragmentManager());
+    }
+
+    private void calibrateAcceleration3() {
+        sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x01, (byte) 0x01, (byte) 0x00});
+    }
+
+    private void calibrateZAxisAngleToZero6() {
+        sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x52});
+        Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
+    }
+
+    private void setAngleReference9() {
+        writeAndSaveReg(0x01, 0x08);
+    }
+
+    private void resetHeight9() {
+        writeAndSaveReg(0x01, 0x03);
+    }
+
+    private void calibrateMagneticField9Start() {
+        writeLockReg(0x01, 0x07);
+    }
+
+    private void factoryReset9() {
+        writeLockReg(0x00, 0x01);
+    }
+
+    private void sleep6() {
+        sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x60});
+    }
+
+    private void calibrateAcceleration6() {
+        sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x67});
+    }
+
     private void sendData(byte[] byteSend) {
         if (mBluetoothService != null) {
             mBluetoothService.send(byteSend);
         }
     }
 
-    int iChipBaudSelect = 2;
-
-    private void selectCommunicationBaudrate() {
-        String[] s = new String[]{"2400", "4800", "9600", "19200", "38400", "57600", "115200", "230400", "460800", "921600"};
-        new AlertDialog.Builder(this)
-                .setTitle("Please select the communication rate:")
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setSingleChoiceItems(s, iChipBaudSelect, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        iChipBaudSelect = i;
-                    }
-                })
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface arg0, int arg1) {
-                        sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) 0x04, (byte) iChipBaudSelect, (byte) 0x00});
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    private void selectAddress() {
+    private void selectAddress9() {
         AddressDialog addDialog = AddressDialog.newInstance();
         addDialog.setAddressDialogCallBack(new AddressDialog.AddressDialogCallBack() {
             @Override
@@ -1040,7 +1227,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iRetrivalRateSelect = 5;
 
-    private void selectOutputRate() {
+    private void selectRetrievelRate9() {
         String[] s = new String[]{"0.2Hz", "0.5Hz", "1Hz", "2Hz", "5Hz", "10HZ", "20Hz", "50Hz", "100Hz", "125Hz", "200Hz"};
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.select_return_rate))
@@ -1063,7 +1250,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iBandwidth901 = 4;
 
-    private void selectBandwidth901() {
+    private void selectBandwidth9() {
         String[] s = new String[]{"256HZ", "184HZ", "94HZ", "42HZ", "21HZ", "10HZ", "5HZ"};
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.choose_bandwith))
@@ -1086,7 +1273,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int angularVelocityRangeParam = 3;
 
-    private void selectAngularVelocityRange() {
+    private void selectAngularVelocityRange9() {
         String[] s = new String[]{"250deg/s", "500deg/s", "1000deg/s", "2000deg/s"};
         new AlertDialog.Builder(this)
                 .setTitle((R.string.choose_angle))
@@ -1112,7 +1299,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int accRangeParam = 3;
 
-    private void selectAccelerationRange() {
+    private void selectAccelerationRange9() {
         String[] s = new String[]{"2g", "4g", "8g", "16g"};
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.choose_range))
@@ -1138,7 +1325,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iAutoCali = 0;
 
-    private void autoCalibrate() {
+    private void calibrateGyro9() {
         String[] s = new String[]{"Yes", "No"};
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.automatic_calibration_of_helix))
@@ -1163,20 +1350,22 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     private void magCali() {
         if (bMagCali) {
-            writeAndSaveReg(0x01, 0x00);
+            calibrateMagneticField9End(); // End calibration
+            // rename menu
             groupList.get(1).getChildList().get(1).setName(getString(R.string.magnetic_field_calibration_start));
             adapter.notifyDataSetChanged();
             bMagCali = false;
         }
-        else {//End calibration
-            writeLockReg(0x01, 0x07); // Start calibration
-            groupList.get(1).getChildList().get(1).setName(getString(R.string.finish));
+        else {
+            calibrateMagneticField9Start(); // Start calibration
+            // rename menu
+            groupList.get(1).getChildList().get(1).setName(getString(R.string.magnetic_field_calibration_end));
             adapter.notifyDataSetChanged();
             bMagCali = true;
         }
     }
 
-    private void accCali() {
+    private void calibrateAcceleration9() {
         writeLockReg(0x01, 0x01);
         saveReg(3000);
 
@@ -1187,7 +1376,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iAlgorithm = 1;
 
-    private void selectAlgorithm() {
+    private void selectAlgorithm9() {
         String[] s = new String[]{getString(R.string.six_axis_algorithm), getString(R.string.nine_axis_algorithm)};
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.choose_algorithm))
@@ -1213,7 +1402,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 .show();
     }
 
-    public void onBluetoothClicked(View view) {
+    public void onBtConnectClicked(View view) {
         try {
             if (mBluetoothService == null) {
                 // Used to manage Bluetooth connections
@@ -1259,7 +1448,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         mBluetoothService.connect(device);// Attempt to connect to the device
                     }
                     else {
-                        onBluetoothClicked(null);
+                        onBtConnectClicked(null);
                     }
                 }
             }
@@ -1310,7 +1499,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     int iJY61Baud = 0;
     int iJY61RateSelect = 0;
 
-    public void onClickSetJy61Baud() {
+    public void selectRetrievelRate6() {
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.select_return_rate))
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -1338,7 +1527,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iDirection = 0;
 
-    public void orientation601() {
+    public void selectOrientation6() {
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.choose_install_orientation))
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -1365,7 +1554,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int getiDirection901 = 1;
 
-    public void orientation901() {
+    public void selectOrientation9() {
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.choose_install_orientation))
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -1388,7 +1577,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     int iCmdStartup = 1;
 
     // No idea what this is about...
-    public void cmdStartUp() {
+    public void cmdStartUp9() {
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.__whether_or_not))
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -1410,7 +1599,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iStaticDetect61 = 4;
 
-    public void staticDetect601() {
+    public void selectStaticDetect6() {
         String[] s = new String[]{"0.122°/s", "0.244°/s", "0.366°/s", "0.488°/s", "0.610°/s", "0.732°/s", "0.854°/s", "0.976°/s"
                 , "1.098°/s", "1.221°/s", "1.343°/s", "1.456°/s", "1.587°/s", "1.709°/s", "1.831°/s"};
         new AlertDialog.Builder(this)
@@ -1434,7 +1623,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     int iBandwidth61 = 4;
 
-    public void bandwidth601() {
+    public void selectBandwidth6() {
         String[] s = new String[]{"256HZ", "184HZ", "94HZ", "44HZ", "21HZ", "10HZ", "5HZ"};
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.choose_bandwith))
@@ -1449,29 +1638,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                         sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) (0x81 + iBandwidth61)});
-                    }
-                })
-                .setNegativeButton(getString(R.string.cancel), null)
-                .show();
-    }
-
-    int iMode61 = 0;
-
-    public void mode601() {
-        String[] s = new String[]{"Serial", "IIC"};
-        new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.choose_model))
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setSingleChoiceItems(s, iMode61, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        iMode61 = i;
-                    }
-                })
-                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface arg0, int arg1) {
-                        sendData(new byte[]{(byte) 0xff, (byte) 0xaa, (byte) (0x61 + iMode61)});
                     }
                 })
                 .setNegativeButton(getString(R.string.cancel), null)
