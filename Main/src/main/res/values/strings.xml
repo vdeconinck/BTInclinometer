@@ -198,5 +198,10 @@
     <string name="anglez">AngleZ:</string>
     <string name="t">T:</string>
     <string name="item2">item2</string>
+    <string name="zero_tilt">Zero tilt</string>
+    <string name="zero_roll">Zero roll</string>
+    <string name="select_angle">Type %1$s compensation angle</string>
+    <string name="current_angle">%1$d°</string>
+    <string name="current">Current</string>
 
 </resources>

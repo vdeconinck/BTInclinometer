@@ -49,6 +49,7 @@ import java.util.Queue;
 
 import info.deconinck.inclinometer.bluetooth.BluetoothService;
 import info.deconinck.inclinometer.dialog.AddressDialog;
+import info.deconinck.inclinometer.dialog.AngleDialog;
 import info.deconinck.inclinometer.dialog.SmoothingDialog;
 import info.deconinck.inclinometer.util.MyFile;
 import info.deconinck.inclinometer.util.SharedUtil;
@@ -83,6 +84,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public static final int MESSAGE_START_BYTE = 0x55;
 
     private static final int REQUEST_CONNECT_DEVICE = 1;
+    public static final String ROLL_COMPENSATION_ANGLE_KEY = "rollCompensationAngle";
+    public static final String TILT_COMPENSATION_ANGLE_KEY = "tiltCompensationAngle";
 
     private static int sensorTypeNumaxis;
 
@@ -731,6 +734,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         enableMenu(menu, R.id.__instruction_start, sensorTypeNumaxis == 9);
 
         enableMenu(menu, R.id.calibration, true);
+        enableMenu(menu, R.id.zero_tilt, true);
+        enableMenu(menu, R.id.zero_roll, true);
         enableMenu(menu, R.id.acc_calibration, true);
         enableMenu(menu, R.id.smoothing_factor, sensorTypeNumaxis == 3);
         enableMenu(menu, R.id.magnetic_field_calibration_start, sensorTypeNumaxis == 9);
@@ -802,6 +807,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
                     // calibration menu
 
+                    case R.id.zero_roll:
+                        calibrateZeroRoll();
+                        return true;
+                    case R.id.zero_tilt:
+                        calibrateZeroTilt();
+                        return true;
                     case R.id.acc_calibration:
                         switch (sensorTypeNumaxis) {
                             case 3:
@@ -886,6 +897,41 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             }
         });
     }
+
+    private void calibrateZeroRoll() {
+        AngleDialog angleDialog = AngleDialog.newInstance("Roll", angle, 0);
+        angleDialog.setAngleDialogCallBack(new AngleDialog.AngleDialogCallBack() {
+            @Override
+            public void save(String value) {
+                float rollCompensationAngle = Float.parseFloat(value);
+                SharedUtil.putFloat(ROLL_COMPENSATION_ANGLE_KEY, rollCompensationAngle);
+                inclinometerView.setRollCompensationAngle(rollCompensationAngle);
+            }
+
+            @Override
+            public void back() {
+            }
+        });
+        angleDialog.show(getSupportFragmentManager());
+    }
+
+    private void calibrateZeroTilt() {
+        AngleDialog angleDialog = AngleDialog.newInstance("Tilt", angle, 1);
+        angleDialog.setAngleDialogCallBack(new AngleDialog.AngleDialogCallBack() {
+            @Override
+            public void save(String value) {
+                float tiltCompensationAngle = Float.parseFloat(value);
+                SharedUtil.putFloat(TILT_COMPENSATION_ANGLE_KEY, tiltCompensationAngle);
+                inclinometerView.setTiltCompensationAngle(tiltCompensationAngle);
+            }
+
+            @Override
+            public void back() {
+            }
+        });
+        angleDialog.show(getSupportFragmentManager());
+    }
+
 
 
     private void calibrateZAxisAngleToZero9() {
@@ -1209,8 +1255,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
     private void selectAddress9() {
-        AddressDialog addDialog = AddressDialog.newInstance();
-        addDialog.setAddressDialogCallBack(new AddressDialog.AddressDialogCallBack() {
+        AddressDialog addressDialog = AddressDialog.newInstance();
+        addressDialog.setAddressDialogCallBack(new AddressDialog.AddressDialogCallBack() {
             @Override
             public void save(String value) {
                 int v = Integer.parseInt(value);
@@ -1221,7 +1267,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             public void back() {
             }
         });
-        addDialog.show(getSupportFragmentManager());
+        addressDialog.show(getSupportFragmentManager());
     }
 
 

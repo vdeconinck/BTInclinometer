@@ -32,6 +32,8 @@
 
     <item android:id="@+id/calibration" android:title="@string/calibration" app:showAsAction="never">
         <menu>
+            <item android:id="@+id/zero_tilt" android:title="@string/zero_tilt" app:showAsAction="never"/>
+            <item android:id="@+id/zero_roll" android:title="@string/zero_roll" app:showAsAction="never"/>
             <item android:id="@+id/acc_calibration" android:title="@string/acc_calibration" app:showAsAction="never"/>
             <item android:id="@+id/smoothing_factor" android:title="@string/smoothing_factor" app:showAsAction="never"/>
             <item android:id="@+id/magnetic_field_calibration_start" android:title="@string/magnetic_field_calibration_start" app:showAsAction="never"/>

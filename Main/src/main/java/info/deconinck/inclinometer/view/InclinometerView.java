@@ -16,6 +16,9 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import info.deconinck.inclinometer.DataMonitorActivity;
+import info.deconinck.inclinometer.util.SharedUtil;
+
 public class InclinometerView extends View {
     public static final int MAX_ROLL = 42;
     public static final int MAX_TILT = 42;
@@ -34,6 +37,7 @@ public class InclinometerView extends View {
     private float centerX;
     private float centerY;
     private float radius;
+    private float tiltCompensationAngle, rollCompensationAngle;
 
     public InclinometerView(Context context) {
         this(context, null);
@@ -85,11 +89,32 @@ public class InclinometerView extends View {
         bitmapPaint = new Paint();
         bitmapPaint.setDither(true);
         bitmapPaint.setFilterBitmap(true);
+
+        try {
+            rollCompensationAngle = SharedUtil.getFloat(DataMonitorActivity.ROLL_COMPENSATION_ANGLE_KEY);
+        }
+        catch (Exception e) {
+            rollCompensationAngle = 0;
+        }
+        try {
+            tiltCompensationAngle = SharedUtil.getFloat(DataMonitorActivity.TILT_COMPENSATION_ANGLE_KEY);
+        }
+        catch (Exception e) {
+            tiltCompensationAngle = 0;
+        }
     }
 
     public void setAngleArray(float[] angleArray) {
         this.angleArray = angleArray;
         invalidate();
+    }
+
+    public void setTiltCompensationAngle(float tiltCompensationAngle) {
+        this.tiltCompensationAngle = tiltCompensationAngle;
+    }
+
+    public void setRollCompensationAngle(float rollCompensationAngle) {
+        this.rollCompensationAngle = rollCompensationAngle;
     }
 
     public void setConnectionStatus(String connectionStatus) {
@@ -176,45 +201,49 @@ public class InclinometerView extends View {
 
         if (angleArray != null) {
             // Angle values have been received, draw dynamic contents
+            float roll = angleArray[0] - rollCompensationAngle;
+            float tilt = angleArray[1] - tiltCompensationAngle;
 
             // Roll color
             int rollColor = GREEN;
-            if (Math.abs(angleArray[0]) > MAX_ROLL * .7f) {
+            if (Math.abs(roll) > MAX_ROLL * .7f) {
                 rollColor = YELLOW;
-                if (Math.abs(angleArray[0]) > MAX_ROLL * .9f) {
+                if (Math.abs(roll) > MAX_ROLL * .9f) {
                     rollColor = RED;
                 }
             }
             dynamicRollLinePaint.setColor(rollColor);
             dynamicRollTextPaint.setColor(rollColor);
+
             // Tilt color
             int tiltColor = GREEN;
-            if (Math.abs(angleArray[1]) > MAX_TILT * .7f) {
+            if (Math.abs(tilt) > MAX_TILT * .7f) {
                 tiltColor = YELLOW;
-                if (Math.abs(angleArray[1]) > MAX_TILT * .9f) {
+                if (Math.abs(tilt) > MAX_TILT * .9f) {
                     tiltColor = RED;
                 }
             }
             dynamicTiltTextPaint.setColor(tiltColor);
             dynamicTiltRectPaint.setColor(tiltColor);
 
+
             // 1. Draw roll
             // Remember orientation
             canvas.save();
 
             canvas.translate(centerX, centerY);
-            canvas.rotate(angleArray[0]);
+            canvas.rotate(roll);
 
             // Draw current roll lines
             canvas.drawLine(-radius / 2, 0, -radius, 0, dynamicRollLinePaint);
             canvas.drawLine(radius / 2, 0, radius, 0, dynamicRollLinePaint);
 
             // Draw current roll value
-            String text = Math.round(Math.abs(angleArray[0])) + "°";
+            String text = Math.round(Math.abs(roll)) + "°";
             // Text dimensions: See https://stackoverflow.com/a/42091739
             Rect bounds = new Rect();
             dynamicRollTextPaint.getTextBounds(text, 0, text.length(), bounds);
-            if (angleArray[0] > 0) {
+            if (roll > 0) {
                 canvas.drawText(text, -radius * 0.7f, -bounds.height() * 0.1f, dynamicRollTextPaint);
             }
             else {
@@ -230,14 +259,14 @@ public class InclinometerView extends View {
 
             canvas.translate(centerX, centerY);
 
-            float sinY = (float) Math.sin(Math.toRadians(angleArray[1]));
+            float sinY = (float) Math.sin(Math.toRadians(tilt));
             canvas.drawRect(-radius / 3, 0, radius / 3, radius * sinY, dynamicTiltRectPaint);
 
             // Draw current tilt value
-            text = Math.round(Math.abs(angleArray[1])) + "°";
+            text = Math.round(Math.abs(tilt)) + "°";
             // Text dimensions: See https://stackoverflow.com/a/42091739
             dynamicRollTextPaint.getTextBounds(text, 0, text.length(), bounds);
-            if (angleArray[1] > 0) {
+            if (tilt > 0) {
                 canvas.drawText(text, -bounds.width() / 2f, -bounds.height() * 0.1f, dynamicTiltTextPaint);
             }
             else {
@@ -252,7 +281,7 @@ public class InclinometerView extends View {
             canvas.drawText(connectionStatus, canvas.getWidth() - bounds.width() - 5, canvas.getHeight() - 5, connectionStatusTextPaint);
 
             // 4. Debug
-            canvas.drawText("" + angleArray[0] + " ; " + angleArray[1] + " ; " + angleArray[2], 0, canvas.getHeight() - 5, debugTextPaint);
+            canvas.drawText("" + roll + " ; " + tilt + " ; " + angleArray[2], 0, canvas.getHeight() - 5, debugTextPaint);
         }
 
 // double-buffering ?
