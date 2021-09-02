@@ -17,7 +17,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,14 +25,11 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.ExpandableListView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -93,15 +89,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private BluetoothService mBluetoothService = null;
     private String mConnectedDeviceName = null;
     private static final String ACTION_USB_PERMISSION = "cn.wch.wchusbdriver.USB_PERMISSION";
-    private Button bluetoothScanButton;
     private boolean recordStartorStop = false;
     public byte[] writeBuffer;
     public byte[] readBuffer;
     static MyFile myFile;
-    DrawerLayout drawerLayout;
-    ExLisViewAdapter adapter;
     private Switch outputSwitch;
-    List<CustomMenuGroup> groupList = new ArrayList<>();
     private static int ar = 16, av = 2000;
     private static final float[] ac = new float[]{0, 0, 0};
     private static final float[] w = new float[]{0, 0, 0};
@@ -553,28 +545,19 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     switch (msg.arg1) {
                         case BluetoothService.STATE_CONNECTED:
                             isBtConnection = true;
-                            initButton();
-                            if (bluetoothScanButton != null) {
-                                connectionStatus = getString(R.string.title_connected_to, mConnectedDeviceName);
-                                bluetoothScanButton.setText(connectionStatus);
-                                inclinometerView.setConnectionStatus(connectionStatus);
-                            }
+                            initTabs();
+                            connectionStatus = getString(R.string.title_connected_to, mConnectedDeviceName);
+                            inclinometerView.setConnectionStatus(connectionStatus);
                             break;
                         case BluetoothService.STATE_CONNECTING:
-                            if (bluetoothScanButton != null) {
-                                connectionStatus = getString(R.string.title_connecting);
-                                bluetoothScanButton.setText(connectionStatus);
-                                inclinometerView.setConnectionStatus(connectionStatus);
-                            }
+                            connectionStatus = getString(R.string.title_connecting);
+                            inclinometerView.setConnectionStatus(connectionStatus);
                             break;
                         case BluetoothService.STATE_LISTEN:
                         case BluetoothService.STATE_NONE:
                             isBtConnection = false;
-                            if (bluetoothScanButton != null) {
-                                connectionStatus = getString(R.string.title_not_connected);
-                                bluetoothScanButton.setText(connectionStatus);
-                                inclinometerView.setConnectionStatus(connectionStatus);
-                            }
+                            connectionStatus = getString(R.string.title_not_connected);
+                            inclinometerView.setConnectionStatus(connectionStatus);
                             break;
                     }
                     break;
@@ -582,7 +565,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     break;
                 case MESSAGE_DEVICE_NAME:
                     mConnectedDeviceName = msg.getData().getString("device_name");
-                    Toast.makeText(getApplicationContext(), getString(R.string.title_connected_to, mConnectedDeviceName), Toast.LENGTH_SHORT).show();
+                    connectionStatus = getString(R.string.title_connected_to, mConnectedDeviceName);
+                    Toast.makeText(getApplicationContext(), connectionStatus, Toast.LENGTH_SHORT).show();
+                    inclinometerView.setConnectionStatus(connectionStatus);
                     break;
                 case MESSAGE_TOAST:
                     Toast.makeText(getApplicationContext(), msg.getData().getString("toast"), Toast.LENGTH_SHORT).show();
@@ -671,10 +656,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // Keep the screen always on
 
-        inclinometerView = findViewById(R.id.inclinometer);
-        DisplayMetrics metrics = new DisplayMetrics();
-
+        // Hide data tabs
         findViewById(R.id.dataArea).setVisibility(View.GONE);
+
+        // Show inclinometer instead
+        inclinometerView = findViewById(R.id.inclinometer);
+        inclinometerView.setConnectionStatus(getString(R.string.title_connecting));
         inclinometerView.setVisibility(View.VISIBLE);
 
         writeBuffer = new byte[512];
@@ -708,23 +695,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
     private void enableMenuItems(Menu menu) {
-    /*
-        show/hide/modify standard options menu dynamically according to sensor type
-
-        int menuId = R.id.btnAdd;//The ID of the menu
-        MenuItem menuItem = menu.findItem(menuId);//Find menu objects by menu ID
-
-        //Modify a menu item
-        menuItem.setTitle("New Title");
-        //Disable a menu item
-        menuItem.setEnabled(false);
-        //Delete a menu item
-        mMenu.removeItem(menuId);
-        //Hide a menu item
-        menuItem.setVisible(false);
-        //Add a menu item
-        mMenu.add("Add Menu");
-    */
         enableMenu(menu, R.id.system, sensorTypeNumaxis != 3);
         enableMenu(menu, R.id.factory_reset, sensorTypeNumaxis == 9);
         enableMenu(menu, R.id.sleep, sensorTypeNumaxis != 3);
@@ -951,17 +921,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private boolean bDisplay = true;
     private Thread displayThread;
 
-    // Custom Witmotion Menu
-    // Warning : menu actions are triggered by position!
-    // Do not change menu order without reflecting the change in onGroupClick()/onChildClick()
-    private void initButton() {
-        // Side menu
-        if (!groupList.isEmpty()) groupList.clear();
-        ExpandableListView listview = findViewById(R.id.expandableLisView);
-        drawerLayout = findViewById(R.id.drawerLayout);
-        List<CustomMenuItem> customMenuItemList = new ArrayList<>();
-
-        bluetoothScanButton = findViewById(R.id.bluetoothScanButton);
+    private void initTabs() {
         tvLabelX = findViewById(R.id.X);
         tvLabelY = findViewById(R.id.Y);
         tvLabelZ = findViewById(R.id.Z);
@@ -975,223 +935,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             // Hide most tabs
             findViewById(R.id.angularVelocityTabBtn).setVisibility(View.GONE);
             findViewById(R.id.magneticFieldTabBtn).setVisibility(View.GONE);
-
-            // Menu is only made of 2 top-level entries
-            CustomMenuGroup group = new CustomMenuGroup();
-            group.setName(getString(R.string.acc_calibration));
-            group.setChildList(customMenuItemList);
-            CustomMenuGroup group2 = new CustomMenuGroup();
-            group2.setName(getString(R.string.smoothing_factor));
-            group2.setChildList(customMenuItemList);
-            groupList.add(group);
-            groupList.add(group2);
         }
         else if (sensorTypeNumaxis == 6) {
             // Hide some tabs
             findViewById(R.id.magneticFieldTabBtn).setVisibility(View.GONE);
-
-            // Menu is only made of 7 top-level entries
-            CustomMenuGroup group = new CustomMenuGroup();
-            group.setName(getString(R.string.acc_calibration));
-            group.setChildList(customMenuItemList);
-            groupList.add(group);
-            CustomMenuGroup group2 = new CustomMenuGroup();
-            group2.setName(getString(R.string.sleep));
-            group2.setChildList(customMenuItemList);
-            groupList.add(group2);
-            CustomMenuGroup group3 = new CustomMenuGroup();
-            group3.setName(getString(R.string.reset_Z_axis));
-            group3.setChildList(customMenuItemList);
-            groupList.add(group3);
-            CustomMenuGroup group4 = new CustomMenuGroup();
-            group4.setName(getString(R.string.retrieval_rate));
-            group4.setChildList(customMenuItemList);
-            groupList.add(group4);
-            CustomMenuGroup group5 = new CustomMenuGroup();
-            group5.setName(getString(R.string.installation_orientation));
-            group5.setChildList(customMenuItemList);
-            groupList.add(group5);
-            CustomMenuGroup group6 = new CustomMenuGroup();
-            group6.setName(getString(R.string.static_detection_threshold));
-            group6.setChildList(customMenuItemList);
-            groupList.add(group6);
-            CustomMenuGroup group7 = new CustomMenuGroup();
-            group7.setName(getString(R.string.measurement_bandwidth));
-            group7.setChildList(customMenuItemList);
-            groupList.add(group7);
-        }
-        else if (sensorTypeNumaxis == 9) {
-            // Menu is a full-fledged two-level structure
-            CustomMenuGroup systemMenu = new CustomMenuGroup();
-            systemMenu.setName(getString(R.string.system));
-            List<CustomMenuItem> sysList = new ArrayList<>();
-            sysList.add(new CustomMenuItem(getString(R.string.factory_reset)));
-            sysList.add(new CustomMenuItem(getString(R.string.sleep)));
-            sysList.add(new CustomMenuItem(getString(R.string.algorithm)));
-            sysList.add(new CustomMenuItem(getString(R.string.installation_orientation)));
-            sysList.add(new CustomMenuItem(getString(R.string.__instruction_start)));
-            systemMenu.setChildList(sysList);
-            groupList.add(systemMenu);
-
-            CustomMenuGroup calibrationMenu = new CustomMenuGroup();
-            calibrationMenu.setName(getString(R.string.calibration));
-            List<CustomMenuItem> cbList = new ArrayList<>();
-            cbList.add(new CustomMenuItem(getString(R.string.acc_calibration)));
-            cbList.add(new CustomMenuItem(getString(R.string.magnetic_field_calibration_start)));
-            cbList.add(new CustomMenuItem(getString(R.string.magnetic_field_calibration_end)));
-            cbList.add(new CustomMenuItem(getString(R.string.reset_height)));
-            cbList.add(new CustomMenuItem(getString(R.string.gyroscope_automatic_calibration)));
-            cbList.add(new CustomMenuItem(getString(R.string.reset_Z_axis)));
-            cbList.add(new CustomMenuItem(getString(R.string.setting_angle_reference)));
-            calibrationMenu.setChildList(cbList);
-            groupList.add(calibrationMenu);
-
-            CustomMenuGroup rangeMenu = new CustomMenuGroup();
-            rangeMenu.setName(getString(R.string.range));
-            List<CustomMenuItem> spcopeList = new ArrayList<>();
-            spcopeList.add(new CustomMenuItem(getString(R.string.acceleration_range)));
-            spcopeList.add(new CustomMenuItem(getString(R.string.angular_velocity_range)));
-            spcopeList.add(new CustomMenuItem(getString(R.string.measurement_bandwidth)));
-            rangeMenu.setChildList(spcopeList);
-            groupList.add(rangeMenu);
-
-            CustomMenuGroup communicationMenu = new CustomMenuGroup();
-            communicationMenu.setName(getString(R.string.signal_communication));
-            List<CustomMenuItem> comList = new ArrayList<>();
-            comList.add(new CustomMenuItem(getString(R.string.retrieval_rate)));
-            comList.add(new CustomMenuItem(getString(R.string.address)));
-            communicationMenu.setChildList(comList);
-            groupList.add(communicationMenu);
-        }
-        adapter = new ExLisViewAdapter(this, groupList);
-        listview.setAdapter(adapter);
-        listview.setGroupIndicator(null);
-
-        if (sensorTypeNumaxis == 3) {
-            listview.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-                @Override
-                public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
-                    drawerLayout.closeDrawer(GravityCompat.START);
-                    if (i == 0) { // acc_calibration
-                        calibrateAcceleration3();
-                    }
-                    else if (i == 1) { // smoothing_factor
-                        selectSmoothingFactor3();
-                    }
-                    return false;
-                }
-            });
-        }
-
-        if (sensorTypeNumaxis == 6) {
-            listview.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-                @Override
-                public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
-                    drawerLayout.closeDrawer(GravityCompat.START);
-                    if (i == 0) { // acc_calibration
-                        calibrateAcceleration6();
-                    }
-                    else if (i == 1) { // sleep
-                        sleep6();
-                    }
-                    else if (i == 2) { // reset_Z_axis
-                        calibrateZAxisAngleToZero6();
-                    }
-                    else if (i == 3) { // retrieval_rate
-                        selectRetrievelRate6();
-                    }
-                    else if (i == 4) { // installation_orientation
-                        selectOrientation6();
-                    }
-                    else if (i == 5) { // static_detection_threshold
-                        selectStaticDetect6();
-                    }
-                    else if (i == 6) { // measurement_bandwidth
-                        selectBandwidth6();
-                    }
-                    return false;
-                }
-            });
-        }
-
-        if (sensorTypeNumaxis == 9) {
-            listview.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
-                @Override
-                public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
-                    // Warning : menu actions are triggered by position!
-                    // Do not change menu order without reflecting the change here
-                    if (i == 0) { // system
-                        if (i1 == 0) { // factory_reset
-                            factoryReset9();
-                        }
-                        else if (i1 == 1) { // sleep
-                            sleep9();
-                        }
-                        else if (i1 == 2) { // algorithm
-                            selectAlgorithm9();
-                        }
-                        else if (i1 == 3) { // installation_orientation
-                            selectOrientation9();
-                        }
-                        else if (i1 == 4) { // __instruction_start
-                            cmdStartUp9();
-                        }
-                        drawerLayout.closeDrawer(GravityCompat.START);
-                    }
-                    if (i == 1) { // calibration
-                        if (i1 == 0) { // acc_calibration
-                            calibrateAcceleration9();
-                        }
-                        else if (i1 == 1) { // magnetic_field_calibration_start
-                            calibrateMagneticField9Start(); // Start calibration
-                            Toast.makeText(getApplicationContext(), getString(R.string.toast_calibrating), Toast.LENGTH_LONG).show();
-                        }
-                        else if (i1 == 2) { // magnetic_field_calibration_end
-                            calibrateMagneticField9End();
-                            Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                        }
-                        else if (i1 == 3) { // reset_height
-                            resetHeight9();
-                            Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                        }
-                        else if (i1 == 4) { // gyroscope_automatic_calibration
-                            calibrateGyro9();
-                            Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                        }
-                        else if (i1 == 5) { // Z_axis_angle_to_zero
-                            calibrateZAxisAngleToZero9();
-                            Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                        }
-                        else if (i1 == 6) { // setting_angle_reference
-                            setAngleReference9();
-                            Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
-                        }
-                        drawerLayout.closeDrawer(GravityCompat.START);
-                    }
-                    if (i == 2) { // range
-                        if (i1 == 0) { // acceleration_range
-                            selectAccelerationRange9();
-                        }
-                        else if (i1 == 1) { // angular_velocity_range
-                            selectAngularVelocityRange9();
-                        }
-                        else if (i1 == 2) { // measurement_bandwidth
-                            selectBandwidth9();
-                        }
-                        drawerLayout.closeDrawer(GravityCompat.START);
-                    }
-                    if (i == 3) { // signal_communication
-                        if (i1 == 0) { // retrieval_rate
-                            selectRetrievelRate9();
-                        }
-                        else if (i1 == 1) { // address
-                            selectAddress9();
-                        }
-                        drawerLayout.closeDrawer(GravityCompat.START);
-                    }
-                    return true;
-                }
-            });
         }
     }
 
@@ -1392,25 +1139,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 .show();
     }
 
-    boolean bMagCali = false;
-
-    private void magCali() {
-        if (bMagCali) {
-            calibrateMagneticField9End(); // End calibration
-            // rename menu
-            groupList.get(1).getChildList().get(1).setName(getString(R.string.magnetic_field_calibration_start));
-            adapter.notifyDataSetChanged();
-            bMagCali = false;
-        }
-        else {
-            calibrateMagneticField9Start(); // Start calibration
-            // rename menu
-            groupList.get(1).getChildList().get(1).setName(getString(R.string.magnetic_field_calibration_end));
-            adapter.notifyDataSetChanged();
-            bMagCali = true;
-        }
-    }
-
     private void calibrateAcceleration9() {
         writeLockReg(0x01, 0x01);
         saveReg(3000);
@@ -1472,7 +1200,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     public synchronized void onResume() {
         super.onResume();
-        initButton();
+        initTabs();
         if (!mBluetoothAdapter.isEnabled()) {
             mBluetoothAdapter.enable();
         }
@@ -1706,10 +1434,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             if (isOutputEnabled[i]) iTemp |= 0x01 << i;
         }
         return iTemp;
-    }
-
-    public void onSideMenuButtonClick(View v) {
-        drawerLayout.openDrawer(GravityCompat.START);
     }
 
     boolean isPaused = false;
