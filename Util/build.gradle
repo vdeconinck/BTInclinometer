@@ -7,7 +7,7 @@ android {
     defaultConfig {
         minSdkVersion 18
         targetSdkVersion 31
-        resConfigs "en"
+        resConfigs 'en'
     }
 
     buildTypes {
