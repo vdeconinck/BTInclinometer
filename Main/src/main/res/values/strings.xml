@@ -8,67 +8,21 @@
 
     <string name="select_module">Select Module Type</string>
     <string name="logo_image">Logo image</string>
-    <string name="banner_image">Banner image</string>
 
-
-    <string name="connected">Connected</string>
-    <string name="disconnected">Disconnected</string>
     <string name="error_bluetooth_not_supported">Bluetooth not supported.</string>
 
-
     <!-- Menu items -->
-    <string name="menu_connect">Connect</string>
-    <string name="menu_disconnect">Disconnect</string>
-    <string name="menu_scan">Scan</string>
-    <string name="menu_stop">Stop</string>
-    <string name="select_rate">Please select output rate:</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
-    <string name="select_port_mode">Please select port mode:</string>
-    <string name="mag_cali">Mag. calib.</string>
-    <string name="acceleration">Accleration</string>
-    <string name="velocity">Velocity</string>
-    <string name="angle">Euler angle</string>
-    <string name="mag_field">Magnetic field</string>
 
-    <string name="port">Port</string>
-    <string name="quaternion">Quaternion</string>
-    <string name="acc_cali">Acc. calib.</string>
-    <string name="acc_cali_left">Acc. calib. L</string>
-    <string name="acc_cali_right">Acc. calib. R</string>
-    <string name="toast_acc_cali">Calibrating, please wait…</string>
     <string name="toast_calibrating">Calibrating, please rotate the module around each axis several times</string>
     <string name="toast_cali_done">Calibration complete.</string>
-    <string name="rate">Rate</string>
-    <string name="save">Save</string>
-    <string name="resume">Resume</string>
-    <string name="setup">Set up</string>
 
-
-    <string name="bluetooth">Bluetooth</string>
     <string name="record">Record</string>
     <string name="stop">Stop</string>
-    <string name="temperature">Temperature：</string>
-    <string name="elevation">Elevation：</string>
-    <string name="longitude_and_latitude">Latitude/longitude</string>
-    <string name="longitude">Longitude:</string>
-    <string name="latitude">Latitude:</string>
-    <string name="ground_velocity">Ground velocity</string>
-    <string name="course">Course:</string>
-    <string name="satellite_number">Number of satellites</string>
-    <string name="data">Data</string>
-    <string name="help">Help</string>
-    <string name="x">X：</string>
-    <string name="y">Y：</string>
-    <string name="z">Z：</string>
-    <string name="about">About\nV2.3</string>
+
     <string name="hint">Hint</string>
     <string name="bluetooth_bad">Bluetooth is not available</string>
-    <string name="open_device_failure">Failed to open the device!</string>
-    <string name="open_device_success">Device opened successfully!</string>
-    <string name="unauthorized_authority">Unauthorized authority</string>
-    <string name="confirm_quit">Are you sure you want to quit?</string>
-    <string name="back">Back</string>
 
     <string name="scanning">Searching for sensor…</string>
     <string name="select_device">Select a sensor</string>
@@ -79,7 +33,6 @@
     <string name="button_scan">Search sensor</string>
     <string name="recorded_root_directory">The data has been recorded to the root directory of your device:</string>
     <string name="open_file">Open the saved file?</string>
-    <string name="select_model">Please select sensor model</string>
 
     <string name="acc_calibration">Acceleration calibration</string>
     <string name="smoothing_factor">Smoothing factor</string>
@@ -201,7 +154,8 @@
     <string name="zero_tilt">Zero tilt</string>
     <string name="zero_roll">Zero roll</string>
     <string name="select_angle">Type %1$s compensation angle</string>
-    <string name="current_angle">%1$d°</string>
     <string name="current">Current</string>
+
+    <string name="change_sensor_type">Change sensor type</string>
 
 </resources>
