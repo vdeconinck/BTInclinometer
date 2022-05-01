@@ -25,7 +25,7 @@ android {
         targetSdkVersion 31
         versionCode 1
         versionName "1.0"
-        resConfigs "en"
+        resConfigs 'en'
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
