@@ -743,6 +743,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
                     // system menu
 
+                    case R.id.change_sensor_type:
+                        changeSensorType();
+                        return true;
                     case R.id.factory_reset:
                         factoryReset9();
                         return true;
@@ -867,6 +870,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             }
         });
     }
+
+    private void changeSensorType() {
+        // TODO this should replace the sensor selection splash screen
+    }
+
 
     private void calibrateZeroRoll() {
         AngleDialog angleDialog = AngleDialog.newInstance("Roll", angle, 0);
