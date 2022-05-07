@@ -157,5 +157,6 @@
     <string name="current">Current</string>
 
     <string name="change_sensor_type">Change sensor type</string>
+    <string name="toggle_debug_info">Toggle debug info</string>
 
 </resources>

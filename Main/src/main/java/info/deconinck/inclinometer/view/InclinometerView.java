@@ -38,6 +38,7 @@ public class InclinometerView extends View {
     private float centerY;
     private float radius;
     private float tiltCompensationAngle, rollCompensationAngle;
+    private boolean showDebug = false;
 
     public InclinometerView(Context context) {
         this(context, null);
@@ -120,6 +121,14 @@ public class InclinometerView extends View {
     public void setConnectionStatus(String connectionStatus) {
         this.connectionStatus = connectionStatus;
         invalidate();
+    }
+
+    public boolean isShowDebug() {
+        return showDebug;
+    }
+
+    public void setShowDebug(boolean showDebug) {
+        this.showDebug = showDebug;
     }
 
     @Override
@@ -280,8 +289,10 @@ public class InclinometerView extends View {
             connectionStatusTextPaint.getTextBounds(connectionStatus, 0, connectionStatus.length(), bounds);
             canvas.drawText(connectionStatus, canvas.getWidth() - bounds.width() - 5, canvas.getHeight() - 5, connectionStatusTextPaint);
 
-            // 4. Debug
-            canvas.drawText("" + roll + " ; " + tilt + " ; " + angleArray[2], 0, canvas.getHeight() - 5, debugTextPaint);
+            if (showDebug) {
+                // 4. Debug
+                canvas.drawText("" + roll + " ; " + tilt + " ; " + angleArray[2], 0, canvas.getHeight() - 5, debugTextPaint);
+            }
         }
 
 // double-buffering ?
