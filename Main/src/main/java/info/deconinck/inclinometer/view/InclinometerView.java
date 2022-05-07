@@ -30,6 +30,7 @@ public class InclinometerView extends View {
     private Paint dynamicTiltRectPaint, dynamicTiltTextPaint;
     private Paint debugTextPaint, connectionStatusTextPaint;
     private Paint bitmapPaint;
+    private Paint recPaint;
 
     private float[] angleArray;
     private String connectionStatus;
@@ -37,8 +38,10 @@ public class InclinometerView extends View {
     private float centerX;
     private float centerY;
     private float radius;
+    private float recRadius;
     private float tiltCompensationAngle, rollCompensationAngle;
     private boolean showDebug = false;
+    private boolean recLed;
 
     public InclinometerView(Context context) {
         this(context, null);
@@ -91,18 +94,9 @@ public class InclinometerView extends View {
         bitmapPaint.setDither(true);
         bitmapPaint.setFilterBitmap(true);
 
-        try {
-            rollCompensationAngle = SharedUtil.getFloat(DataMonitorActivity.ROLL_COMPENSATION_ANGLE_KEY);
-        }
-        catch (Exception e) {
-            rollCompensationAngle = 0;
-        }
-        try {
-            tiltCompensationAngle = SharedUtil.getFloat(DataMonitorActivity.TILT_COMPENSATION_ANGLE_KEY);
-        }
-        catch (Exception e) {
-            tiltCompensationAngle = 0;
-        }
+        recPaint = new Paint();
+        recPaint.setStyle(Paint.Style.FILL);
+        recPaint.setColor(RED);
     }
 
     public void setAngleArray(float[] angleArray) {
@@ -129,6 +123,14 @@ public class InclinometerView extends View {
 
     public void setShowDebug(boolean showDebug) {
         this.showDebug = showDebug;
+    }
+
+    public boolean isRecLed() {
+        return recLed;
+    }
+
+    public void setRecLed(boolean recLed) {
+        this.recLed = recLed;
     }
 
     @Override
@@ -198,6 +200,8 @@ public class InclinometerView extends View {
 
         // Restore orientation
         backgroundCanvas.restore();
+
+        recRadius = width/100;
     }
 
     @Override
@@ -285,12 +289,17 @@ public class InclinometerView extends View {
             // Restore orientation
             canvas.restore();
 
-            // 3. Connection status
+            // 3. "rec" led
+            if (recLed) {
+                canvas.drawCircle(canvas.getWidth() - 2 * recRadius - 5, 20 , recRadius, recPaint);
+            }
+
+            // 4. Connection status
             connectionStatusTextPaint.getTextBounds(connectionStatus, 0, connectionStatus.length(), bounds);
             canvas.drawText(connectionStatus, canvas.getWidth() - bounds.width() - 5, canvas.getHeight() - 5, connectionStatusTextPaint);
 
+            // 5. Debug
             if (showDebug) {
-                // 4. Debug
                 canvas.drawText("" + roll + " ; " + tilt + " ; " + angleArray[2], 0, canvas.getHeight() - 5, debugTextPaint);
             }
         }

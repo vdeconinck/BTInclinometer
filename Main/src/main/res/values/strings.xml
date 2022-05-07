@@ -18,10 +18,10 @@
     <string name="toast_calibrating">Calibrating, please rotate the module around each axis several times</string>
     <string name="toast_cali_done">Calibration complete.</string>
 
+    // Button
     <string name="record">Record</string>
     <string name="stop">Stop</string>
 
-    <string name="hint">Hint</string>
     <string name="bluetooth_bad">Bluetooth is not available</string>
 
     <string name="scanning">Searching for sensor…</string>
@@ -31,8 +31,8 @@
     <string name="title_paired_devices">Sensor has been paired</string>
     <string name="title_other_devices">No paired sensor, turn on your positioning switch!</string>
     <string name="button_scan">Search sensor</string>
-    <string name="recorded_root_directory">The data has been recorded to the root directory of your device:</string>
-    <string name="open_file">Open the saved file?</string>
+    <string name="file_save_complete">File save complete</string>
+    <string name="recorded_to_dir">The data has been recorded to the root directory of your device: </string>
 
     <string name="acc_calibration">Acceleration calibration</string>
     <string name="smoothing_factor">Smoothing factor</string>
@@ -157,6 +157,9 @@
     <string name="current">Current</string>
 
     <string name="change_sensor_type">Change sensor type</string>
-    <string name="toggle_debug_info">Toggle debug info</string>
+    <string name="start_recording">Start recording</string>
+    <string name="stop_recording">Stop recording</string>
+    <string name="enable_debug_info">Enable debug info</string>
+    <string name="disable_debug_info">Disable debug info</string>
 
 </resources>

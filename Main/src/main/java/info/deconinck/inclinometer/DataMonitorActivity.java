@@ -34,6 +34,9 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.github.mikephil.charting.charts.LineChart;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,7 +50,6 @@ import info.deconinck.inclinometer.bluetooth.BluetoothService;
 import info.deconinck.inclinometer.dialog.AddressDialog;
 import info.deconinck.inclinometer.dialog.AngleDialog;
 import info.deconinck.inclinometer.dialog.SmoothingDialog;
-import info.deconinck.inclinometer.util.MyFile;
 import info.deconinck.inclinometer.util.SharedUtil;
 import info.deconinck.inclinometer.view.InclinometerView;
 
@@ -55,6 +57,9 @@ import info.deconinck.inclinometer.view.InclinometerView;
 @SuppressLint("DefaultLocale")
 public class DataMonitorActivity extends FragmentActivity implements OnClickListener {
     public static final String TAG = DataMonitorActivity.class.getName();
+
+    public static SimpleDateFormat ymdhmsSepFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    public static SimpleDateFormat ymdhmsNoSepFormatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
 
     // Index of tabs
     public static final int TAB_SYSTEM = 0;
@@ -82,6 +87,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private static final int REQUEST_CONNECT_DEVICE = 1;
     public static final String ROLL_COMPENSATION_ANGLE_KEY = "rollCompensationAngle";
     public static final String TILT_COMPENSATION_ANGLE_KEY = "tiltCompensationAngle";
+    public static final String INCLINOMETER_LOG_FOLDER = "/Inclinometer";
 
     private static int sensorTypeNumaxis;
 
@@ -89,10 +95,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private BluetoothService mBluetoothService = null;
     private String mConnectedDeviceName = null;
     private static final String ACTION_USB_PERMISSION = "cn.wch.wchusbdriver.USB_PERMISSION";
-    private boolean recordStartorStop = false;
     public byte[] writeBuffer;
     public byte[] readBuffer;
-    static MyFile myFile;
     private Switch outputSwitch;
     private static int ar = 16, av = 2000;
     private static final float[] ac = new float[]{0, 0, 0};
@@ -103,10 +107,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private static final float[] q = new float[]{0, 0, 0, 0};
     private static float T = 20;
     private static float pressure, height, longitude, latitude, altitude, yaw, velocity, sn, pdop, hdop, vdop, voltage, version;
-    private static short fieldsToSaveBitmap = 0;
-    private static short currentFieldsBitmap;
-    private static int recordingState = RECORDING_STOPPED;
-    private static int sDataSave = 0;
     static int currentTab = TAB_SYSTEM;
     private static String strDate = "", strTime = "";
     private boolean isBtConnection = false;
@@ -115,6 +115,14 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private final List<Integer> qColour = new ArrayList<>(Arrays.asList(Color.RED, Color.GREEN, Color.BLUE, Color.GRAY)); //Polyline color collection
     private static InclinometerView inclinometerView;
     private Menu menu;
+    private static float rollCompensationAngle;
+    private static float tiltCompensationAngle;
+
+    private boolean isRecording = true;
+    private static int recordingState = RECORDING_START_REQUESTED;
+    private static FileWriter valueLogWriter;
+    private static long nextLogTime;
+
 
     private float norm(float x[]) {
         return (float) Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
@@ -427,93 +435,37 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     public static void recordData(byte fieldTypeByte) {
         try {
-            boolean isRepeat = false;
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-            Date curDate = new Date(System.currentTimeMillis()); // Get the current time
-
-            // Convert the data type byte (0x50 - 0x5a) into a mask
-            // Only keep last nibble (0x0 - 0xa)
-            int fieldTypeId = fieldTypeByte & 0x0f;
-            // Create corresponding mask
-            short fieldTypeMask = (short) (0x01 << fieldTypeId);
-            // If this data bit is set in the current mask and ... ? TODO
-            if (((currentFieldsBitmap & fieldTypeMask) == fieldTypeMask) && (fieldTypeMask < sDataSave)) {
-                fieldsToSaveBitmap = currentFieldsBitmap;
-                currentFieldsBitmap = fieldTypeMask;
-                isRepeat = true;
-            }
-            else {
-                // Add the current data type to the current list
-                currentFieldsBitmap |= fieldTypeMask;
-            }
-            sDataSave = fieldTypeMask;
-
             switch (recordingState) {
                 case RECORDING_STOP_REQUESTED:
-                    myFile.close();
+                    valueLogWriter.close();
                     recordingState = RECORDING_STOPPED;
+                    inclinometerView.setRecLed(false);
                     break;
 
                 case RECORDING_START_REQUESTED:
                     // Create file
-                    SimpleDateFormat formatterFileName = new SimpleDateFormat("MMdd_HHmmss");
-                    Date curDateFileName = new Date(System.currentTimeMillis()); // Get the current time
-                    myFile = new MyFile(Environment.getExternalStorageDirectory() + "/Records/Rec_" + formatterFileName.format(curDateFileName) + ".txt");
+                    String pathname = Environment.getExternalStorageDirectory() + INCLINOMETER_LOG_FOLDER + "/" + ymdhmsNoSepFormatter.format(new Date()) + ".csv";
+                    File file = new File(pathname);
+                    if (!file.getParentFile().exists()) {
+                        file.getParentFile().mkdirs();
+                    }
+                    valueLogWriter = new FileWriter(pathname, false);
+
                     // Write header line
-                    String s = "Start time:" + formatter.format(curDate) + "\r\n" + "Record Time:";
-                    if ((fieldsToSaveBitmap & 0x01) > 0) s += " ChipTime:";
-                    if ((fieldsToSaveBitmap & 0x02) > 0) s += " ax: ay: az:";
-                    if ((fieldsToSaveBitmap & 0x04) > 0) s += "  wx: wy: wz:";
-                    if ((fieldsToSaveBitmap & 0x08) > 0) s += "    AngleX:   AngleY:   AngleZ:";
-                    if ((fieldsToSaveBitmap & 0x10) > 0) s += "   hx:   hy:   hz:";
-                    if ((fieldsToSaveBitmap & 0x20) > 0) s += "d0:d1:d2:d3:";
-                    if ((fieldsToSaveBitmap & 0x40) > 0) s += "    Pressure:    Height:";
-                    if ((fieldsToSaveBitmap & 0x80) > 0) s += "        Longitude:        Latitude:";
-                    if ((fieldsToSaveBitmap & 0x100) > 0) s += "    ALtitude:    Yaw:    Velocity:";
-                    if ((fieldsToSaveBitmap & 0x200) > 0) s += "   q0:   q1:   q2:   q3:";
-                    if ((fieldsToSaveBitmap & 0x400) > 0) s += "SN:PDOP: HDOP: VDOP:";
-                    myFile.write(s);
+                    valueLogWriter.write("Time,Roll,Tilt\r\n");
                     // Switch to "recording"
                     recordingState = RECORDING_STARTED;
+                    inclinometerView.setRecLed(true);
+                    nextLogTime = System.currentTimeMillis();
                     break;
 
                 case RECORDING_STARTED:
-                    if (isRepeat) {
-                        myFile.write("  \r\n");
-                        myFile.write(formatter.format(curDate) + " ");
-                        if ((fieldsToSaveBitmap & 0x01) > 0) {
-                            myFile.write(strDate + " " + strTime + " ");
-                        }
-                        if ((fieldsToSaveBitmap & 0x02) > 0) {
-                            myFile.write(String.format("% 10.4f", ac[0]) + String.format("% 10.4f", ac[1]) + String.format("% 10.4f", ac[2]) + " ");
-                        }
-                        if ((fieldsToSaveBitmap & 0x04) > 0) {
-                            myFile.write(String.format("% 10.4f", w[0]) + String.format("% 10.4f", w[1]) + String.format("% 10.4f", w[2]) + " ");
-                        }
-                        if ((fieldsToSaveBitmap & 0x08) > 0) {
-                            myFile.write(String.format("% 10.4f", angle[0]) + String.format("% 10.4f", angle[1]) + String.format("% 10.4f", angle[2]));
-                        }
-                        if ((fieldsToSaveBitmap & 0x10) > 0) {
-                            myFile.write(String.format("% 10.0f", h[0]) + String.format("% 10.0f", h[1]) + String.format("% 10.0f", h[2]));
-                        }
-                        if ((fieldsToSaveBitmap & 0x20) > 0) {
-                            myFile.write(String.format("% 7.0f", d[0]) + String.format("% 7.0f", d[1]) + String.format("% 7.0f", d[2]) + String.format("% 7.0f", d[3]));
-                        }
-                        if ((fieldsToSaveBitmap & 0x40) > 0) {
-                            myFile.write(String.format("% 10.0f", pressure) + String.format("% 10.2f", height));
-                        }
-                        if ((fieldsToSaveBitmap & 0x80) > 0) {
-                            myFile.write(String.format("% 14.6f", longitude) + String.format("% 14.6f", latitude));
-                        }
-                        if ((fieldsToSaveBitmap & 0x100) > 0) {
-                            myFile.write(String.format("% 10.4f", altitude) + String.format("% 10.2f", yaw) + String.format("% 10.2f", velocity));
-                        }
-                        if ((fieldsToSaveBitmap & 0x200) > 0) {
-                            myFile.write(String.format("% 7.4f", q[0]) + String.format("% 7.4f", q[1]) + String.format("% 7.4f", q[2]) + String.format("% 7.4f", q[3]));
-                        }
-                        if ((fieldsToSaveBitmap & 0x400) > 0) {
-                            myFile.write(String.format("% 5.0f", sn) + String.format("% 7.1f", pdop) + String.format("% 7.1f", hdop) + String.format("% 7.1f", vdop));
-                        }
+                    long now = System.currentTimeMillis();
+                    if (now >= nextLogTime) {
+                        // Flash the led
+                        inclinometerView.setRecLed(!inclinometerView.isRecLed());
+                        valueLogWriter.write(ymdhmsSepFormatter.format(new Date()) + "," + String.format("% 10.4f", angle[0] - rollCompensationAngle) + "," + String.format("% 10.4f", angle[1] - tiltCompensationAngle) + "\r\n");
+                        nextLogTime = nextLogTime + 1000;
                     }
                     break;
 
@@ -523,15 +475,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
         catch (Exception e) {
             Log.e(TAG, "recordData: ", e);
-        }
-    }
-
-    public void setRecording(boolean record) {
-        if (record) {
-            recordingState = RECORDING_START_REQUESTED;
-        }
-        else {
-            recordingState = RECORDING_STOP_REQUESTED;
         }
     }
 
@@ -648,7 +591,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         // Options menu
         toolbar.inflateMenu(R.menu.option_menu);
         // customize menu for other sensors
-        enableMenuItems(toolbar.getMenu());
+        menu = toolbar.getMenu();
+        enableMenuItems(menu);
         installMenuClickListener(toolbar);
 
         Intent intent = getIntent();
@@ -666,6 +610,16 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
         writeBuffer = new byte[512];
         readBuffer = new byte[512];
+
+        try {
+            setRollCompensationAngle(SharedUtil.getFloat(DataMonitorActivity.ROLL_COMPENSATION_ANGLE_KEY));
+            setTiltCompensationAngle(SharedUtil.getFloat(DataMonitorActivity.TILT_COMPENSATION_ANGLE_KEY));
+        }
+        catch (Exception e) {
+            setRollCompensationAngle(0);
+            setTiltCompensationAngle(0);
+        }
+
 
         try {
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -743,11 +697,14 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
                     // system menu
 
+                    case R.id.toggle_recording:
+                        toggleRecording();
+                        return true;
                     case R.id.change_sensor_type:
                         changeSensorType();
                         return true;
                     case R.id.toggle_debug_info:
-                        inclinometerView.setShowDebug(!inclinometerView.isShowDebug());
+                        toggleDebugInfo();
                         return true;
                     case R.id.factory_reset:
                         factoryReset9();
@@ -874,6 +831,13 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         });
     }
 
+    private void toggleDebugInfo() {
+        boolean newDebug = !inclinometerView.isShowDebug();
+        MenuItem toggleDebugMenuItem = menu.findItem(R.id.toggle_debug_info);
+        toggleDebugMenuItem.setTitle(getString(newDebug ? R.string.disable_debug_info : R.string.enable_debug_info));
+        inclinometerView.setShowDebug(newDebug);
+    }
+
     private void changeSensorType() {
         // TODO this should replace the sensor selection splash screen
     }
@@ -884,9 +848,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         angleDialog.setAngleDialogCallBack(new AngleDialog.AngleDialogCallBack() {
             @Override
             public void save(String value) {
-                float rollCompensationAngle = Float.parseFloat(value);
                 SharedUtil.putFloat(ROLL_COMPENSATION_ANGLE_KEY, rollCompensationAngle);
-                inclinometerView.setRollCompensationAngle(rollCompensationAngle);
+                setRollCompensationAngle(Float.parseFloat(value));
             }
 
             @Override
@@ -901,9 +864,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         angleDialog.setAngleDialogCallBack(new AngleDialog.AngleDialogCallBack() {
             @Override
             public void save(String value) {
-                float tiltCompensationAngle = Float.parseFloat(value);
                 SharedUtil.putFloat(TILT_COMPENSATION_ANGLE_KEY, tiltCompensationAngle);
-                inclinometerView.setTiltCompensationAngle(tiltCompensationAngle);
+                setTiltCompensationAngle(Float.parseFloat(value));
             }
 
             @Override
@@ -913,6 +875,17 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         angleDialog.show(getSupportFragmentManager());
     }
 
+
+    private void setRollCompensationAngle(float rollCompensationAngle) {
+        this.rollCompensationAngle = rollCompensationAngle;
+        if (inclinometerView != null) inclinometerView.setRollCompensationAngle(rollCompensationAngle);
+    }
+
+
+    private void setTiltCompensationAngle(float tiltCompensationAngle) {
+        this.tiltCompensationAngle = tiltCompensationAngle;
+        if (inclinometerView != null) inclinometerView.setTiltCompensationAngle(tiltCompensationAngle);
+    }
 
 
     private void calibrateZAxisAngleToZero9() {
@@ -1257,6 +1230,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public void onDestroy() {
         super.onDestroy();
         if (mBluetoothService != null) mBluetoothService.stop();
+        try {
+            valueLogWriter.close();
+        }
+        catch (IOException e) {
+            //ignored
+        }
         bDisplay = false;
     }
 
@@ -1454,35 +1433,29 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
     public void onRecordClick(View v) {
-        if (!this.recordStartorStop) {
-            this.recordStartorStop = true;
-            setRecording(true);
-            ((Button) v).setText(getString(R.string.stop));
+        toggleRecording();
+    }
+
+    public void toggleRecording() {
+        MenuItem recordMenuItem = menu.findItem(R.id.toggle_recording);
+        Button recordButton = (Button) findViewById(R.id.btnRecord);
+
+        if (!isRecording) {
+            isRecording = true;
+            if (recordButton != null) recordButton.setText(getString(R.string.stop));
+            if (recordMenuItem != null) recordMenuItem.setTitle(getString(R.string.stop_recording));
+            recordingState = RECORDING_START_REQUESTED;
         }
         else {
-            this.recordStartorStop = false;
-            setRecording(false);
-            ((Button) findViewById(R.id.btnRecord)).setText(getString(R.string.record));
-            if (myFile == null) {
-                Toast.makeText(DataMonitorActivity.this, "No file recorded!", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            isRecording = false;
+            if (recordButton != null) recordButton.setText(getString(R.string.record));
+            if (recordMenuItem != null) recordMenuItem.setTitle(getString(R.string.start_recording));
+            recordingState = RECORDING_STOP_REQUESTED;
             new AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.hint))
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setMessage(getString(R.string.recorded_root_directory) + myFile.file.getPath() + getString(R.string.open_file))
-                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface arg0, int arg1) {
-                            try {
-                                myFile.openFile(getApplicationContext());
-                            }
-                            catch (Exception e) {
-                                Log.e(TAG, "myFile.openFile: ", e);
-                            }
-                        }
-                    })
-                    .setNegativeButton(getString(R.string.cancel), null)
+                    .setTitle(getString(R.string.file_save_complete))
+                    .setIcon(android.R.drawable.ic_dialog_info)
+                    .setMessage(getString(R.string.recorded_to_dir) + Environment.getExternalStorageDirectory() + INCLINOMETER_LOG_FOLDER)
+                    .setNeutralButton(getString(R.string.ok), null)
                     .show();
         }
     }
