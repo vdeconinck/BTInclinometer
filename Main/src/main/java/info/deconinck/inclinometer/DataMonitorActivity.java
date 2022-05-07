@@ -746,6 +746,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     case R.id.change_sensor_type:
                         changeSensorType();
                         return true;
+                    case R.id.toggle_debug_info:
+                        inclinometerView.setShowDebug(!inclinometerView.isShowDebug());
+                        return true;
                     case R.id.factory_reset:
                         factoryReset9();
                         return true;

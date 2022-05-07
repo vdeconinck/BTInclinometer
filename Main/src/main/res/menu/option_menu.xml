@@ -22,6 +22,7 @@
     <item android:id="@+id/system" android:title="@string/system" app:showAsAction="never">
         <menu>
             <item android:id="@+id/change_sensor_type" android:title="@string/change_sensor_type" app:showAsAction="never"/>
+            <item android:id="@+id/toggle_debug_info" android:title="@string/toggle_debug_info" app:showAsAction="never"/>
             <item android:id="@+id/factory_reset" android:title="@string/factory_reset" app:showAsAction="never"/>
             <item android:id="@+id/sleep" android:title="@string/sleep" app:showAsAction="never"/>
             <item android:id="@+id/algorithm" android:title="@string/algorithm" app:showAsAction="never"/>
