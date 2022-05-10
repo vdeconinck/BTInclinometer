@@ -27,8 +27,10 @@ public class BluetoothService {
     public static final int STATE_LISTEN = 1;
     public static final int STATE_CONNECTING = 2;
     public static final int STATE_CONNECTED = 3;
+    private DataMonitorActivity dataMonitorActivity;
 
-    public BluetoothService(Context contextIn, Handler handler) {
+    public BluetoothService(Context contextIn, Handler handler, DataMonitorActivity dataMonitorActivity) {
+        this.dataMonitorActivity = dataMonitorActivity;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mState = STATE_NONE;
         mHandler = handler;
@@ -277,7 +279,7 @@ public class BluetoothService {
                 try {
                     acceptedLen = mmInStream.read(tempInputBuffer);
                     if (acceptedLen > 0) {
-                         DataMonitorActivity.handleSerialData(acceptedLen, tempInputBuffer);
+                         dataMonitorActivity.handleSerialData(acceptedLen, tempInputBuffer);
                     }
                 } catch (IOException e) {
                     connectionLost();

@@ -16,6 +16,8 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import java.text.SimpleDateFormat;
+
 import info.deconinck.inclinometer.DataMonitorActivity;
 import info.deconinck.inclinometer.util.SharedUtil;
 
@@ -218,24 +220,12 @@ public class InclinometerView extends View {
             float tilt = angleArray[1] - tiltCompensationAngle;
 
             // Roll color
-            int rollColor = GREEN;
-            if (Math.abs(roll) > MAX_ROLL * .7f) {
-                rollColor = YELLOW;
-                if (Math.abs(roll) > MAX_ROLL * .9f) {
-                    rollColor = RED;
-                }
-            }
+            int rollColor = getAngleColor(roll, MAX_ROLL);
             dynamicRollLinePaint.setColor(rollColor);
             dynamicRollTextPaint.setColor(rollColor);
 
             // Tilt color
-            int tiltColor = GREEN;
-            if (Math.abs(tilt) > MAX_TILT * .7f) {
-                tiltColor = YELLOW;
-                if (Math.abs(tilt) > MAX_TILT * .9f) {
-                    tiltColor = RED;
-                }
-            }
+            int tiltColor = getAngleColor(tilt, MAX_TILT);
             dynamicTiltTextPaint.setColor(tiltColor);
             dynamicTiltRectPaint.setColor(tiltColor);
 
@@ -310,5 +300,16 @@ public class InclinometerView extends View {
 //        myCanvas.drawLine(0,0,100,100, linePaint);
 //        canvas.drawBitmap(myBitmap, 0, 0, bitmapPaint);
 //        canvas.restore();
+    }
+
+    public static int getAngleColor(float roll, int maxRoll) {
+        int rollColor = GREEN;
+        if (Math.abs(roll) > maxRoll * .7f) {
+            rollColor = YELLOW;
+            if (Math.abs(roll) > maxRoll * .9f) {
+                rollColor = RED;
+            }
+        }
+        return rollColor;
     }
 }

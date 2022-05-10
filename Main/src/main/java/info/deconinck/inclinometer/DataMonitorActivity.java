@@ -1,16 +1,30 @@
 package info.deconinck.inclinometer;
 
+import static info.deconinck.inclinometer.view.InclinometerView.MAX_ROLL;
+import static info.deconinck.inclinometer.view.InclinometerView.MAX_TILT;
+import static info.deconinck.inclinometer.view.InclinometerView.getAngleColor;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -30,6 +44,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -58,6 +73,10 @@ import info.deconinck.inclinometer.view.InclinometerView;
 @SuppressLint("DefaultLocale")
 public class DataMonitorActivity extends FragmentActivity implements OnClickListener {
     public static final String TAG = DataMonitorActivity.class.getName();
+    private static final String ROLL_CHANNEL_ID = "info.deconinck.inclinometer.ROLL";
+    private static final String TILT_CHANNEL_ID = "info.deconinck.inclinometer.TILT";
+    public static final int ANGLE_LOGGING_INTERVAL_MS = 1000;
+    public static final int ANGLE_LOGGING_TIMEOUT_MS = 5000;
 
     public static SimpleDateFormat ymdhmsSepFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     public static SimpleDateFormat ymdhmsNoSepFormatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
@@ -158,7 +177,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     static Queue<Byte> queueBuffer = new LinkedList<>();
     static boolean[] hasPendingUpdate = new boolean[20];
 
-    public static void handleSerialData(int acceptedLen, byte[] tempInputBuffer) {
+    public void handleSerialData(int acceptedLen, byte[] tempInputBuffer) {
         byte[] dataBuffer = new byte[11];
         byte fieldTypeByte;
         float fTemp;
@@ -438,7 +457,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         new Handler().postDelayed(() -> lineChartManager.setbPause(false), 100);
     }
 
-    public static void recordData(byte fieldTypeByte) {
+    public void recordData(byte fieldTypeByte) {
         try {
             switch (recordingState) {
                 case RECORDING_STOP_REQUESTED:
@@ -457,7 +476,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     valueLogWriter = new FileWriter(pathname, false);
 
                     // Write header line
-                    valueLogWriter.write("Time,Roll,Tilt\r\n");
+                    valueLogWriter.write("Time;Roll;Tilt\r\n");
                     // Switch to "recording"
                     recordingState = RECORDING_STARTED;
                     inclinometerView.setRecLed(true);
@@ -469,8 +488,28 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     if (now >= nextLogTime) {
                         // Flash the led
                         inclinometerView.setRecLed(!inclinometerView.isRecLed());
-                        valueLogWriter.write(ymdhmsSepFormatter.format(new Date()) + "," + String.format("% 10.4f", angle[0] - rollCompensationAngle) + "," + String.format("% 10.4f", angle[1] - tiltCompensationAngle) + "\r\n");
-                        nextLogTime = nextLogTime + 1000;
+                        float roll = angle[0] - rollCompensationAngle;
+                        float tilt = angle[1] - tiltCompensationAngle;
+                        // Log values to file
+                        try {
+                            valueLogWriter.write(ymdhmsSepFormatter.format(new Date()) + ";" + String.format("%.1f", roll) + ";" + String.format("%.1f", tilt) + "\r\n");
+                            // Show them as a notification
+                            displayNotifications(roll, tilt);
+                        }
+                        catch (IOException e) {
+                            Log.e(TAG, "writeData: ", e);
+                            // File is probably broken, try reopening a new one
+                            recordingState = RECORDING_START_REQUESTED;
+                        }
+
+                        // Prepare next run, normally 1 sec after this one except if we missed too many
+                        if (now - nextLogTime > ANGLE_LOGGING_TIMEOUT_MS) {
+                            // we have missed recording for too long, reset nextLogTime
+                            nextLogTime = now + ANGLE_LOGGING_INTERVAL_MS;
+                        }
+                        else {
+                            nextLogTime = nextLogTime + ANGLE_LOGGING_INTERVAL_MS;
+                        }
                     }
                     break;
 
@@ -1190,7 +1229,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         try {
             if (mBluetoothService == null) {
                 // Used to manage Bluetooth connections
-                mBluetoothService = new BluetoothService(this, mHandler);
+                mBluetoothService = new BluetoothService(this, mHandler, this);
             }
             else {
                 mBluetoothService.stop();
@@ -1227,7 +1266,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     String address = SharedUtil.getString("BTName");
                     if (address != null) {
                         Log.e("--", "BTName = " + address);
-                        mBluetoothService = new BluetoothService(getApplicationContext(), mHandler); // Used to manage Bluetooth connections
+                        mBluetoothService = new BluetoothService(getApplicationContext(), mHandler, DataMonitorActivity.this); // Used to manage Bluetooth connections
                         device = mBluetoothAdapter.getRemoteDevice(address);// Get the BLuetoothDevice object
                         mBluetoothService.connect(device);// Attempt to connect to the device
                     }
@@ -1492,6 +1531,77 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     .setNeutralButton(getString(R.string.ok), null)
                     .show();
         }
+    }
+
+    public void displayNotifications(float roll, float tilt) {
+        createNotificationChannels();
+
+        // Create an Intent for the activity you want to start
+        Intent resultIntent = new Intent(this, DataMonitorActivity.class);
+        // Create the TaskStackBuilder and add the intent, which inflates the back stack
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addNextIntentWithParentStack(resultIntent);
+        // Get the PendingIntent containing the entire back stack
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        notify(ROLL_CHANNEL_ID, 0, "Roll", roll, resultPendingIntent, getAngleColor(roll, MAX_ROLL));
+        notify(TILT_CHANNEL_ID, 1, "Tilt", tilt, resultPendingIntent, getAngleColor(tilt, MAX_TILT));
+    }
+
+    private void notify(String channelId, int notificationId, String label, float angle, PendingIntent intent, int angleColor) {
+        Notification.Builder builder = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            builder = new Notification.Builder(this, channelId);
+        }
+        // Setting text
+        builder.setContentTitle(label + ": " + String.format("%.1f", angle));
+        builder.setContentText("Click here to open the inclinometer app");
+        builder.setPriority(Notification.PRIORITY_MAX);
+        builder.setContentIntent(intent);
+        // Setting bitmap to staus bar icon.
+        builder.setSmallIcon(Icon.createWithBitmap(createAngleBitmap((int)angle, angleColor)));
+
+        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
+        notificationManagerCompat.notify(notificationId, builder.build());
+    }
+
+    private void createNotificationChannels() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            assert notificationManager != null;
+
+            NotificationChannel rollChannel = new NotificationChannel(ROLL_CHANNEL_ID, "Inclinometer roll channel", importance);
+            notificationManager.createNotificationChannel(rollChannel);
+
+            NotificationChannel tiltChannel = new NotificationChannel(TILT_CHANNEL_ID, "Inclinometer tilt channel", importance);
+            notificationManager.createNotificationChannel(tiltChannel);
+        }
+    }
+
+
+    private static Bitmap createAngleBitmap(int angle, int angleColor) {
+
+        Paint iconTextPaint = new Paint();
+        iconTextPaint.setAntiAlias(true);
+        iconTextPaint.setTextSize(90);
+        iconTextPaint.setTextAlign(Paint.Align.CENTER);
+        iconTextPaint.setColor(angleColor);
+
+        Rect textBounds = new Rect();
+        iconTextPaint.getTextBounds("00", 0, 2, textBounds);
+
+        Paint iconLinePaint = new Paint();
+        iconLinePaint.setColor(angleColor);
+
+        Bitmap bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawText(String.format("%02d", Math.abs(angle)), textBounds.width() / 2 + 5, 70, iconTextPaint);
+        canvas.drawLine(48, 80, 48 + angle,80, iconLinePaint);
+        return bitmap;
     }
 
     @Override
