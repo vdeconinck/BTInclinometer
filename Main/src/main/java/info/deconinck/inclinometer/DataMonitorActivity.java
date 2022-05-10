@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Queue;
 
 import info.deconinck.inclinometer.bluetooth.BluetoothService;
+import info.deconinck.inclinometer.db.SQLite;
 import info.deconinck.inclinometer.dialog.AddressDialog;
 import info.deconinck.inclinometer.dialog.AngleDialog;
 import info.deconinck.inclinometer.dialog.SmoothingDialog;
@@ -84,12 +85,16 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     public static final int MESSAGE_START_BYTE = 0x55;
 
-    private static final int REQUEST_CONNECT_DEVICE = 1;
+    private static final int REQUEST_MODULE_TYPE = 1;
+    private static final int REQUEST_CONNECT_DEVICE = 2;
+
     public static final String ROLL_COMPENSATION_ANGLE_KEY = "rollCompensationAngle";
     public static final String TILT_COMPENSATION_ANGLE_KEY = "tiltCompensationAngle";
+    public static final String MODULE_TYPE_NUM_AXIS_KEY = "moduleTypeNumAxis";
+
     public static final String INCLINOMETER_LOG_FOLDER = "/Inclinometer";
 
-    private static int sensorTypeNumaxis;
+    private static int moduleTypeNumAxis;
 
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothService mBluetoothService = null;
@@ -208,7 +213,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     }
                     // temperature, 16-bit too
                     fTempT = ((((short) dataBuffer[7]) << 8) | ((short) dataBuffer[6] & 0xff)) / 100.0f;
-                    if (sensorTypeNumaxis == 6) {
+                    if (moduleTypeNumAxis == 6) {
                         T = (float) (fTempT / 340 + 36.53);
                     }
                     else {
@@ -360,7 +365,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     public void onOutputSwitchClick(View v) {
         Log.e(TAG, "onOutputSwitchClick: " + String.format("Output:0x%x", getOutputEnabledBitmap()));
-        if (sensorTypeNumaxis == 9) {
+        if (moduleTypeNumAxis == 9) {
             isOutputEnabled[currentTab] = outputSwitch.isChecked();
             int outputContent = getOutputEnabledBitmap();
             writeAndSaveReg(0x02, outputContent);
@@ -379,7 +384,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             setTableData("1.0", "3.3V", "2020-1-1", "00:00:00.0");
             lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
             lineChartManager.setDescription(getString(R.string.angle_chart));
-            if (sensorTypeNumaxis == 9) {
+            if (moduleTypeNumAxis == 9) {
                 unLockReg(0);
                 Calendar calendar = Calendar.getInstance();
                 int year = calendar.get(Calendar.YEAR);
@@ -422,7 +427,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             lineChartManager.setDescription(getString(R.string.mag_chart));
         }
 
-        if (sensorTypeNumaxis == 9) {
+        if (moduleTypeNumAxis == 9) {
             outputSwitch.setVisibility(View.VISIBLE);
             outputSwitch.setChecked(isOutputEnabled[currentTab]);
         }
@@ -569,10 +574,25 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        SQLite sqLite = SQLite.init(getApplicationContext());
+        sqLite.open();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
+            }
+            if (this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 3);
+            }
+        }
+
         Window window = getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         setContentView(R.layout.data_monitor_activity);
         SharedUtil.init(getApplicationContext());
         setOutputEnabledBitmap(SharedUtil.getInt("Out"));
@@ -595,8 +615,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         enableMenuItems(menu);
         installMenuClickListener(toolbar);
 
-        Intent intent = getIntent();
-        sensorTypeNumaxis = intent.getIntExtra("type", 0);
+        moduleTypeNumAxis = SharedUtil.getInt(DataMonitorActivity.MODULE_TYPE_NUM_AXIS_KEY);
+        if (moduleTypeNumAxis == -1) {
+            Intent intent = new Intent(this, ModuleTypeSelectionActivity.class);
+            startActivityForResult(intent, REQUEST_MODULE_TYPE);
+        }
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // Keep the screen always on
 
@@ -624,12 +647,15 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         try {
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (mBluetoothAdapter == null) {
-                Toast.makeText(this, getString(R.string.bluetooth_bad), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.bluetooth_not_available), Toast.LENGTH_LONG).show();
                 return;
             }
         }
         catch (Exception e) {
             Log.e(TAG, "onCreate: ", e);
+        }
+        if (!mBluetoothAdapter.isEnabled()) {
+            mBluetoothAdapter.enable();
         }
 
         if (displayThread == null) {
@@ -649,34 +675,34 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
     private void enableMenuItems(Menu menu) {
-        enableMenu(menu, R.id.system, sensorTypeNumaxis != 3);
-        enableMenu(menu, R.id.factory_reset, sensorTypeNumaxis == 9);
-        enableMenu(menu, R.id.sleep, sensorTypeNumaxis != 3);
-        enableMenu(menu, R.id.algorithm, sensorTypeNumaxis == 9);
-        enableMenu(menu, R.id.installation_orientation, sensorTypeNumaxis != 3);
-        enableMenu(menu, R.id.static_detection_threshold, sensorTypeNumaxis == 6);
-        enableMenu(menu, R.id.__instruction_start, sensorTypeNumaxis == 9);
+        enableMenu(menu, R.id.system, moduleTypeNumAxis != 3);
+        enableMenu(menu, R.id.factory_reset, moduleTypeNumAxis == 9);
+        enableMenu(menu, R.id.sleep, moduleTypeNumAxis != 3);
+        enableMenu(menu, R.id.algorithm, moduleTypeNumAxis == 9);
+        enableMenu(menu, R.id.installation_orientation, moduleTypeNumAxis != 3);
+        enableMenu(menu, R.id.static_detection_threshold, moduleTypeNumAxis == 6);
+        enableMenu(menu, R.id.__instruction_start, moduleTypeNumAxis == 9);
 
         enableMenu(menu, R.id.calibration, true);
         enableMenu(menu, R.id.zero_tilt, true);
         enableMenu(menu, R.id.zero_roll, true);
         enableMenu(menu, R.id.acc_calibration, true);
-        enableMenu(menu, R.id.smoothing_factor, sensorTypeNumaxis == 3);
-        enableMenu(menu, R.id.magnetic_field_calibration_start, sensorTypeNumaxis == 9);
-        enableMenu(menu, R.id.magnetic_field_calibration_end, sensorTypeNumaxis == 9);
-        enableMenu(menu, R.id.reset_height, sensorTypeNumaxis == 9);
-        enableMenu(menu, R.id.gyroscope_automatic_calibration, sensorTypeNumaxis == 9);
-        enableMenu(menu, R.id.reset_Z_axis, sensorTypeNumaxis != 3);
-        enableMenu(menu, R.id.setting_angle_reference, sensorTypeNumaxis == 9);
+        enableMenu(menu, R.id.smoothing_factor, moduleTypeNumAxis == 3);
+        enableMenu(menu, R.id.magnetic_field_calibration_start, moduleTypeNumAxis == 9);
+        enableMenu(menu, R.id.magnetic_field_calibration_end, moduleTypeNumAxis == 9);
+        enableMenu(menu, R.id.reset_height, moduleTypeNumAxis == 9);
+        enableMenu(menu, R.id.gyroscope_automatic_calibration, moduleTypeNumAxis == 9);
+        enableMenu(menu, R.id.reset_Z_axis, moduleTypeNumAxis != 3);
+        enableMenu(menu, R.id.setting_angle_reference, moduleTypeNumAxis == 9);
 
-        enableMenu(menu, R.id.range, sensorTypeNumaxis != 3);
-        enableMenu(menu, R.id.acceleration_range, sensorTypeNumaxis == 9);
-        enableMenu(menu, R.id.angular_velocity_range, sensorTypeNumaxis == 9);
-        enableMenu(menu, R.id.measurement_bandwidth, sensorTypeNumaxis != 3);
+        enableMenu(menu, R.id.range, moduleTypeNumAxis != 3);
+        enableMenu(menu, R.id.acceleration_range, moduleTypeNumAxis == 9);
+        enableMenu(menu, R.id.angular_velocity_range, moduleTypeNumAxis == 9);
+        enableMenu(menu, R.id.measurement_bandwidth, moduleTypeNumAxis != 3);
 
-        enableMenu(menu, R.id.signal_communication, sensorTypeNumaxis != 3);
-        enableMenu(menu, R.id.retrieval_rate, sensorTypeNumaxis != 3);
-        enableMenu(menu, R.id.address, sensorTypeNumaxis == 9);
+        enableMenu(menu, R.id.signal_communication, moduleTypeNumAxis != 3);
+        enableMenu(menu, R.id.retrieval_rate, moduleTypeNumAxis != 3);
+        enableMenu(menu, R.id.address, moduleTypeNumAxis == 9);
 
     }
 
@@ -710,7 +736,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         factoryReset9();
                         return true;
                     case R.id.sleep:
-                        switch (sensorTypeNumaxis) {
+                        switch (moduleTypeNumAxis) {
                             case 6:
                                 sleep6();
                                 return true;
@@ -722,7 +748,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         selectAlgorithm9();
                         return true;
                     case R.id.installation_orientation:
-                        switch (sensorTypeNumaxis) {
+                        switch (moduleTypeNumAxis) {
                             case 6:
                                 selectOrientation6();
                                 return true;
@@ -731,7 +757,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                                 return true;
                         }
                     case R.id.static_detection_threshold: // Only exists for 6 axis
-                        if (sensorTypeNumaxis == 6) {
+                        if (moduleTypeNumAxis == 6) {
                             selectStaticDetect6();
                         }
                     case R.id.__instruction_start:
@@ -747,7 +773,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         calibrateZeroTilt();
                         return true;
                     case R.id.acc_calibration:
-                        switch (sensorTypeNumaxis) {
+                        switch (moduleTypeNumAxis) {
                             case 3:
                                 calibrateAcceleration3();
                                 return true;
@@ -760,7 +786,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         }
                         return true;
                     case R.id.smoothing_factor: // Only exists for 3 axis
-                        if (sensorTypeNumaxis == 3) {
+                        if (moduleTypeNumAxis == 3) {
                             selectSmoothingFactor3();
                         }
                     case R.id.magnetic_field_calibration_start:
@@ -780,7 +806,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         Toast.makeText(getApplicationContext(), getString(R.string.toast_cali_done), Toast.LENGTH_LONG).show();
                         return true;
                     case R.id.reset_Z_axis:
-                        switch (sensorTypeNumaxis) {
+                        switch (moduleTypeNumAxis) {
                             case 6:
                                 calibrateZAxisAngleToZero6();
                                 return true;
@@ -802,7 +828,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         selectAngularVelocityRange9();
                         return true;
                     case R.id.measurement_bandwidth:
-                        switch (sensorTypeNumaxis) {
+                        switch (moduleTypeNumAxis) {
                             case 6:
                                 selectBandwidth6();
                                 return true;
@@ -814,7 +840,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         // signal_communication menu
 
                     case R.id.retrieval_rate:
-                        switch (sensorTypeNumaxis) {
+                        switch (moduleTypeNumAxis) {
                             case 6:
                                 selectRetrievelRate6();
                                 return true;
@@ -839,9 +865,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
     private void changeSensorType() {
-        // TODO this should replace the sensor selection splash screen
+        Intent intent = new Intent(this, ModuleTypeSelectionActivity.class);
+        startActivityForResult(intent, REQUEST_MODULE_TYPE);
     }
-
 
     private void calibrateZeroRoll() {
         AngleDialog angleDialog = AngleDialog.newInstance("Roll", angle, 0);
@@ -915,12 +941,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         tvZ = findViewById(R.id.tvZ);
         tvAll = findViewById(R.id.tvAll);
 
-        if (sensorTypeNumaxis == 3) {
+        if (moduleTypeNumAxis == 3) {
             // Hide most tabs
             findViewById(R.id.angularVelocityTabBtn).setVisibility(View.GONE);
             findViewById(R.id.magneticFieldTabBtn).setVisibility(View.GONE);
         }
-        else if (sensorTypeNumaxis == 6) {
+        else if (moduleTypeNumAxis == 6) {
             // Hide some tabs
             findViewById(R.id.magneticFieldTabBtn).setVisibility(View.GONE);
         }
@@ -1218,7 +1244,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             lineChartManager.setDescription(getString(R.string.angle_chart));
         }
         outputSwitch = findViewById(R.id.dataSwitch);
-        if (sensorTypeNumaxis == 9) {
+        if (moduleTypeNumAxis == 9) {
             outputSwitch.setVisibility(View.VISIBLE);
         }
         else {
@@ -1245,6 +1271,14 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
+            case REQUEST_MODULE_TYPE:
+                // When ModuleTypeSelectionActivity returns with a sensor type
+                if (resultCode == Activity.RESULT_OK) {
+                    short type = data.getExtras().getShort(ModuleTypeSelectionActivity.EXTRA_MODULE_TYPE);
+                    SharedUtil.putInt(DataMonitorActivity.MODULE_TYPE_NUM_AXIS_KEY, type);
+                }
+                break;
+
             case REQUEST_CONNECT_DEVICE:
                 // When DeviceListActivity returns with a device to connect
                 if (resultCode == Activity.RESULT_OK) {

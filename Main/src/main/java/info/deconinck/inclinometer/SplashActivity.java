@@ -5,8 +5,6 @@ import android.os.Handler;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 
-import info.deconinck.inclinometer.R;
-
 public class SplashActivity extends AppCompatActivity {
 
     @Override
@@ -17,7 +15,7 @@ public class SplashActivity extends AppCompatActivity {
             @Override
             public void run() {
                 Intent intent;
-                intent = new Intent(getApplicationContext(), DeviceSelectionActivity.class);
+                intent = new Intent(getApplicationContext(), DataMonitorActivity.class);
                 startActivity(intent);
                 finish();
             }

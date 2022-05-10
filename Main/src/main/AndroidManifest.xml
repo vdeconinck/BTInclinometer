@@ -39,14 +39,14 @@
         <activity
             android:name="info.deconinck.inclinometer.DeviceListActivity"
             android:configChanges="orientation|keyboardHidden"
-            android:label="@string/select_device"
+            android:label="@string/select_module"
             android:theme="@android:style/Theme.Dialog" />
         <activity
             android:name="info.deconinck.inclinometer.DataMonitorActivity"
             android:configChanges="orientation|screenSize|screenLayout"
             android:screenOrientation="fullSensor" />
         <activity
-            android:name="info.deconinck.inclinometer.DeviceSelectionActivity"
+            android:name="info.deconinck.inclinometer.ModuleTypeSelectionActivity"
             android:screenOrientation="fullSensor" />
         <activity android:name="info.deconinck.inclinometer.SplashActivity"
             android:exported="true">

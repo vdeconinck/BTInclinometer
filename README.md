@@ -1,7 +1,7 @@
 ## "Remote" inclinometer for 4x4 (or other vehicles).
 
 # What is it ?
-Compared to other apps available, this one does not rely on the device's internal sensor, but on an external module.
+Compared to other apps available, this one does not rely on the device's internal sensor, but on an external bluetooth module.
 
 # How ?
 The module must be securely fixed to the vehicle and the app can then reliably show the vehicle's tilt and roll angles.

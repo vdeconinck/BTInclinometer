@@ -6,10 +6,11 @@
     <string name="JY901">9-axis Series</string>
     <string name="JY901BLE">9-axis BLE Series</string>
 
-    <string name="select_module">Select Module Type</string>
+    <string name="select_module_type">Select Module Type</string>
     <string name="logo_image">Logo image</string>
 
-    <string name="error_bluetooth_not_supported">Bluetooth not supported.</string>
+    <string name="bluetooth_not_available">Bluetooth is not available.</string>
+
 
     <!-- Menu items -->
     <string name="ok">OK</string>
@@ -22,15 +23,13 @@
     <string name="record">Record</string>
     <string name="stop">Stop</string>
 
-    <string name="bluetooth_bad">Bluetooth is not available</string>
-
-    <string name="scanning">Searching for sensor…</string>
-    <string name="select_device">Select a sensor</string>
-    <string name="none_paired">No paired sensor found</string>
-    <string name="none_found">No sensor found</string>
-    <string name="title_paired_devices">Sensor has been paired</string>
-    <string name="title_other_devices">No paired sensor, turn on your positioning switch!</string>
-    <string name="button_scan">Search sensor</string>
+    <string name="scanning">Searching for module...</string>
+    <string name="select_module">Select a module</string>
+    <string name="none_paired">No paired module found</string>
+    <string name="none_found">No module found</string>
+    <string name="title_module_paired">Module has been paired</string>
+    <string name="title_other_devices">No paired module, turn on your positioning switch!</string>
+    <string name="button_scan">Search module</string>
     <string name="file_save_complete">File save complete</string>
     <string name="recorded_to_dir">The data has been recorded to the root directory of your device: </string>
 
@@ -156,7 +155,7 @@
     <string name="select_angle">Type %1$s compensation angle</string>
     <string name="current">Current</string>
 
-    <string name="change_sensor_type">Change sensor type</string>
+    <string name="change_module_type">Change module type</string>
     <string name="start_recording">Start recording</string>
     <string name="stop_recording">Stop recording</string>
     <string name="enable_debug_info">Enable debug info</string>
