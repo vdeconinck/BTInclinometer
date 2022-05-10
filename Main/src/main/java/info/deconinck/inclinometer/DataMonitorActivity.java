@@ -1544,25 +1544,42 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         // Get the PendingIntent containing the entire back stack
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        notify(ROLL_CHANNEL_ID, 0, "Roll", roll, resultPendingIntent, getAngleColor(roll, MAX_ROLL));
-        notify(TILT_CHANNEL_ID, 1, "Tilt", tilt, resultPendingIntent, getAngleColor(tilt, MAX_TILT));
+        notifyRoll(roll, resultPendingIntent);
+        notifyTilt(tilt, resultPendingIntent, getAngleColor(tilt, MAX_TILT));
     }
 
-    private void notify(String channelId, int notificationId, String label, float angle, PendingIntent intent, int angleColor) {
+    private void notifyRoll(float roll, PendingIntent intent) {
         Notification.Builder builder = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            builder = new Notification.Builder(this, channelId);
+            builder = new Notification.Builder(this, ROLL_CHANNEL_ID);
         }
         // Setting text
-        builder.setContentTitle(label + ": " + String.format("%.1f", angle));
+        builder.setContentTitle("Roll: " + String.format("%.1f", roll));
         builder.setContentText("Click here to open the inclinometer app");
         builder.setPriority(Notification.PRIORITY_MAX);
         builder.setContentIntent(intent);
         // Setting bitmap to staus bar icon.
-        builder.setSmallIcon(Icon.createWithBitmap(createAngleBitmap((int)angle, angleColor)));
+        builder.setSmallIcon(Icon.createWithBitmap(createRollBitmap((int)roll)));
 
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
-        notificationManagerCompat.notify(notificationId, builder.build());
+        notificationManagerCompat.notify(0, builder.build());
+    }
+
+    private void notifyTilt(float tilt, PendingIntent intent, int angleColor) {
+        Notification.Builder builder = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            builder = new Notification.Builder(this, TILT_CHANNEL_ID);
+        }
+        // Setting text
+        builder.setContentTitle("Tilt: " + String.format("%.1f", tilt));
+        builder.setContentText("Click here to open the inclinometer app");
+        builder.setPriority(Notification.PRIORITY_MAX);
+        builder.setContentIntent(intent);
+        // Setting bitmap to staus bar icon.
+        builder.setSmallIcon(Icon.createWithBitmap(createTiltBitmap((int)tilt)));
+
+        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
+        notificationManagerCompat.notify(1, builder.build());
     }
 
     private void createNotificationChannels() {
@@ -1582,25 +1599,46 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
 
-    private static Bitmap createAngleBitmap(int angle, int angleColor) {
+    private static Bitmap createRollBitmap(int roll) {
+        Paint rectPaint = new Paint();
+        rectPaint.setColor(getAngleColor(roll, MAX_ROLL));
 
-        Paint iconTextPaint = new Paint();
-        iconTextPaint.setAntiAlias(true);
-        iconTextPaint.setTextSize(90);
-        iconTextPaint.setTextAlign(Paint.Align.CENTER);
-        iconTextPaint.setColor(angleColor);
+        Paint textPaint = new Paint();
+        textPaint.setAntiAlias(true);
+        textPaint.setTextSize(90);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        textPaint.setColor(Color.WHITE);
 
         Rect textBounds = new Rect();
-        iconTextPaint.getTextBounds("00", 0, 2, textBounds);
+        textPaint.getTextBounds("00", 0, 2, textBounds);
 
-        Paint iconLinePaint = new Paint();
-        iconLinePaint.setColor(angleColor);
 
         Bitmap bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888);
 
         Canvas canvas = new Canvas(bitmap);
-        canvas.drawText(String.format("%02d", Math.abs(angle)), textBounds.width() / 2 + 5, 70, iconTextPaint);
-        canvas.drawLine(48, 80, 48 + angle,80, iconLinePaint);
+        canvas.drawRect(48, 92, 48 + roll, 96, rectPaint);
+        canvas.drawText(String.format("%02d", Math.abs(roll)), textBounds.width() / 2 + 5, 70, textPaint);
+        return bitmap;
+    }
+
+    private static Bitmap createTiltBitmap(int tilt) {
+        Paint rectPaint = new Paint();
+        rectPaint.setColor(getAngleColor(tilt, MAX_TILT));
+
+        Paint textPaint = new Paint();
+        textPaint.setAntiAlias(true);
+        textPaint.setTextSize(90);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        textPaint.setColor(Color.WHITE);
+
+        Rect textBounds = new Rect();
+        textPaint.getTextBounds("00", 0, 2, textBounds);
+
+        Bitmap bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawRect(46, 48, 50, 48 + tilt, rectPaint);
+        canvas.drawText(String.format("%02d", Math.abs(tilt)), textBounds.width() / 2 + 5, 80, textPaint);
         return bitmap;
     }
 
