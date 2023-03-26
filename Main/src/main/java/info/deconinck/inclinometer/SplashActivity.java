@@ -51,7 +51,7 @@ public class SplashActivity extends AppCompatActivity {
                 // Show a dialog explaining why the permission is necessary and prompting the user to grant it
                 new AlertDialog.Builder(getApplicationContext())
                         .setTitle(permissionText + " Permission Required")
-                        .setMessage("This app only works with WIT bluetooth accelerometers.")
+                        .setMessage("This app only works with WitMotion bluetooth accelerometers.")
                         .setPositiveButton("Grant Permission", (dialog, which) -> {
                             // Request the permission again
                             ActivityCompat.requestPermissions(SplashActivity.this, new String[]{permission}, reqestCode);
