@@ -16,12 +16,8 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
-import java.text.SimpleDateFormat;
-
-import info.deconinck.inclinometer.DataMonitorActivity;
-import info.deconinck.inclinometer.util.SharedUtil;
-
 public class InclinometerView extends View {
+    public static final String TAG = InclinometerView.class.getName();
     public static final int MAX_ROLL = 42;
     public static final int MAX_TILT = 42;
 
@@ -216,8 +212,8 @@ public class InclinometerView extends View {
 
         if (angleArray != null) {
             // Angle values have been received, draw dynamic contents
-            float roll = angleArray[0] - rollCompensationAngle;
-            float tilt = angleArray[1] - tiltCompensationAngle;
+            float roll = limitTo180(angleArray[0] - rollCompensationAngle);
+            float tilt = limitTo180(angleArray[1] - tiltCompensationAngle);
 
             // Roll color
             int rollColor = getAngleColor(roll, MAX_ROLL);
@@ -300,6 +296,15 @@ public class InclinometerView extends View {
 //        myCanvas.drawLine(0,0,100,100, linePaint);
 //        canvas.drawBitmap(myBitmap, 0, 0, bitmapPaint);
 //        canvas.restore();
+    }
+
+    /**
+     * Make sure result is in the range [-180;180]
+      */
+    private float limitTo180(float angle) {
+        // First bring the angle in positive values (even if input is in [-360;0]) by adding 360
+        // Then add 180, take the modulo and subtract back 180
+        return (angle + 540) % 360 - 180;
     }
 
     public static int getAngleColor(float roll, int maxRoll) {
