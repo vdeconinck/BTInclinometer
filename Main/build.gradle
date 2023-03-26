@@ -21,8 +21,10 @@ android {
 
     defaultConfig {
         applicationId "info.deconinck.inclinometer"
-        minSdkVersion 18
-        targetSdk 29
+        minSdk 29
+        // Seicane is Android 10 => SDK 29
+        // targetSdk 29
+        targetSdk 31
         versionCode 1
         versionName "1.0"
         resConfigs 'en'
