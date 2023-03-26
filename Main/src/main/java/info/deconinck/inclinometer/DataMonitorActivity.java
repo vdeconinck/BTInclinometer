@@ -468,13 +468,16 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     break;
 
                 case RECORDING_START_REQUESTED:
+/*
+                    // TODO FIXME java.io.FileNotFoundException: /storage/emulated/0/Inclinometer/20230326_150028.csv: open failed: EPERM (Operation not permitted)
+
                     // Create file
                     String pathname = Environment.getExternalStorageDirectory() + INCLINOMETER_LOG_FOLDER + "/" + ymdhmsNoSepFormatter.format(new Date()) + ".csv";
                     File file = new File(pathname);
                     if (!file.getParentFile().exists()) {
                         file.getParentFile().mkdirs();
                     }
-                    valueLogWriter = new FileWriter(pathname, false); // TODO FIXME java.io.FileNotFoundException: /storage/emulated/0/Inclinometer/20230326_150028.csv: open failed: EPERM (Operation not permitted)
+                    valueLogWriter = new FileWriter(pathname, false);
 
                     // Write header line
                     valueLogWriter.write("Time;Roll;Tilt\r\n");
@@ -482,6 +485,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     recordingState = RECORDING_STARTED;
                     inclinometerView.setRecLed(true);
                     nextLogTime = System.currentTimeMillis();
+*/
                     break;
 
                 case RECORDING_STARTED:
