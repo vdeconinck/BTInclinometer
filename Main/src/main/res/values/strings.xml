@@ -160,5 +160,15 @@
     <string name="stop_recording">Stop recording</string>
     <string name="enable_debug_info">Enable debug info</string>
     <string name="disable_debug_info">Disable debug info</string>
+    <string name="bluetooth_scan_permission_text">Bluetooth Scan</string>
+    <string name="bluetooth_connect_permission_text">Bluetooth Connect</string>
+    <string name="permission_required">%1$s Permission Required</string>
+    <string name="bluetooth_permission_explanation">This app only works with WitMotion bluetooth accelerometers.</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="deny">Deny</string>
+    <string name="please_grant_permission_retry">You have previously denied %1$s permission. Please grant %1$s permission from Android Settings.</string>
+    <string name="android_settings_label">Settings</string>
+    <string name="no_bluetooth_found">No Bluetooth adapter found !</string>
+    <string name="bluetooth_adapter_required">This app requires Bluetooth to connect a WitMotion accelerometer. Please make sure Bluetooth is available and restart the application.</string>
 
 </resources>

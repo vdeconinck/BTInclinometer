@@ -31,8 +31,8 @@ public class SplashActivity extends AppCompatActivity {
                 // 1. Check required permissions (bluetooth)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    checkPermission(Manifest.permission.BLUETOOTH_SCAN, BLUETOOTH_SCAN_REQUEST_CODE, "Bluetooth Scan");
-                    checkPermission(Manifest.permission.BLUETOOTH_CONNECT, BLUETOOTH_CONNECT_REQUEST_CODE, "Bluetooth Connect");
+                    checkPermission(Manifest.permission.BLUETOOTH_SCAN, BLUETOOTH_SCAN_REQUEST_CODE, getString(R.string.bluetooth_scan_permission_text));
+                    checkPermission(Manifest.permission.BLUETOOTH_CONNECT, BLUETOOTH_CONNECT_REQUEST_CODE, getString(R.string.bluetooth_connect_permission_text));
                 }
 
                 // 2. Start the Data Monitor activity
@@ -50,13 +50,13 @@ public class SplashActivity extends AppCompatActivity {
             if (ActivityCompat.shouldShowRequestPermissionRationale(SplashActivity.this, permission)) {
                 // Show a dialog explaining why the permission is necessary and prompting the user to grant it
                 new AlertDialog.Builder(getApplicationContext())
-                        .setTitle(permissionText + " Permission Required")
-                        .setMessage("This app only works with WitMotion bluetooth accelerometers.")
-                        .setPositiveButton("Grant Permission", (dialog, which) -> {
+                        .setTitle(getString(R.string.permission_required, permissionText))
+                        .setMessage(R.string.bluetooth_permission_explanation)
+                        .setPositiveButton(getString(R.string.grant_permission), (dialog, which) -> {
                             // Request the permission again
                             ActivityCompat.requestPermissions(SplashActivity.this, new String[]{permission}, reqestCode);
                         })
-                        .setNegativeButton("Deny", null)
+                        .setNegativeButton(R.string.deny, null)
                         .show();
             }
             else {
@@ -74,11 +74,11 @@ public class SplashActivity extends AppCompatActivity {
         switch (requestCode) {
             case BLUETOOTH_SCAN_REQUEST_CODE:
                 permission = Manifest.permission.BLUETOOTH_SCAN;
-                permissionText = "Bluetooth Scan";
+                permissionText = getString(R.string.bluetooth_scan_permission_text);
                 break;
             case BLUETOOTH_CONNECT_REQUEST_CODE:
                 permission = Manifest.permission.BLUETOOTH_CONNECT;
-                permissionText = "Bluetooth Connect";
+                permissionText = getString(R.string.bluetooth_connect_permission_text);
                 break;
             default:
                 new AlertDialog.Builder(this)
@@ -94,16 +94,16 @@ public class SplashActivity extends AppCompatActivity {
             if (!ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
                 // User has denied permission and selected "Don't ask again"
                 new AlertDialog.Builder(this)
-                        .setTitle(permissionText + " Permission Required")
-                        .setMessage("You have previously denied " + permissionText + " permission. Please grant " + permissionText + " permission from Android Settings.")
-                        .setPositiveButton("Settings", (dialog, which) -> {
+                        .setTitle(getString(R.string.permission_required, permissionText))
+                        .setMessage(getString(R.string.please_grant_permission_retry, permissionText))
+                        .setPositiveButton(R.string.android_settings_label, (dialog, which) -> {
                             // Open app settings
                             Intent intent = new Intent();
                             intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                             intent.setData(Uri.fromParts("package", getPackageName(), null));
                             startActivity(intent);
                         })
-                        .setNegativeButton("Cancel", (dialog, which) -> {
+                        .setNegativeButton(R.string.cancel, (dialog, which) -> {
                             // User cancelled the dialog, so exit the app
                             finishAffinity(); // This will close all activities and exit the app
                         })
