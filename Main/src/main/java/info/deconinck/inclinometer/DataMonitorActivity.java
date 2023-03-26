@@ -691,8 +691,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (mBluetoothAdapter == null) {
                 new AlertDialog.Builder(DataMonitorActivity.this)
-                        .setTitle("No Bluetooth adapter found !")
-                        .setMessage("This app requires Bluetooth to connect a WIT accelerometer. Please make sure Bluetooth is available and restart the application.")
+                        .setTitle(R.string.no_bluetooth_found)
+                        .setMessage(R.string.bluetooth_adapter_required)
                         .setNegativeButton("OK", (dialogInterface, i) -> {
                             finishAffinity(); // This will close all activities and exit the app
                         })
