@@ -44,6 +44,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.FragmentActivity;
 
@@ -473,7 +474,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     if (!file.getParentFile().exists()) {
                         file.getParentFile().mkdirs();
                     }
-                    valueLogWriter = new FileWriter(pathname, false);
+                    valueLogWriter = new FileWriter(pathname, false); // TODO FIXME java.io.FileNotFoundException: /storage/emulated/0/Inclinometer/20230326_150028.csv: open failed: EPERM (Operation not permitted)
 
                     // Write header line
                     valueLogWriter.write("Time;Roll;Tilt\r\n");
@@ -621,6 +622,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
             }
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 2);
+            }
             if (this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 3);
             }
@@ -686,30 +690,38 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         try {
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (mBluetoothAdapter == null) {
-                Toast.makeText(this, getString(R.string.bluetooth_not_available), Toast.LENGTH_LONG).show();
+                new AlertDialog.Builder(DataMonitorActivity.this)
+                        .setTitle("No Bluetooth adapter found !")
+                        .setMessage("This app requires Bluetooth to connect a WIT accelerometer. Please make sure Bluetooth is available and restart the application.")
+                        .setNegativeButton("OK", (dialogInterface, i) -> {
+                            finishAffinity(); // This will close all activities and exit the app
+                        })
+                        .show();
                 return;
+            }
+            else {
+                if (!mBluetoothAdapter.isEnabled()) {
+                    mBluetoothAdapter.enable();
+                }
+
+                if (displayThread == null) {
+                    bDisplay = true;
+                    displayThread = new Thread(() -> {
+                        while (bDisplay) {
+                            refreshHandler.sendMessage(Message.obtain());
+                            try {
+                                Thread.sleep(100);
+                            }
+                            catch (Exception ignored) {
+                            }
+                        }
+                    });
+                    displayThread.start();
+                }
             }
         }
         catch (Exception e) {
             Log.e(TAG, "onCreate: ", e);
-        }
-        if (!mBluetoothAdapter.isEnabled()) {
-            mBluetoothAdapter.enable();
-        }
-
-        if (displayThread == null) {
-            bDisplay = true;
-            displayThread = new Thread(() -> {
-                while (bDisplay) {
-                    refreshHandler.sendMessage(Message.obtain());
-                    try {
-                        Thread.sleep(100);
-                    }
-                    catch (Exception ignored) {
-                    }
-                }
-            });
-            displayThread.start();
         }
     }
 
@@ -1250,44 +1262,46 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public synchronized void onResume() {
         super.onResume();
         initTabs();
-        if (!mBluetoothAdapter.isEnabled()) {
-            mBluetoothAdapter.enable();
-        }
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (mBluetoothService != null) {
-                    if (mBluetoothService.getState() == BluetoothService.STATE_NONE) {
-                        mBluetoothService.start();
-                    }
-                }
-                else {
-                    Log.e(TAG, "onResume.run: service is null");
-                    String address = SharedUtil.getString("BTName");
-                    if (address != null) {
-                        Log.e("--", "BTName = " + address);
-                        mBluetoothService = new BluetoothService(getApplicationContext(), mHandler, DataMonitorActivity.this); // Used to manage Bluetooth connections
-                        device = mBluetoothAdapter.getRemoteDevice(address);// Get the BLuetoothDevice object
-                        mBluetoothService.connect(device);// Attempt to connect to the device
+        if (mBluetoothAdapter != null) {
+            if (!mBluetoothAdapter.isEnabled()) {
+                mBluetoothAdapter.enable();
+            }
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (mBluetoothService != null) {
+                        if (mBluetoothService.getState() == BluetoothService.STATE_NONE) {
+                            mBluetoothService.start();
+                        }
                     }
                     else {
-                        onBtConnectClicked(null);
+                        Log.i(TAG, "onResume.run: service is null. Creating one...");
+                        String address = SharedUtil.getString("BTName");
+                        if (address != null) {
+                            Log.e("--", "BTName = " + address);
+                            mBluetoothService = new BluetoothService(getApplicationContext(), mHandler, DataMonitorActivity.this); // Used to manage Bluetooth connections
+                            device = mBluetoothAdapter.getRemoteDevice(address);// Get the BLuetoothDevice object
+                            mBluetoothService.connect(device);// Attempt to connect to the device
+                        }
+                        else {
+                            onBtConnectClicked(null);
+                        }
                     }
                 }
-            }
-        }, 1000);
+            }, 1000);
 
-        if (lineChart == null) {
-            lineChart = findViewById(R.id.lineChart);
-            lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
-            lineChartManager.setDescription(getString(R.string.angle_chart));
-        }
-        outputSwitch = findViewById(R.id.dataSwitch);
-        if (moduleTypeNumAxis == 9) {
-            outputSwitch.setVisibility(View.VISIBLE);
-        }
-        else {
-            outputSwitch.setVisibility(View.INVISIBLE);
+            if (lineChart == null) {
+                lineChart = findViewById(R.id.lineChart);
+                lineChartManager = new LineChartManager(lineChart, Arrays.asList("AngleX", "AngleY", "AngleZ"), qColour);
+                lineChartManager.setDescription(getString(R.string.angle_chart));
+            }
+            outputSwitch = findViewById(R.id.dataSwitch);
+            if (moduleTypeNumAxis == 9) {
+                outputSwitch.setVisibility(View.VISIBLE);
+            }
+            else {
+                outputSwitch.setVisibility(View.INVISIBLE);
+            }
         }
     }
 
@@ -1296,7 +1310,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         super.onDestroy();
         if (mBluetoothService != null) mBluetoothService.stop();
         try {
-            valueLogWriter.close();
+            if (valueLogWriter != null) {
+                valueLogWriter.close();
+            }
         }
         catch (IOException e) {
             //ignored

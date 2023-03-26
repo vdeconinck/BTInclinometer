@@ -1,11 +1,24 @@
 package info.deconinck.inclinometer;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
-import android.os.Handler;
-import androidx.appcompat.app.AppCompatActivity;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.provider.Settings;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class SplashActivity extends AppCompatActivity {
+
+    public static final int BLUETOOTH_SCAN_REQUEST_CODE = 0;
+    public static final int BLUETOOTH_CONNECT_REQUEST_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -14,6 +27,16 @@ public class SplashActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
+
+                // 1. Check required permissions (bluetooth)
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    checkPermission(Manifest.permission.BLUETOOTH_SCAN, BLUETOOTH_SCAN_REQUEST_CODE, "Bluetooth Scan");
+                    checkPermission(Manifest.permission.BLUETOOTH_CONNECT, BLUETOOTH_CONNECT_REQUEST_CODE, "Bluetooth Connect");
+                }
+
+                // 2. Start the Data Monitor activity
+
                 Intent intent;
                 intent = new Intent(getApplicationContext(), DataMonitorActivity.class);
                 startActivity(intent);
@@ -21,4 +44,76 @@ public class SplashActivity extends AppCompatActivity {
             }
         }, 500);
     }
+
+    private void checkPermission(String permission, int reqestCode, String permissionText) {
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(SplashActivity.this, permission)) {
+                // Show a dialog explaining why the permission is necessary and prompting the user to grant it
+                new AlertDialog.Builder(getApplicationContext())
+                        .setTitle(permissionText + " Permission Required")
+                        .setMessage("This app only works with WIT bluetooth accelerometers.")
+                        .setPositiveButton("Grant Permission", (dialog, which) -> {
+                            // Request the permission again
+                            ActivityCompat.requestPermissions(SplashActivity.this, new String[]{permission}, reqestCode);
+                        })
+                        .setNegativeButton("Deny", null)
+                        .show();
+            }
+            else {
+                // Request the permission again
+                ActivityCompat.requestPermissions(SplashActivity.this, new String[]{permission}, reqestCode);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        String permission = null;
+        String permissionText = null;
+        switch (requestCode) {
+            case BLUETOOTH_SCAN_REQUEST_CODE:
+                permission = Manifest.permission.BLUETOOTH_SCAN;
+                permissionText = "Bluetooth Scan";
+                break;
+            case BLUETOOTH_CONNECT_REQUEST_CODE:
+                permission = Manifest.permission.BLUETOOTH_CONNECT;
+                permissionText = "Bluetooth Connect";
+                break;
+            default:
+                new AlertDialog.Builder(this)
+                        .setTitle("Unknown Permission result !")
+                        .setMessage("Handler received result for an unknown permission code. App will close")
+                        .setPositiveButton("OK", (dialog, which) -> {
+                            finishAffinity(); // This will close all activities and exit the app
+                        });
+        }
+
+        if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+            // Permission denied
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+                // User has denied permission and selected "Don't ask again"
+                new AlertDialog.Builder(this)
+                        .setTitle(permissionText + " Permission Required")
+                        .setMessage("You have previously denied " + permissionText + " permission. Please grant " + permissionText + " permission from Android Settings.")
+                        .setPositiveButton("Settings", (dialog, which) -> {
+                            // Open app settings
+                            Intent intent = new Intent();
+                            intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                            intent.setData(Uri.fromParts("package", getPackageName(), null));
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("Cancel", (dialog, which) -> {
+                            // User cancelled the dialog, so exit the app
+                            finishAffinity(); // This will close all activities and exit the app
+                        })
+                        .show();
+            }
+            else {
+                // User denied the permission, so exit the app
+                finishAffinity(); // This will close all activities and exit the app
+            }
+        }
+    }
+
 }

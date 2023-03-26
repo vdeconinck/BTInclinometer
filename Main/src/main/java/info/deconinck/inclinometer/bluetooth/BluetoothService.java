@@ -1,5 +1,6 @@
 package info.deconinck.inclinometer.bluetooth;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
@@ -13,7 +14,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
+
 import info.deconinck.inclinometer.DataMonitorActivity;
+
 public class BluetoothService {
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final String NAME = "BluetoothData";
@@ -78,6 +81,7 @@ public class BluetoothService {
         setState(STATE_CONNECTING);
     }
 
+    @SuppressLint("MissingPermission")
     public synchronized void connected(BluetoothSocket socket, BluetoothDevice device) {
         // Cancel the thread that completed the connection
         if (mConnectThread != null) {
@@ -140,12 +144,14 @@ public class BluetoothService {
         // The local server socket
         private final BluetoothServerSocket mmServerSocket;
 
+        @SuppressLint("MissingPermission")
         public AcceptThread() {
             BluetoothServerSocket tmp = null;
             // Create a new listening server socket
             try {
                 tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME, MY_UUID);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
             }
             mmServerSocket = tmp;
         }
@@ -158,7 +164,8 @@ public class BluetoothService {
             while (mState != STATE_CONNECTED) {
                 try {
                     socket = mmServerSocket.accept();
-                } catch (IOException e) {
+                }
+                catch (IOException e) {
                     break;
                 }
                 // If a connection was accepted
@@ -174,7 +181,8 @@ public class BluetoothService {
                                 // Either not ready or already connected. Terminate new socket.
                                 try {
                                     socket.close();
-                                } catch (IOException e) {
+                                }
+                                catch (IOException e) {
                                 }
                                 break;
                         }
@@ -188,7 +196,8 @@ public class BluetoothService {
 
             try {
                 mmServerSocket.close();
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
             }
         }
     }
@@ -202,16 +211,19 @@ public class BluetoothService {
         private final BluetoothSocket mmSocket;
         private final BluetoothDevice mmDevice;
 
+        @SuppressLint("MissingPermission")
         public ConnectThread(BluetoothDevice device) {
             mmDevice = device;
             BluetoothSocket tmp = null;
             try {
                 tmp = device.createRfcommSocketToServiceRecord(MY_UUID); // Get a BluetoothSocket for a connection with the given BluetoothDevice
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
             }
             mmSocket = tmp;
         }
 
+        @SuppressLint("MissingPermission")
         public void run() {
 
             setName("ConnectThread");
@@ -220,11 +232,13 @@ public class BluetoothService {
             // Make a connection to the BluetoothSocket
             try {
                 mmSocket.connect(); // This is a blocking call and will only return on a successful connection or an exception
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 connectionFailed();
                 try {
                     mmSocket.close();
-                } catch (IOException e2) {
+                }
+                catch (IOException e2) {
                 }
 
                 BluetoothService.this.start(); // Reference to indicate that the method to be called is run() in an external class
@@ -240,8 +254,8 @@ public class BluetoothService {
         public void cancel() {
             try {
                 mmSocket.close();
-            } catch (IOException e) {
-
+            }
+            catch (IOException e) {
             }
         }
     }
@@ -263,7 +277,8 @@ public class BluetoothService {
             try {
                 tmpIn = socket.getInputStream();
                 tmpOut = socket.getOutputStream();
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
             }
 
             mmInStream = tmpIn;
@@ -279,9 +294,10 @@ public class BluetoothService {
                 try {
                     acceptedLen = mmInStream.read(tempInputBuffer);
                     if (acceptedLen > 0) {
-                         dataMonitorActivity.handleSerialData(acceptedLen, tempInputBuffer);
+                        dataMonitorActivity.handleSerialData(acceptedLen, tempInputBuffer);
                     }
-                } catch (IOException e) {
+                }
+                catch (IOException e) {
                     connectionLost();
                     break;
                 }
@@ -291,14 +307,16 @@ public class BluetoothService {
         public void write(byte[] buffer) {
             try {
                 mmOutStream.write(buffer);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
             }
         }
 
         public void cancel() {
             try {
                 mmSocket.close();
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
             }
         }
     }

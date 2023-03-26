@@ -35,6 +35,7 @@ import java.util.Set;
  * Activity in the result Intent.
  */
 
+@SuppressLint("MissingPermission")
 public class DeviceListActivity extends Activity {
     // Debugging
     private static final String TAG = "DeviceListActivity";
