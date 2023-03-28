@@ -63,7 +63,6 @@ import java.util.List;
 import java.util.Queue;
 
 import info.deconinck.inclinometer.bluetooth.BluetoothService;
-import info.deconinck.inclinometer.db.SQLite;
 import info.deconinck.inclinometer.dialog.AddressDialog;
 import info.deconinck.inclinometer.dialog.AngleDialog;
 import info.deconinck.inclinometer.dialog.SmoothingDialog;
@@ -470,6 +469,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 case RECORDING_START_REQUESTED:
 /*
                     // TODO FIXME java.io.FileNotFoundException: /storage/emulated/0/Inclinometer/20230326_150028.csv: open failed: EPERM (Operation not permitted)
+                    // Should log to DB (purging logs older than X months), and only export to storage upon user request
 
                     // Create file
                     String pathname = Environment.getExternalStorageDirectory() + INCLINOMETER_LOG_FOLDER + "/" + ymdhmsNoSepFormatter.format(new Date()) + ".csv";
@@ -618,9 +618,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        SQLite sqLite = SQLite.init(getApplicationContext());
-        sqLite.open();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
