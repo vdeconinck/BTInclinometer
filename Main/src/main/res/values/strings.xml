@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">4x4 remote inclinometer</string>
+    <string name="app_version">1.0</string>
 
     <string name="JY31">3-axis Series</string>
     <string name="JY61">6-axis Series</string>
@@ -30,6 +31,7 @@
     <string name="title_module_paired">Module has been paired</string>
     <string name="title_other_devices">No paired module, turn on your positioning switch!</string>
     <string name="button_scan">Search module</string>
+    <string name="button_export">Export file</string>
     <string name="file_save_complete">File save complete</string>
     <string name="recorded_to_dir">The data has been recorded to the root directory of your device: </string>
 
@@ -170,5 +172,8 @@
     <string name="android_settings_label">Settings</string>
     <string name="no_bluetooth_found">No Bluetooth adapter found !</string>
     <string name="bluetooth_adapter_required">This app requires Bluetooth to connect a WitMotion accelerometer. Please make sure Bluetooth is available and restart the application.</string>
+    <string name="select_session_to_export">Select session to export</string>
+    <string name="recording_stopped">Recording of session %1$s stopped.</string>
+    <string name="recording_started">Recording of session %1$s started.</string>
 
 </resources>
