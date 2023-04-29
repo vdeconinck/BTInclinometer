@@ -3,6 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="info.deconinck.inclinometer">
 
+    <uses-feature android:name="android.hardware.usb.host" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
+
+    <!-- strongly assert that the app never derives physical location from Bluetooth scan results. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
     <application
         android:name="info.deconinck.inclinometer.InitApplication"
         android:allowBackup="true"
@@ -12,12 +23,27 @@
         android:theme="@style/AppTheme.NoActionBar"
         tools:replace="android:theme"
         tools:ignore="AllowBackup">
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="info.deconinck.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <!--Specify the shared path of Uri-->
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/is_provider_paths" />
+        </provider>
         <activity
-            android:name="info.deconinck.bt901.DataMonitorActivity"
+            android:name="info.deconinck.inclinometer.DeviceListActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:label="@string/select_module"
+            android:theme="@android:style/Theme.Dialog" />
+        <activity
+            android:name="info.deconinck.inclinometer.DataMonitorActivity"
             android:configChanges="orientation|screenSize|screenLayout"
             android:screenOrientation="fullSensor" />
         <activity
-            android:name="info.deconinck.inclinometer.DeviceSelectionActivity"
+            android:name="info.deconinck.inclinometer.ModuleTypeSelectionActivity"
             android:screenOrientation="fullSensor" />
         <activity android:name="info.deconinck.inclinometer.SplashActivity"
             android:exported="true">

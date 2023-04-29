@@ -1,12 +1,179 @@
 <resources>
     <string name="app_name">4x4 remote inclinometer</string>
+    <string name="app_version">1.0</string>
 
     <string name="JY31">3-axis Series</string>
     <string name="JY61">6-axis Series</string>
     <string name="JY901">9-axis Series</string>
     <string name="JY901BLE">9-axis BLE Series</string>
 
-    <string name="select_module">Select Module Type</string>
+    <string name="select_module_type">Select Module Type</string>
     <string name="logo_image">Logo image</string>
-    <string name="banner_image">Banner image</string>
+
+    <string name="bluetooth_not_available">Bluetooth is not available.</string>
+
+
+    <!-- Menu items -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="toast_calibrating">Calibrating, please rotate the module around each axis several times</string>
+    <string name="toast_cali_done">Calibration complete.</string>
+
+    // Button
+    <string name="record">Record</string>
+    <string name="stop">Stop</string>
+
+    <string name="scanning">Searching for module...</string>
+    <string name="select_module">Select a module</string>
+    <string name="none_paired">No paired module found</string>
+    <string name="none_found">No module found</string>
+    <string name="title_module_paired">Module has been paired</string>
+    <string name="title_other_devices">No paired module, turn on your positioning switch!</string>
+    <string name="button_scan">Search module</string>
+    <string name="button_export">Export file</string>
+    <string name="file_save_complete">File save complete</string>
+    <string name="recorded_to_dir">The data has been recorded to the root directory of your device: </string>
+
+    <string name="acc_calibration">Acceleration calibration</string>
+    <string name="smoothing_factor">Smoothing factor</string>
+    <string name="sleep">Sleep</string>
+    <string name="baud_rate">Baud rate setting</string>
+    <string name="installation_orientation">Installation orientation</string>
+    <string name="static_detection_threshold">Static detection threshold</string>
+    <string name="measurement_bandwidth">Measurement Bandwidth</string>
+    <string name="pattern_selection">\? Pattern Selection</string>
+    <string name="system">System</string>
+    <string name="factory_reset">Factory reset</string>
+    <string name="algorithm">Algorithm</string>
+
+    <string name="__instruction_start">\? Instruction Start</string>
+    <string name="__whether_or_not">\? Whether or not the instruction is started：</string>
+
+    <string name="calibration">Calibration</string>
+    <string name="magnetic_field_calibration_start">Magnetic calibration - start</string>
+    <string name="magnetic_field_calibration_end">Magnetic calibration - end</string>
+    <string name="reset_height">Reset height to zero</string>
+    <string name="gyroscope_automatic_calibration">Automatic gyroscope calibration</string>
+    <string name="reset_Z_axis">Reset Z-axis to zero</string>
+    <string name="setting_angle_reference">Set Angle Reference</string>
+    <string name="range">Range</string>
+    <string name="acceleration_range">Acceleration range</string>
+    <string name="angular_velocity_range">Angular velocity range</string>
+    <string name="content">\? Output Content</string>
+    <string name="signal_communication">Communication</string>
+    <string name="retrieval_rate">Retrieval rate</string>
+    <string name="baudrate">Baudrate</string>
+    <string name="address">Address</string>
+    <string name="communication_rate">Communication rate</string>
+    <string name="port_mode">Port mode</string>
+    <string name="d0_mode">D0 mode</string>
+    <string name="d1_mode">D1 mode</string>
+    <string name="d2_mode">D2 mode</string>
+    <string name="d3_mode">D3 mode</string>
+    <string name="port_PWM_pulse_width">PWM pulse width</string>
+    <string name="D0PWM_pulse_width">D0PWM pulse width</string>
+    <string name="D1PWM_pulse_width">D1PWM pulse width</string>
+    <string name="D2PWM_pulse_width">D2PWM pulse width</string>
+    <string name="D3PWM_pulse_width">D3PWM pulse width</string>
+    <string name="port_PWM_cycle">PWM cycle</string>
+    <string name="D0PWM_cycle">D0PWM cycle</string>
+    <string name="D1PWM_cycle">D1PWM cycle</string>
+    <string name="D2PWM_cycle">D2PWM cycle</string>
+    <string name="D3PWM_cycle">D3PWM cycle</string>
+
+
+    <string name="put_datal">Please enter the smoothing factor</string>
+    <string name="end">OK</string>
+    <string name="put_start">（Range 0~1000）</string>
+
+    <string name="choose_baud_rate">Please choose the baud rate</string>
+    <string name="choose_installation_orientation">Please choose the installation orientation</string>
+    <string name="horizontal_installation">Horizontal orientation</string>
+    <string name="vertical_installation">Vertical orientation</string>
+    <string name="choose_bandwith">Please select bandwidth:</string>
+    <string name="choose_model">Please select the mode:</string>
+    <string name="sdt">Static detection threshold:</string>
+    <string name="six_axis_algorithm">Six-axis algorithm</string>
+    <string name="nine_axis_algorithm">Nine-axis algorithm</string>
+    <string name="choose_algorithm">Please select the algorithm:</string>
+
+    <string name="automatic_calibration_of_helix">Automatic calibration of helix：</string>
+    <string name="choose_range">Please select the acceleration range:</string>
+    <string name="choose_angle">Please select the angular velocity:</string>
+    <string name="output_content">Please select the output content:</string>
+    <string name="single_output">Single output</string>
+    <string name="no_output">No output</string>
+    <string name="select_return_rate">Please select the return rate：</string>
+    <string name="enter_address">Please enter the address</string>
+
+    <string name="angle_velocity">Angular velocity</string>
+
+    <string name="mAngleVelocity">w</string>
+    <string name="mAngle">Angle</string>
+    <string name="mMag">Mag</string>
+    <string name="mAcc">a</string>
+
+    <string name="bt_not_enabled_leaving">Bluetooth not enabled</string>
+    <string name="connect">Connect</string>
+    <string name="data_null">Cannot be null!</string>
+    <string name="discoverable">Discoverable</string>
+
+    <string name="not_connected">No device connected!</string>
+    <string name="put_end">End (0~1000)</string>
+    <string name="send">Send</string>
+
+    <string name="title_connecting">Connecting…</string>
+    <string name="title_connected_to">Connected: %1$s</string>
+    <string name="title_not_connected">Disconnected</string>
+    <string name="xmax_null">X max cannot be null!</string>
+    <string name="xmin_null">X min cannot be null!</string>
+    <string name="xy_time">Keep time cannot be null!</string>
+    <string name="ymax_null">Y max cannot be null!</string>
+    <string name="ymin_null">Y min cannot be null!</string>
+    <string name="voltage">Voltage:</string>
+    <string name="version">Version:</string>
+
+    <string name="acc_chart">Acceleration chart</string>
+    <string name="w_chart">Angle rate chart</string>
+    <string name="angle_chart">Angle chart</string>
+    <string name="mag_chart">Magnetic chart</string>
+
+    <string name="time">Time:</string>
+    <string name="date">Date:</string>
+
+    <string name="choose_install_orientation">Please choose installation orientation:</string>
+    <string name="data_output">Enable chart:</string>
+    <string name="pause">Pause</string>
+    <string name="calibrating">Accelerator is calibrating, please keep horizontal for 3 seconds!</string>
+    <string name="calibrated">Calibration is complete!</string>
+    <string name="anglex">AngleX:</string>
+    <string name="angley">AngleY:</string>
+    <string name="anglez">AngleZ:</string>
+    <string name="t">T:</string>
+    <string name="item2">item2</string>
+    <string name="zero_tilt">Zero tilt</string>
+    <string name="zero_roll">Zero roll</string>
+    <string name="select_angle">Type %1$s compensation angle</string>
+    <string name="current">Current</string>
+
+    <string name="change_module_type">Change module type</string>
+    <string name="start_recording">Start recording</string>
+    <string name="stop_recording">Stop recording</string>
+    <string name="enable_debug_info">Enable debug info</string>
+    <string name="disable_debug_info">Disable debug info</string>
+    <string name="bluetooth_scan_permission_text">Bluetooth Scan</string>
+    <string name="bluetooth_connect_permission_text">Bluetooth Connect</string>
+    <string name="permission_required">%1$s Permission Required</string>
+    <string name="bluetooth_permission_explanation">This app only works with WitMotion bluetooth accelerometers.</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="deny">Deny</string>
+    <string name="please_grant_permission_retry">You have previously denied %1$s permission. Please grant %1$s permission from Android Settings.</string>
+    <string name="android_settings_label">Settings</string>
+    <string name="no_bluetooth_found">No Bluetooth adapter found !</string>
+    <string name="bluetooth_adapter_required">This app requires Bluetooth to connect a WitMotion accelerometer. Please make sure Bluetooth is available and restart the application.</string>
+    <string name="select_session_to_export">Select session to export</string>
+    <string name="recording_stopped">Recording of session %1$s stopped.</string>
+    <string name="recording_started">Recording of session %1$s started.</string>
+
 </resources>

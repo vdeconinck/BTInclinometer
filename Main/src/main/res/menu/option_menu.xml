@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2009 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+<!--    <item android:id="@+id/scanItem" android:icon="@android:drawable/ic_menu_search" android:title="@string/button_scan" />-->
+<!--    <item android:id="@+id/item2" android:icon="@android:drawable/ic_menu_mylocation" android:title="@string/item2" />-->
+
+    <item
+        android:id="@+id/scanItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/button_scan"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/exportItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/button_export"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/system" android:title="@string/system" app:showAsAction="never">
+        <menu>
+            <item android:id="@+id/change_sensor_type" android:title="@string/change_module_type" app:showAsAction="never"/>
+            <item android:id="@+id/toggle_recording" android:title="@string/stop_recording" app:showAsAction="never"/>
+            <item android:id="@+id/toggle_debug_info" android:title="@string/enable_debug_info" app:showAsAction="never"/>
+            <item android:id="@+id/factory_reset" android:title="@string/factory_reset" app:showAsAction="never"/>
+            <item android:id="@+id/sleep" android:title="@string/sleep" app:showAsAction="never"/>
+            <item android:id="@+id/algorithm" android:title="@string/algorithm" app:showAsAction="never"/>
+            <item android:id="@+id/installation_orientation" android:title="@string/installation_orientation" app:showAsAction="never"/>
+            <item android:id="@+id/static_detection_threshold" android:title="@string/static_detection_threshold" app:showAsAction="never"/>
+            <item android:id="@+id/__instruction_start" android:title="@string/__instruction_start" app:showAsAction="never"/>
+        </menu>
+    </item>
+
+    <item android:id="@+id/calibration" android:title="@string/calibration" app:showAsAction="never">
+        <menu>
+            <item android:id="@+id/zero_tilt" android:title="@string/zero_tilt" app:showAsAction="never"/>
+            <item android:id="@+id/zero_roll" android:title="@string/zero_roll" app:showAsAction="never"/>
+            <item android:id="@+id/acc_calibration" android:title="@string/acc_calibration" app:showAsAction="never"/>
+            <item android:id="@+id/smoothing_factor" android:title="@string/smoothing_factor" app:showAsAction="never"/>
+            <item android:id="@+id/magnetic_field_calibration_start" android:title="@string/magnetic_field_calibration_start" app:showAsAction="never"/>
+            <item android:id="@+id/magnetic_field_calibration_end" android:title="@string/magnetic_field_calibration_end" app:showAsAction="never"/>
+            <item android:id="@+id/reset_height" android:title="@string/reset_height" app:showAsAction="never"/>
+            <item android:id="@+id/gyroscope_automatic_calibration" android:title="@string/gyroscope_automatic_calibration" app:showAsAction="never"/>
+            <item android:id="@+id/reset_Z_axis" android:title="@string/reset_Z_axis" app:showAsAction="never"/>
+            <item android:id="@+id/setting_angle_reference" android:title="@string/setting_angle_reference" app:showAsAction="never"/>
+        </menu>
+    </item>
+
+    <item android:id="@+id/range" android:title="@string/range" app:showAsAction="never">
+        <menu>
+            <item android:id="@+id/acceleration_range" android:title="@string/acceleration_range" app:showAsAction="never"/>
+            <item android:id="@+id/angular_velocity_range" android:title="@string/angular_velocity_range" app:showAsAction="never"/>
+            <item android:id="@+id/measurement_bandwidth" android:title="@string/measurement_bandwidth" app:showAsAction="never"/>
+        </menu>
+    </item>
+
+    <item android:id="@+id/signal_communication" android:title="@string/signal_communication" app:showAsAction="never">
+        <menu>
+            <item android:id="@+id/retrieval_rate" android:title="@string/retrieval_rate" app:showAsAction="never"/>
+            <item android:id="@+id/address" android:title="@string/address" app:showAsAction="never"/>
+        </menu>
+    </item>
+</menu>
