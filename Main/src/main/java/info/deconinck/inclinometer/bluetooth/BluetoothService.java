@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 
 import java.io.IOException;
@@ -287,6 +288,7 @@ public class BluetoothService {
 
 
         public void run() {
+            Looper.prepare();
             byte[] tempInputBuffer = new byte[10240];
             int acceptedLen;
             // Keep listening to the InputStream while connected

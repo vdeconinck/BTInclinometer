@@ -25,13 +25,16 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Icon;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.provider.DocumentsContract;
 import android.util.Log;
+import android.util.Xml;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,28 +47,34 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.room.Room;
 
 import com.github.mikephil.charting.charts.LineChart;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import org.xmlpull.v1.XmlSerializer;
+
+import java.io.OutputStream;
+import java.io.StringWriter;
 import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 import info.deconinck.inclinometer.bluetooth.BluetoothService;
 import info.deconinck.inclinometer.dialog.AddressDialog;
 import info.deconinck.inclinometer.dialog.AngleDialog;
 import info.deconinck.inclinometer.dialog.SmoothingDialog;
+import info.deconinck.inclinometer.model.Orientation;
+import info.deconinck.inclinometer.model.Session;
+import info.deconinck.inclinometer.persistence.AppDatabase;
 import info.deconinck.inclinometer.util.SharedUtil;
 import info.deconinck.inclinometer.view.InclinometerView;
 
@@ -77,6 +86,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private static final String TILT_CHANNEL_ID = "info.deconinck.inclinometer.TILT";
     public static final int ANGLE_LOGGING_INTERVAL_MS = 1000;
     public static final int ANGLE_LOGGING_TIMEOUT_MS = 5000;
+    public static final int DB_PURGE_AFTER_MONTHS = 6;
+    public static final int ACCESS_LOCATION_REQUEST_CODE = 2;
 
     public static SimpleDateFormat ymdhmsSepFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     public static SimpleDateFormat ymdhmsNoSepFormatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
@@ -100,12 +111,13 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public static final int RECORDING_STOPPED = -1;
     public static final int RECORDING_STOP_REQUESTED = 0;
     public static final int RECORDING_START_REQUESTED = 1;
-    public static final int RECORDING_STARTED = 2;
+    public static final int RECORDING_IN_PROGRESS = 2;
 
     public static final int MESSAGE_START_BYTE = 0x55;
 
     private static final int REQUEST_MODULE_TYPE = 1;
     private static final int REQUEST_CONNECT_DEVICE = 2;
+    private static final int REQUEST_CREATE_FILE = 3;
 
     public static final String ROLL_COMPENSATION_ANGLE_KEY = "rollCompensationAngle";
     public static final String TILT_COMPENSATION_ANGLE_KEY = "tiltCompensationAngle";
@@ -144,8 +156,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     private boolean isRecording = true;
     private static int recordingState = RECORDING_START_REQUESTED;
-    private static FileWriter valueLogWriter;
+
+    private AppDatabase db;
+    private Long sessionId;
     private static long nextLogTime;
+    private Session selectedSession;
 
 
     private float norm(float x[]) {
@@ -461,51 +476,49 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         try {
             switch (recordingState) {
                 case RECORDING_STOP_REQUESTED:
-                    valueLogWriter.close();
                     recordingState = RECORDING_STOPPED;
                     inclinometerView.setRecLed(false);
+                    Toast.makeText(this, getString(R.string.recording_stopped, sessionId), Toast.LENGTH_SHORT).show();
+
+                    sessionId = null;
                     break;
 
                 case RECORDING_START_REQUESTED:
-/*
-                    // TODO FIXME java.io.FileNotFoundException: /storage/emulated/0/Inclinometer/20230326_150028.csv: open failed: EPERM (Operation not permitted)
-                    // Should log to DB (purging logs older than X months), and only export to storage upon user request
-
-                    // Create file
-                    String pathname = Environment.getExternalStorageDirectory() + INCLINOMETER_LOG_FOLDER + "/" + ymdhmsNoSepFormatter.format(new Date()) + ".csv";
-                    File file = new File(pathname);
-                    if (!file.getParentFile().exists()) {
-                        file.getParentFile().mkdirs();
+                    // First, cleanup sessions older than X months
+                    OffsetDateTime threshold = OffsetDateTime.now();
+                    threshold = threshold.minusMonths(DB_PURGE_AFTER_MONTHS);
+                    List<Session> obsoleteSessions = db.sessionDao().getSessionsOlderThan(threshold);
+                    for (Session obsoleteSession : obsoleteSessions) {
+                        db.orientationDao().deleteOrientationsForSession(obsoleteSession.id);
+                        db.sessionDao().delete(obsoleteSession);
                     }
-                    valueLogWriter = new FileWriter(pathname, false);
 
-                    // Write header line
-                    valueLogWriter.write("Time;Roll;Tilt\r\n");
+                    // Start a new session
+                    Session session = new Session();
+                    sessionId = db.sessionDao().insert(session);
+
                     // Switch to "recording"
-                    recordingState = RECORDING_STARTED;
+                    recordingState = RECORDING_IN_PROGRESS;
                     inclinometerView.setRecLed(true);
                     nextLogTime = System.currentTimeMillis();
-*/
+
+                    Toast.makeText(this, getString(R.string.recording_started, sessionId), Toast.LENGTH_SHORT).show();
+
                     break;
 
-                case RECORDING_STARTED:
+                case RECORDING_IN_PROGRESS:
                     long now = System.currentTimeMillis();
                     if (now >= nextLogTime) {
                         // Flash the led
                         inclinometerView.setRecLed(!inclinometerView.isRecLed());
                         float roll = angle[0] - rollCompensationAngle;
                         float tilt = angle[1] - tiltCompensationAngle;
-                        // Log values to file
-                        try {
-                            valueLogWriter.write(ymdhmsSepFormatter.format(new Date()) + ";" + String.format("%.1f", roll) + ";" + String.format("%.1f", tilt) + "\r\n");
-                            // Show them as a notification
-                            displayNotifications(roll, tilt);
-                        }
-                        catch (IOException e) {
-                            Log.e(TAG, "writeData: ", e);
-                            // File is probably broken, try reopening a new one
-                            recordingState = RECORDING_START_REQUESTED;
-                        }
+
+                        // Log values to DB
+                        Orientation orientation = new Orientation(sessionId, roll, tilt);
+                        db.orientationDao().insert(orientation);
+                        // Show them as a notification
+                        displayNotifications(roll, tilt);
 
                         // Prepare next run, normally 1 sec after this one except if we missed too many
                         if (now - nextLogTime > ANGLE_LOGGING_TIMEOUT_MS) {
@@ -621,13 +634,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, ACCESS_LOCATION_REQUEST_CODE);
             }
             if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 2);
-            }
-            if (this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 3);
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_LOCATION_REQUEST_CODE);
             }
         }
 
@@ -641,14 +651,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         SharedUtil.init(getApplicationContext());
         setOutputEnabledBitmap(SharedUtil.getInt("Out"));
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
-            }
-            if (this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 3);
-            }
-        }
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.app_name);
@@ -771,6 +773,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                 switch (item.getItemId()) {
                     case R.id.scanItem:
                         onBtConnectClicked(null);
+                        return true;
+
+                    case R.id.exportItem:
+                        onExportClicked(null);
                         return true;
 
                     // system menu
@@ -956,13 +962,15 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
     private void setRollCompensationAngle(float rollCompensationAngle) {
         this.rollCompensationAngle = rollCompensationAngle;
-        if (inclinometerView != null) inclinometerView.setRollCompensationAngle(rollCompensationAngle);
+        if (inclinometerView != null)
+            inclinometerView.setRollCompensationAngle(rollCompensationAngle);
     }
 
 
     private void setTiltCompensationAngle(float tiltCompensationAngle) {
         this.tiltCompensationAngle = tiltCompensationAngle;
-        if (inclinometerView != null) inclinometerView.setTiltCompensationAngle(tiltCompensationAngle);
+        if (inclinometerView != null)
+            inclinometerView.setTiltCompensationAngle(tiltCompensationAngle);
     }
 
 
@@ -1255,6 +1263,45 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
     }
 
+    public void onExportClicked(View view) {
+        // Perform database operation on a separate thread using AsyncTask
+        new AsyncTask<Void, Void, List<Session>>() {
+            @Override
+            protected List<Session> doInBackground(Void... voids) {
+                return db.sessionDao().getAllSessions();
+            }
+
+            @Override
+            protected void onPostExecute(List<Session> sessions) {
+                // 1. Select session to export
+
+                // Pop-up an AlertDialog with the list
+                AlertDialog.Builder builder = new AlertDialog.Builder(DataMonitorActivity.this);
+                builder.setTitle(R.string.select_session_to_export)
+                        .setItems(sessions.stream()
+                                .map(Session::getPrettyTimestamp)
+                                .collect(Collectors.toList()).toArray(new String[0]), new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // The 'which' argument contains the index position of the selected item
+                                selectedSession = sessions.get(which);
+                                if (selectedSession != null) {
+                                    // 2. Ask where to save
+                                    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                                    intent.setType("application/octet-stream");
+                                    intent.putExtra(Intent.EXTRA_TITLE, selectedSession.startTime.format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".txt");
+                                    intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Environment.DIRECTORY_DOCUMENTS);
+
+                                    // Execute save when target file has been selected
+                                    startActivityForResult(intent, REQUEST_CREATE_FILE);
+                                }
+                            }
+                        });
+                builder.create().show();
+            }
+        }.execute();
+    }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -1263,6 +1310,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public synchronized void onResume() {
         super.onResume();
         initTabs();
+
+        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "inclinometer").build();
+
         if (mBluetoothAdapter != null) {
             if (!mBluetoothAdapter.isEnabled()) {
                 mBluetoothAdapter.enable();
@@ -1310,14 +1360,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public void onDestroy() {
         super.onDestroy();
         if (mBluetoothService != null) mBluetoothService.stop();
-        try {
-            if (valueLogWriter != null) {
-                valueLogWriter.close();
-            }
-        }
-        catch (IOException e) {
-            //ignored
-        }
         bDisplay = false;
     }
 
@@ -1345,6 +1387,101 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     SharedUtil.putString("BTName", address);
                     // Attempt to connect to the device
                     mBluetoothService.connect(device);
+                }
+                break;
+
+            case REQUEST_CREATE_FILE:
+                if (selectedSession != null) {
+                    Toast.makeText(this, "Saving session " + selectedSession.id, Toast.LENGTH_SHORT).show();
+                    new AsyncTask<Void, Void, List<Orientation>>() {
+                        @Override
+                        protected List<Orientation> doInBackground(Void... voids) {
+                            return db.orientationDao().getOrientationsBySession(selectedSession.id);
+                        }
+
+                        @Override
+                        protected void onPostExecute(List<Orientation> orientations) {
+                            try {
+                                OutputStream outputStream = getContentResolver().openOutputStream(data.getData());
+
+                                XmlSerializer serializer = Xml.newSerializer();
+                                serializer.setOutput(outputStream, "UTF-8");
+                                serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true); // Enable indentation
+                                //StringWriter writer = new StringWriter();
+                                //serializer.setOutput(writer);
+                                serializer.startDocument("UTF-8", true);
+
+                                // Start the root element
+                                serializer.setPrefix("", "http://www.topografix.com/GPX/1/1"); // declare the namespace for "gpx" tag
+                                serializer.setPrefix("incl", "http://www.deconinck.info/xmlschemas/InclinometerExtension/v1");
+                                serializer.startTag("http://www.topografix.com/GPX/1/1", "gpx");
+                                serializer.attribute("", "creator", getString(R.string.app_name));
+                                serializer.attribute("", "version", getString(R.string.app_version));
+
+                                for (Orientation orientation : orientations) {
+                                    // Write the waypoint element
+                                    serializer.startTag("", "wpt");
+                                    serializer.attribute("", "lat", String.valueOf(orientation.latitude));
+                                    serializer.attribute("", "lon", String.valueOf(orientation.longitude));
+
+                                    // Write the child elements of the waypoint element
+//                                    serializer.startTag("", "ele");
+//                                    serializer.text("12.863281");
+//                                    serializer.endTag("", "ele");
+
+                                    serializer.startTag("", "time");
+                                    serializer.text(String.valueOf(orientation.getISOTimestamp()));
+                                    serializer.endTag("", "time");
+
+//                                    serializer.startTag("", "name");
+//                                    serializer.text("Cala Sant Vicenç - Mallorca");
+//                                    serializer.endTag("", "name");
+
+//                                    serializer.startTag("", "sym");
+//                                    serializer.text("City");
+//                                    serializer.endTag("", "sym");
+
+                                    // Write the tilt and roll as extensions
+                                    serializer.startTag("", "extensions");
+                                    serializer.startTag("http://www.deconinck.info/xmlschemas/InclinometerExtension/v1", "wptExtension");
+
+                                    serializer.startTag("http://www.deconinck.info/xmlschemas/InclinometerExtension/v1", "tilt");
+                                    serializer.text(String.valueOf(orientation.tilt));
+                                    serializer.endTag("http://www.deconinck.info/xmlschemas/InclinometerExtension/v1", "tilt");
+                                    serializer.startTag("http://www.deconinck.info/xmlschemas/InclinometerExtension/v1", "roll");
+                                    serializer.text(String.valueOf(orientation.roll));
+                                    serializer.endTag("http://www.deconinck.info/xmlschemas/InclinometerExtension/v1", "roll");
+
+                                    serializer.endTag("http://www.deconinck.info/xmlschemas/InclinometerExtension/v1", "wptExtension");
+                                    serializer.endTag("", "extensions");
+
+                                    // End the waypoint element
+                                    serializer.endTag("", "wpt");
+                                }
+
+                                // End the root element
+                                serializer.endTag("http://www.topografix.com/GPX/1/1", "gpx");
+
+                                serializer.endDocument();
+                                outputStream.close();
+                                Toast.makeText(DataMonitorActivity.this, "Session saved", Toast.LENGTH_LONG).show();
+    /*
+        or
+                            new AlertDialog.Builder(DataMonitorActivity.this)
+                                    .setTitle(getString(R.string.file_save_complete))
+                                    .setIcon(android.R.drawable.ic_dialog_info)
+                                    .setMessage(getString(R.string.recorded_to_dir) + Environment.getExternalStorageDirectory() + INCLINOMETER_LOG_FOLDER)
+                                    .setNeutralButton(getString(R.string.ok), null)
+                                    .show();
+    */
+                            }
+                            catch (Exception e) {
+                                Toast.makeText(DataMonitorActivity.this, "Error saving session: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                e.printStackTrace();
+                            }
+                            selectedSession = null;
+                        }
+                    }.execute();
                 }
                 break;
         }
@@ -1541,12 +1678,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             if (recordButton != null) recordButton.setText(getString(R.string.record));
             if (recordMenuItem != null) recordMenuItem.setTitle(getString(R.string.start_recording));
             recordingState = RECORDING_STOP_REQUESTED;
-            new AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.file_save_complete))
-                    .setIcon(android.R.drawable.ic_dialog_info)
-                    .setMessage(getString(R.string.recorded_to_dir) + Environment.getExternalStorageDirectory() + INCLINOMETER_LOG_FOLDER)
-                    .setNeutralButton(getString(R.string.ok), null)
-                    .show();
         }
     }
 
@@ -1576,7 +1707,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         builder.setPriority(Notification.PRIORITY_MAX);
         builder.setContentIntent(intent);
         // Setting bitmap to staus bar icon.
-        builder.setSmallIcon(Icon.createWithBitmap(createRollBitmap((int)roll)));
+        builder.setSmallIcon(Icon.createWithBitmap(createRollBitmap((int) roll)));
 
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
         notificationManagerCompat.notify(0, builder.build());
@@ -1593,7 +1724,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         builder.setPriority(Notification.PRIORITY_MAX);
         builder.setContentIntent(intent);
         // Setting bitmap to staus bar icon.
-        builder.setSmallIcon(Icon.createWithBitmap(createTiltBitmap((int)tilt)));
+        builder.setSmallIcon(Icon.createWithBitmap(createTiltBitmap((int) tilt)));
 
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
         notificationManagerCompat.notify(1, builder.build());

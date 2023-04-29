@@ -17,7 +17,18 @@
 <!--    <item android:id="@+id/scanItem" android:icon="@android:drawable/ic_menu_search" android:title="@string/button_scan" />-->
 <!--    <item android:id="@+id/item2" android:icon="@android:drawable/ic_menu_mylocation" android:title="@string/item2" />-->
 
-    <item android:id="@+id/scanItem" android:title="@string/button_scan" app:showAsAction="never"/>
+    <item
+        android:id="@+id/scanItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/button_scan"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/exportItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/button_export"
+        app:showAsAction="never"/>
 
     <item android:id="@+id/system" android:title="@string/system" app:showAsAction="never">
         <menu>
