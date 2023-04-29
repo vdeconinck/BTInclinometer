@@ -56,7 +56,6 @@ import com.github.mikephil.charting.charts.LineChart;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -88,6 +87,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     public static final int ANGLE_LOGGING_TIMEOUT_MS = 5000;
     public static final int DB_PURGE_AFTER_MONTHS = 6;
     public static final int ACCESS_LOCATION_REQUEST_CODE = 2;
+    public static final String FEATURE_INDENT = "http://xmlpull.org/v1/doc/features.html#indent-output";
+    public static final String INCLINOMETER_NS = "http://www.deconinck.info/xmlschemas/InclinometerExtension/v1";
+    public static final String GPX_NS = "http://www.topografix.com/GPX/1/1";
 
     public static SimpleDateFormat ymdhmsSepFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     public static SimpleDateFormat ymdhmsNoSepFormatter = new SimpleDateFormat("yyyyMMdd_HHmmss");
@@ -1406,15 +1408,15 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
                                 XmlSerializer serializer = Xml.newSerializer();
                                 serializer.setOutput(outputStream, "UTF-8");
-                                serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true); // Enable indentation
+                                serializer.setFeature(FEATURE_INDENT, true); // Enable indentation
                                 //StringWriter writer = new StringWriter();
                                 //serializer.setOutput(writer);
                                 serializer.startDocument("UTF-8", true);
 
                                 // Start the root element
-                                serializer.setPrefix("", "http://www.topografix.com/GPX/1/1"); // declare the namespace for "gpx" tag
-                                serializer.setPrefix("incl", "http://www.deconinck.info/xmlschemas/InclinometerExtension/v1");
-                                serializer.startTag("http://www.topografix.com/GPX/1/1", "gpx");
+                                serializer.setPrefix("", GPX_NS); // declare the namespace for "gpx" tag
+                                serializer.setPrefix("incl", INCLINOMETER_NS);
+                                serializer.startTag(GPX_NS, "gpx");
                                 serializer.attribute("", "creator", getString(R.string.app_name));
                                 serializer.attribute("", "version", getString(R.string.app_version));
 
@@ -1443,16 +1445,16 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
                                     // Write the tilt and roll as extensions
                                     serializer.startTag("", "extensions");
-                                    serializer.startTag("http://www.deconinck.info/xmlschemas/InclinometerExtension/v1", "wptExtension");
+                                    serializer.startTag(INCLINOMETER_NS, "wptExtension");
 
-                                    serializer.startTag("http://www.deconinck.info/xmlschemas/InclinometerExtension/v1", "tilt");
+                                    serializer.startTag(INCLINOMETER_NS, "tilt");
                                     serializer.text(String.valueOf(orientation.tilt));
-                                    serializer.endTag("http://www.deconinck.info/xmlschemas/InclinometerExtension/v1", "tilt");
-                                    serializer.startTag("http://www.deconinck.info/xmlschemas/InclinometerExtension/v1", "roll");
+                                    serializer.endTag(INCLINOMETER_NS, "tilt");
+                                    serializer.startTag(INCLINOMETER_NS, "roll");
                                     serializer.text(String.valueOf(orientation.roll));
-                                    serializer.endTag("http://www.deconinck.info/xmlschemas/InclinometerExtension/v1", "roll");
+                                    serializer.endTag(INCLINOMETER_NS, "roll");
 
-                                    serializer.endTag("http://www.deconinck.info/xmlschemas/InclinometerExtension/v1", "wptExtension");
+                                    serializer.endTag(INCLINOMETER_NS, "wptExtension");
                                     serializer.endTag("", "extensions");
 
                                     // End the waypoint element
@@ -1460,7 +1462,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                                 }
 
                                 // End the root element
-                                serializer.endTag("http://www.topografix.com/GPX/1/1", "gpx");
+                                serializer.endTag(GPX_NS, "gpx");
 
                                 serializer.endDocument();
                                 outputStream.close();
