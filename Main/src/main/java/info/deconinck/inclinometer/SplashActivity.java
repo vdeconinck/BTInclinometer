@@ -19,6 +19,8 @@ public class SplashActivity extends AppCompatActivity {
 
     public static final int BLUETOOTH_SCAN_REQUEST_CODE = 0;
     public static final int BLUETOOTH_CONNECT_REQUEST_CODE = 1;
+    public static final int ACCESS_FINE_LOCATION_REQUEST_CODE = 2;
+    public static final int ACCESS_COARSE_LOCATION_REQUEST_CODE = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,12 +30,18 @@ public class SplashActivity extends AppCompatActivity {
             @Override
             public void run() {
 
-                // 1. Check required permissions (bluetooth)
+                // 1. Check required permissions (bluetooth & GPS)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     checkPermission(Manifest.permission.BLUETOOTH_SCAN, BLUETOOTH_SCAN_REQUEST_CODE, getString(R.string.bluetooth_scan_permission_text));
                     checkPermission(Manifest.permission.BLUETOOTH_CONNECT, BLUETOOTH_CONNECT_REQUEST_CODE, getString(R.string.bluetooth_connect_permission_text));
                 }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION_REQUEST_CODE, getString(R.string.network_location_permission_text));
+                    checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, ACCESS_FINE_LOCATION_REQUEST_CODE, getString(R.string.gps_location_permission_text));
+                }
+
 
                 // 2. Start the Data Monitor activity
 
@@ -79,6 +87,14 @@ public class SplashActivity extends AppCompatActivity {
             case BLUETOOTH_CONNECT_REQUEST_CODE:
                 permission = Manifest.permission.BLUETOOTH_CONNECT;
                 permissionText = getString(R.string.bluetooth_connect_permission_text);
+                break;
+            case ACCESS_FINE_LOCATION_REQUEST_CODE:
+                permission = Manifest.permission.ACCESS_FINE_LOCATION;
+                permissionText = getString(R.string.gps_location_permission_text);
+                break;
+            case ACCESS_COARSE_LOCATION_REQUEST_CODE:
+                permission = Manifest.permission.ACCESS_COARSE_LOCATION;
+                permissionText = getString(R.string.network_location_permission_text);
                 break;
             default:
                 new AlertDialog.Builder(this)

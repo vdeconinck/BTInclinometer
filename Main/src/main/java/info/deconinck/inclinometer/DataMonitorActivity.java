@@ -4,7 +4,6 @@ import static info.deconinck.inclinometer.view.InclinometerView.MAX_ROLL;
 import static info.deconinck.inclinometer.view.InclinometerView.MAX_TILT;
 import static info.deconinck.inclinometer.view.InclinometerView.getAngleColor;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -18,7 +17,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -71,7 +69,7 @@ import info.deconinck.inclinometer.bluetooth.BluetoothService;
 import info.deconinck.inclinometer.dialog.AddressDialog;
 import info.deconinck.inclinometer.dialog.AngleDialog;
 import info.deconinck.inclinometer.dialog.SmoothingDialog;
-import info.deconinck.inclinometer.model.Orientation;
+import info.deconinck.inclinometer.model.Direction;
 import info.deconinck.inclinometer.model.Session;
 import info.deconinck.inclinometer.persistence.AppDatabase;
 import info.deconinck.inclinometer.util.SharedUtil;
@@ -132,7 +130,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothService mBluetoothService = null;
     private String mConnectedDeviceName = null;
-    private static final String ACTION_USB_PERMISSION = "cn.wch.wchusbdriver.USB_PERMISSION";
+    private GpsTracker mGpsTracker = null;
+
     public byte[] writeBuffer;
     public byte[] readBuffer;
     private Switch outputSwitch;
@@ -163,6 +162,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private Long sessionId;
     private static long nextLogTime;
     private Session selectedSession;
+    private Direction lastDirection = null;
 
 
     private float norm(float x[]) {
@@ -491,7 +491,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     threshold = threshold.minusMonths(DB_PURGE_AFTER_MONTHS);
                     List<Session> obsoleteSessions = db.sessionDao().getSessionsOlderThan(threshold);
                     for (Session obsoleteSession : obsoleteSessions) {
-                        db.orientationDao().deleteOrientationsForSession(obsoleteSession.id);
+                        db.directionDao().deleteDirectionsForSession(obsoleteSession.id);
                         db.sessionDao().delete(obsoleteSession);
                     }
 
@@ -517,8 +517,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         float tilt = angle[1] - tiltCompensationAngle;
 
                         // Log values to DB
-                        Orientation orientation = new Orientation(sessionId, roll, tilt);
-                        db.orientationDao().insert(orientation);
+                        Direction direction = new Direction(sessionId, mGpsTracker.getLongitude(), mGpsTracker.getLatitude(), roll, tilt);
+                        if (direction.differsEnoughFrom(lastDirection)) {
+                            db.directionDao().insert(direction);
+                            lastDirection = direction;
+                        }
                         // Show them as a notification
                         displayNotifications(roll, tilt);
 
@@ -634,15 +637,6 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         super.onCreate(savedInstanceState);
         //requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, ACCESS_LOCATION_REQUEST_CODE);
-            }
-            if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_LOCATION_REQUEST_CODE);
-            }
-        }
-
         Window window = getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -693,6 +687,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
 
         try {
+            mGpsTracker = new GpsTracker(DataMonitorActivity.this);
+
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (mBluetoothAdapter == null) {
                 new AlertDialog.Builder(DataMonitorActivity.this)
@@ -1395,14 +1391,14 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             case REQUEST_CREATE_FILE:
                 if (selectedSession != null) {
                     Toast.makeText(this, "Saving session " + selectedSession.id, Toast.LENGTH_SHORT).show();
-                    new AsyncTask<Void, Void, List<Orientation>>() {
+                    new AsyncTask<Void, Void, List<Direction>>() {
                         @Override
-                        protected List<Orientation> doInBackground(Void... voids) {
-                            return db.orientationDao().getOrientationsBySession(selectedSession.id);
+                        protected List<Direction> doInBackground(Void... voids) {
+                            return db.directionDao().getDirectionsBySession(selectedSession.id);
                         }
 
                         @Override
-                        protected void onPostExecute(List<Orientation> orientations) {
+                        protected void onPostExecute(List<Direction> directions) {
                             try {
                                 OutputStream outputStream = getContentResolver().openOutputStream(data.getData());
 
@@ -1420,11 +1416,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                                 serializer.attribute("", "creator", getString(R.string.app_name));
                                 serializer.attribute("", "version", getString(R.string.app_version));
 
-                                for (Orientation orientation : orientations) {
+                                for (Direction direction : directions) {
                                     // Write the waypoint element
                                     serializer.startTag("", "wpt");
-                                    serializer.attribute("", "lat", String.valueOf(orientation.latitude));
-                                    serializer.attribute("", "lon", String.valueOf(orientation.longitude));
+                                    serializer.attribute("", "lat", String.valueOf(direction.latitude));
+                                    serializer.attribute("", "lon", String.valueOf(direction.longitude));
 
                                     // Write the child elements of the waypoint element
 //                                    serializer.startTag("", "ele");
@@ -1432,7 +1428,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 //                                    serializer.endTag("", "ele");
 
                                     serializer.startTag("", "time");
-                                    serializer.text(String.valueOf(orientation.getISOTimestamp()));
+                                    serializer.text(String.valueOf(direction.getISOTimestamp()));
                                     serializer.endTag("", "time");
 
 //                                    serializer.startTag("", "name");
@@ -1448,10 +1444,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                                     serializer.startTag(INCLINOMETER_NS, "wptExtension");
 
                                     serializer.startTag(INCLINOMETER_NS, "tilt");
-                                    serializer.text(String.valueOf(orientation.tilt));
+                                    serializer.text(String.valueOf(direction.tilt));
                                     serializer.endTag(INCLINOMETER_NS, "tilt");
                                     serializer.startTag(INCLINOMETER_NS, "roll");
-                                    serializer.text(String.valueOf(orientation.roll));
+                                    serializer.text(String.valueOf(direction.roll));
                                     serializer.endTag(INCLINOMETER_NS, "roll");
 
                                     serializer.endTag(INCLINOMETER_NS, "wptExtension");
