@@ -143,7 +143,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private static final float[] d = new float[]{0, 0, 0, 0};
     private static final float[] q = new float[]{0, 0, 0, 0};
     private static float T = 20;
-    private static float pressure, height, longitude, latitude, altitude, yaw, velocity, sn, pdop, hdop, vdop, voltage, version;
+    private static float pressure, height, latitude, longitude, altitude, yaw, velocity, sn, pdop, hdop, vdop, voltage, version;
     static int currentTab = TAB_SYSTEM;
     private static String strDate = "", strTime = "";
     private boolean isBtConnection = false;
@@ -517,7 +517,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         float tilt = angle[1] - tiltCompensationAngle;
 
                         // Log values to DB
-                        Direction direction = new Direction(sessionId, mGpsTracker.getLongitude(), mGpsTracker.getLatitude(), roll, tilt);
+                        Direction direction = new Direction(sessionId, mGpsTracker.getLatitude(), mGpsTracker.getLongitude(), roll, tilt);
                         if (direction.differsEnoughFrom(lastDirection)) {
                             db.directionDao().insert(direction);
                             lastDirection = direction;
