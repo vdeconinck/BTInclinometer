@@ -26,30 +26,22 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_activity);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-
-                // 1. Check required permissions (bluetooth & GPS)
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    checkPermission(Manifest.permission.BLUETOOTH_SCAN, BLUETOOTH_SCAN_REQUEST_CODE, getString(R.string.bluetooth_scan_permission_text));
-                    checkPermission(Manifest.permission.BLUETOOTH_CONNECT, BLUETOOTH_CONNECT_REQUEST_CODE, getString(R.string.bluetooth_connect_permission_text));
-                }
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION_REQUEST_CODE, getString(R.string.network_location_permission_text));
-                    checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, ACCESS_FINE_LOCATION_REQUEST_CODE, getString(R.string.gps_location_permission_text));
-                }
-
-
-                // 2. Start the Data Monitor activity
-
-                Intent intent;
-                intent = new Intent(getApplicationContext(), DataMonitorActivity.class);
-                startActivity(intent);
-                finish();
+        new Handler().postDelayed(() -> {
+            // 1. Check required permissions (bluetooth & GPS)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                checkPermission(Manifest.permission.BLUETOOTH_SCAN, BLUETOOTH_SCAN_REQUEST_CODE, getString(R.string.bluetooth_scan_permission_text));
+                checkPermission(Manifest.permission.BLUETOOTH_CONNECT, BLUETOOTH_CONNECT_REQUEST_CODE, getString(R.string.bluetooth_connect_permission_text));
             }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION_REQUEST_CODE, getString(R.string.network_location_permission_text));
+                checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, ACCESS_FINE_LOCATION_REQUEST_CODE, getString(R.string.gps_location_permission_text));
+            }
+
+            // 2. Start the Data Monitor activity
+            Intent intent;
+            intent = new Intent(getApplicationContext(), DataMonitorActivity.class);
+            startActivity(intent);
+            finish();
         }, 500);
     }
 
@@ -131,5 +123,4 @@ public class SplashActivity extends AppCompatActivity {
             }
         }
     }
-
 }
