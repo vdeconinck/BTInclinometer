@@ -520,16 +520,20 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     if (now >= nextLogTime) {
                         // Flash the led
                         inclinometerView.setRecLed(!inclinometerView.isRecLed());
+
+                        // Copute roll and tilt
                         float roll = angle[0] - rollCompensationAngle;
                         float tilt = angle[1] - tiltCompensationAngle;
 
-                        // Log values to DB
+                        // Prepare logging to DB, incl Latitude and Longitude
                         Direction direction = new Direction(sessionId, lastLocation.getLatitude(), lastLocation.getLongitude(), roll, tilt);
                         if (direction.differsEnoughFrom(lastDirection)) {
+                            // OK, values have changed and are worth logging to DB
                             db.directionDao().insert(direction);
                             lastDirection = direction;
                         }
-                        // Show them as a notification
+
+                        // Show roll/tilt as a notification
                         displayNotifications(roll, tilt);
 
                         // Prepare next run, normally 1 sec after this one except if we missed too many
