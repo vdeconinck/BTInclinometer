@@ -17,7 +17,7 @@ public class Direction {
     @PrimaryKey(autoGenerate = true)
     public int id;
 
-    public OffsetDateTime time = OffsetDateTime.now();
+    public OffsetDateTime time;
 
     @ColumnInfo(name = "session_id")
     public long sessionId;
@@ -27,6 +27,7 @@ public class Direction {
     public double tilt;
 
     public Direction(Long sessionId, double latitude, double longitude, double roll, double tilt) {
+        time = OffsetDateTime.now();
         this.sessionId = sessionId;
         this.latitude = latitude;
         this.longitude = longitude;
