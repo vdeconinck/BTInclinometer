@@ -23,6 +23,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Icon;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -50,6 +51,11 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.room.Room;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 
 import org.xmlpull.v1.XmlSerializer;
 
@@ -130,7 +136,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothService mBluetoothService = null;
     private String mConnectedDeviceName = null;
-    private GpsTracker mGpsTracker = null;
+    private FusedLocationProviderClient fusedLocationClient;
 
     public byte[] writeBuffer;
     public byte[] readBuffer;
@@ -163,6 +169,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private static long nextLogTime;
     private Session selectedSession;
     private Direction lastDirection = null;
+    private Location lastLocation = new Location("");
 
 
     private float norm(float x[]) {
@@ -517,7 +524,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         float tilt = angle[1] - tiltCompensationAngle;
 
                         // Log values to DB
-                        Direction direction = new Direction(sessionId, mGpsTracker.getLatitude(), mGpsTracker.getLongitude(), roll, tilt);
+                        Direction direction = new Direction(sessionId, lastLocation.getLatitude(), lastLocation.getLongitude(), roll, tilt);
                         if (direction.differsEnoughFrom(lastDirection)) {
                             db.directionDao().insert(direction);
                             lastDirection = direction;
@@ -687,7 +694,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
 
         try {
-            mGpsTracker = new GpsTracker(DataMonitorActivity.this);
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+            requestLocationUpdates();
 
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (mBluetoothAdapter == null) {
@@ -724,6 +733,25 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         catch (Exception e) {
             Log.e(TAG, "onCreate: ", e);
         }
+    }
+
+    private void requestLocationUpdates() {
+        LocationRequest locationRequest = LocationRequest.create()
+                .setInterval(1000) // Update location every second
+                .setFastestInterval(500)
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY); // I don't care about battery life
+        LocationCallback locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+
+                lastLocation = locationResult.getLastLocation();
+            }
+        };
+
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
     }
 
     private void enableMenuItems(Menu menu) {
