@@ -9,8 +9,8 @@ import java.time.format.DateTimeFormatter;
 
 @Entity
 public class Direction {
-    private static final double LATITUDE_CHANGE_THRESHOLD = 0.001f;
-    private static final double LONGITUDE_CHANGE_THRESHOLD = 0.001f;
+    private static final double LATITUDE_CHANGE_THRESHOLD = 0.00001f; // about 1m
+    private static final double LONGITUDE_CHANGE_THRESHOLD = 0.001f; // about 1m at the equator
     private static final double ROLL_CHANGE_THRESHOLD = 0.1f;
     private static final double TILT_CHANGE_THRESHOLD = 0.1f;
 
