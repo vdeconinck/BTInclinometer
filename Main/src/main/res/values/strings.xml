@@ -177,5 +177,6 @@
     <string name="select_session_to_export">Select session to export</string>
     <string name="recording_stopped">Recording of session %1$s stopped.</string>
     <string name="recording_started">Recording of session %1$s started.</string>
+    <string name="post_notification_permission_text">Use notification icon to always show roll/tilt</string>
 
 </resources>

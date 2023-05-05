@@ -534,7 +534,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         }
 
                         // Show roll/tilt as a notification
-                        displayNotifications(roll, tilt);
+                        if (NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+                            displayNotifications(roll, tilt);
+                        }
 
                         // Prepare next run, normally 1 sec after this one except if we missed too many
                         if (now - nextLogTime > ANGLE_LOGGING_TIMEOUT_MS) {
@@ -1739,8 +1741,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         // Setting bitmap to staus bar icon.
         builder.setSmallIcon(Icon.createWithBitmap(createRollBitmap((int) roll)));
 
-        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
-        notificationManagerCompat.notify(0, builder.build());
+        NotificationManagerCompat.from(this).notify(0, builder.build());
     }
 
     private void notifyTilt(float tilt, PendingIntent intent, int angleColor) {
@@ -1756,8 +1757,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         // Setting bitmap to staus bar icon.
         builder.setSmallIcon(Icon.createWithBitmap(createTiltBitmap((int) tilt)));
 
-        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
-        notificationManagerCompat.notify(1, builder.build());
+        NotificationManagerCompat.from(this).notify(1, builder.build());
     }
 
     private void createNotificationChannels() {
@@ -1765,14 +1765,13 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            assert notificationManager != null;
+            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
 
             NotificationChannel rollChannel = new NotificationChannel(ROLL_CHANNEL_ID, "Inclinometer roll channel", importance);
-            notificationManager.createNotificationChannel(rollChannel);
+            notificationManagerCompat.createNotificationChannel(rollChannel);
 
             NotificationChannel tiltChannel = new NotificationChannel(TILT_CHANNEL_ID, "Inclinometer tilt channel", importance);
-            notificationManager.createNotificationChannel(tiltChannel);
+            notificationManagerCompat.createNotificationChannel(tiltChannel);
         }
     }
 
