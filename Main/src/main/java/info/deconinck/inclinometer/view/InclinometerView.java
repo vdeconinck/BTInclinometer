@@ -307,11 +307,11 @@ public class InclinometerView extends View {
         return (angle + 540) % 360 - 180;
     }
 
-    public static int getAngleColor(float roll, int maxRoll) {
+    public static int getAngleColor(float angle, int maxAngle) {
         int rollColor = GREEN;
-        if (Math.abs(roll) > maxRoll * .7f) {
+        if (Math.abs(angle) > maxAngle * .7f) {
             rollColor = YELLOW;
-            if (Math.abs(roll) > maxRoll * .9f) {
+            if (Math.abs(angle) > maxAngle * .9f) {
                 rollColor = RED;
             }
         }
