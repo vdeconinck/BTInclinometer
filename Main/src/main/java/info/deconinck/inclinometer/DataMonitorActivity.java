@@ -1,7 +1,7 @@
 package info.deconinck.inclinometer;
 
 import static info.deconinck.inclinometer.view.InclinometerView.MAX_ROLL;
-import static info.deconinck.inclinometer.view.InclinometerView.MAX_TILT;
+import static info.deconinck.inclinometer.view.InclinometerView.MAX_PITCH;
 import static info.deconinck.inclinometer.view.InclinometerView.getAngleColor;
 
 import android.annotation.SuppressLint;
@@ -86,7 +86,7 @@ import info.deconinck.inclinometer.view.InclinometerView;
 public class DataMonitorActivity extends FragmentActivity implements OnClickListener {
     public static final String TAG = DataMonitorActivity.class.getName();
     private static final String ROLL_CHANNEL_ID = "info.deconinck.inclinometer.ROLL";
-    private static final String TILT_CHANNEL_ID = "info.deconinck.inclinometer.TILT";
+    private static final String PITCH_CHANNEL_ID = "info.deconinck.inclinometer.PITCH";
     public static final int ANGLE_LOGGING_INTERVAL_MS = 1000;
     public static final int ANGLE_LOGGING_TIMEOUT_MS = 5000;
     public static final int DB_PURGE_AFTER_MONTHS = 6;
@@ -126,7 +126,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private static final int REQUEST_CREATE_FILE = 3;
 
     public static final String ROLL_COMPENSATION_ANGLE_KEY = "rollCompensationAngle";
-    public static final String TILT_COMPENSATION_ANGLE_KEY = "tiltCompensationAngle";
+    public static final String PITCH_COMPENSATION_ANGLE_KEY = "pitchCompensationAngle";
     public static final String MODULE_TYPE_NUM_AXIS_KEY = "moduleTypeNumAxis";
 
     public static final String INCLINOMETER_LOG_FOLDER = "/Inclinometer";
@@ -159,7 +159,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     private static InclinometerView inclinometerView;
     private Menu menu;
     private static float rollCompensationAngle;
-    private static float tiltCompensationAngle;
+    private static float pitchCompensationAngle;
 
     private boolean isRecording = true;
     private static int recordingState = RECORDING_START_REQUESTED;
@@ -287,7 +287,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     for (int i = 0; i < 3; i++) {
                         angle[i] = ((((short) dataBuffer[i * 2 + 1]) << 8) | ((short) dataBuffer[i * 2] & 0xff)) / 32768.0f * 180;
                     }
-                    // TODO shouldn't we compute here (and store) roll and tilt values, after limitTo180 and compensated ?
+                    // TODO shouldn't we compute here (and store) roll and pitch values, after limitTo180 and compensated ?
                     // version, 16-bit too
                     fTemp = ((((short) dataBuffer[7]) << 8) | ((short) dataBuffer[6] & 0xff)) / 100.0f;
                     if (fTemp != fTempT) {
@@ -522,12 +522,12 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         // Flash the led
                         inclinometerView.setRecLed(!inclinometerView.isRecLed());
 
-                        // Copute roll and tilt
+                        // Copute roll and pitch
                         float roll = InclinometerView.limitTo180(angle[0] - rollCompensationAngle);
-                        float tilt = InclinometerView.limitTo180(angle[1] - tiltCompensationAngle);
+                        float pitch = InclinometerView.limitTo180(angle[1] - pitchCompensationAngle);
 
                         // Prepare logging to DB, incl Latitude and Longitude
-                        Direction direction = new Direction(sessionId, lastLocation.getLatitude(), lastLocation.getLongitude(), roll, tilt);
+                        Direction direction = new Direction(sessionId, lastLocation.getLatitude(), lastLocation.getLongitude(), roll, pitch);
                         if (direction.differsEnoughFrom(lastDirection)) {
                             // OK, values have changed and are worth logging to DB
                             db.directionDao().insert(direction);
@@ -536,9 +536,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
                         // TODO !!
                         // TODO Notifications should not depend on recording state !
-                        // Show roll/tilt as a notification
+                        // Show roll/pitch as a notification
                         if (NotificationManagerCompat.from(this).areNotificationsEnabled()) {
-                            displayNotifications(roll, tilt);
+                            displayNotifications(roll, pitch);
                         }
 
                         // Prepare next run, normally 1 sec after this one except if we missed too many
@@ -694,11 +694,11 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
         try {
             setRollCompensationAngle(SharedUtil.getFloat(DataMonitorActivity.ROLL_COMPENSATION_ANGLE_KEY));
-            setTiltCompensationAngle(SharedUtil.getFloat(DataMonitorActivity.TILT_COMPENSATION_ANGLE_KEY));
+            setPitchCompensationAngle(SharedUtil.getFloat(DataMonitorActivity.PITCH_COMPENSATION_ANGLE_KEY));
         }
         catch (Exception e) {
             setRollCompensationAngle(0);
-            setTiltCompensationAngle(0);
+            setPitchCompensationAngle(0);
         }
 
 
@@ -773,7 +773,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         enableMenu(menu, R.id.__instruction_start, moduleTypeNumAxis == 9);
 
         enableMenu(menu, R.id.calibration, true);
-        enableMenu(menu, R.id.zero_tilt, true);
+        enableMenu(menu, R.id.zero_pitch, true);
         enableMenu(menu, R.id.zero_roll, true);
         enableMenu(menu, R.id.acc_calibration, true);
         enableMenu(menu, R.id.smoothing_factor, moduleTypeNumAxis == 3);
@@ -862,8 +862,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     case R.id.zero_roll:
                         calibrateZeroRoll();
                         return true;
-                    case R.id.zero_tilt:
-                        calibrateZeroTilt();
+                    case R.id.zero_pitch:
+                        calibrateZeroPitch();
                         return true;
                     case R.id.acc_calibration:
                         switch (moduleTypeNumAxis) {
@@ -978,13 +978,13 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         angleDialog.show(getSupportFragmentManager());
     }
 
-    private void calibrateZeroTilt() {
-        AngleDialog angleDialog = AngleDialog.newInstance("Tilt", angle, 1);
+    private void calibrateZeroPitch() {
+        AngleDialog angleDialog = AngleDialog.newInstance("Pitch", angle, 1);
         angleDialog.setAngleDialogCallBack(new AngleDialog.AngleDialogCallBack() {
             @Override
             public void save(String value) {
-                SharedUtil.putFloat(TILT_COMPENSATION_ANGLE_KEY, tiltCompensationAngle);
-                setTiltCompensationAngle(Float.parseFloat(value));
+                SharedUtil.putFloat(PITCH_COMPENSATION_ANGLE_KEY, pitchCompensationAngle);
+                setPitchCompensationAngle(Float.parseFloat(value));
             }
 
             @Override
@@ -1002,10 +1002,10 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
     }
 
 
-    private void setTiltCompensationAngle(float tiltCompensationAngle) {
-        this.tiltCompensationAngle = tiltCompensationAngle;
+    private void setPitchCompensationAngle(float pitchCompensationAngle) {
+        this.pitchCompensationAngle = pitchCompensationAngle;
         if (inclinometerView != null)
-            inclinometerView.setTiltCompensationAngle(tiltCompensationAngle);
+            inclinometerView.setPitchCompensationAngle(pitchCompensationAngle);
     }
 
 
@@ -1476,13 +1476,13 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 //                                    serializer.text("City");
 //                                    serializer.endTag("", "sym");
 
-                                    // Write the tilt and roll as extensions
+                                    // Write the pitch and roll as extensions
                                     serializer.startTag("", "extensions");
                                     serializer.startTag(INCLINOMETER_NS, "wptExtension");
 
-                                    serializer.startTag(INCLINOMETER_NS, "tilt");
-                                    serializer.text(String.valueOf(direction.tilt));
-                                    serializer.endTag(INCLINOMETER_NS, "tilt");
+                                    serializer.startTag(INCLINOMETER_NS, "pitch");
+                                    serializer.text(String.valueOf(direction.pitch));
+                                    serializer.endTag(INCLINOMETER_NS, "pitch");
                                     serializer.startTag(INCLINOMETER_NS, "roll");
                                     serializer.text(String.valueOf(direction.roll));
                                     serializer.endTag(INCLINOMETER_NS, "roll");
@@ -1716,7 +1716,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         }
     }
 
-    public void displayNotifications(float roll, float tilt) {
+    public void displayNotifications(float roll, float pitch) {
         createNotificationChannels();
 
         // Create an Intent for the activity you want to start
@@ -1728,7 +1728,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         notifyRoll(roll, resultPendingIntent);
-        notifyTilt(tilt, resultPendingIntent);
+        notifyPitch(pitch, resultPendingIntent);
     }
 
     private void notifyRoll(float roll, PendingIntent intent) {
@@ -1747,18 +1747,18 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         NotificationManagerCompat.from(this).notify(0, builder.build());
     }
 
-    private void notifyTilt(float tilt, PendingIntent intent) {
+    private void notifyPitch(float pitch, PendingIntent intent) {
         Notification.Builder builder = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            builder = new Notification.Builder(this, TILT_CHANNEL_ID);
+            builder = new Notification.Builder(this, PITCH_CHANNEL_ID);
         }
         // Setting text
-        builder.setContentTitle("Tilt: " + String.format("%.1f", tilt));
+        builder.setContentTitle("Pitch: " + String.format("%.1f", pitch));
         builder.setContentText("Click here to open the inclinometer app");
         builder.setPriority(Notification.PRIORITY_MAX);
         builder.setContentIntent(intent);
         // Setting bitmap to staus bar icon.
-        builder.setSmallIcon(Icon.createWithBitmap(createTiltBitmap((int) tilt)));
+        builder.setSmallIcon(Icon.createWithBitmap(createPitchBitmap((int) pitch)));
 
         NotificationManagerCompat.from(this).notify(1, builder.build());
     }
@@ -1773,8 +1773,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
             NotificationChannel rollChannel = new NotificationChannel(ROLL_CHANNEL_ID, "Inclinometer roll channel", importance);
             notificationManagerCompat.createNotificationChannel(rollChannel);
 
-            NotificationChannel tiltChannel = new NotificationChannel(TILT_CHANNEL_ID, "Inclinometer tilt channel", importance);
-            notificationManagerCompat.createNotificationChannel(tiltChannel);
+            NotificationChannel pitchChannel = new NotificationChannel(PITCH_CHANNEL_ID, "Inclinometer pitch channel", importance);
+            notificationManagerCompat.createNotificationChannel(pitchChannel);
         }
     }
 
@@ -1810,9 +1810,9 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         return bitmap;
     }
 
-    private static Bitmap createTiltBitmap(int tilt) {
+    private static Bitmap createPitchBitmap(int pitch) {
         Paint rectPaint = new Paint();
-        rectPaint.setColor(getAngleColor(tilt, MAX_TILT));
+        rectPaint.setColor(getAngleColor(pitch, MAX_PITCH));
 
         Paint textPaint = new Paint();
         textPaint.setAntiAlias(true);
@@ -1826,8 +1826,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         Bitmap bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888);
 
         Canvas canvas = new Canvas(bitmap);
-        canvas.drawRect(46, 48, 50, 48 + tilt, rectPaint);
-        canvas.drawText(String.format("%02d", Math.abs(tilt)), textBounds.width() / 2 + 5, 80, textPaint);
+        canvas.drawRect(46, 48, 50, 48 + pitch, rectPaint);
+        canvas.drawText(String.format("%02d", Math.abs(pitch)), textBounds.width() / 2 + 5, 80, textPaint);
         return bitmap;
     }
 

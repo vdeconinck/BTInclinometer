@@ -19,13 +19,13 @@ import androidx.annotation.Nullable;
 public class InclinometerView extends View {
     public static final String TAG = InclinometerView.class.getName();
     public static final int MAX_ROLL = 42;
-    public static final int MAX_TILT = 42;
+    public static final int MAX_PITCH = 42;
 
     private Bitmap backgroundImage;
 
     private Paint staticLinePaint, staticTextPaint;
     private Paint dynamicRollLinePaint, dynamicRollTextPaint;
-    private Paint dynamicTiltRectPaint, dynamicTiltTextPaint;
+    private Paint dynamicPitchRectPaint, dynamicPitchTextPaint;
     private Paint debugTextPaint, connectionStatusTextPaint;
     private Paint bitmapPaint;
     private Paint recPaint;
@@ -37,7 +37,7 @@ public class InclinometerView extends View {
     private float centerY;
     private float radius;
     private float recRadius;
-    private float tiltCompensationAngle, rollCompensationAngle;
+    private float pitchCompensationAngle, rollCompensationAngle;
     private boolean showDebug = false;
     private boolean recLed;
 
@@ -69,14 +69,14 @@ public class InclinometerView extends View {
         dynamicRollTextPaint = new Paint();
         dynamicRollTextPaint.setAntiAlias(true);
 
-        dynamicTiltRectPaint = new Paint();
-        dynamicTiltRectPaint.setStyle(Paint.Style.FILL);
-        dynamicTiltRectPaint.setAntiAlias(true);
-        dynamicTiltRectPaint.setDither(true);
-        dynamicTiltRectPaint.setStrokeWidth(2f);
+        dynamicPitchRectPaint = new Paint();
+        dynamicPitchRectPaint.setStyle(Paint.Style.FILL);
+        dynamicPitchRectPaint.setAntiAlias(true);
+        dynamicPitchRectPaint.setDither(true);
+        dynamicPitchRectPaint.setStrokeWidth(2f);
 
-        dynamicTiltTextPaint = new Paint();
-        dynamicTiltTextPaint.setAntiAlias(true);
+        dynamicPitchTextPaint = new Paint();
+        dynamicPitchTextPaint.setAntiAlias(true);
 
         debugTextPaint = new Paint();
         debugTextPaint.setTextSize(40);
@@ -102,8 +102,8 @@ public class InclinometerView extends View {
         invalidate();
     }
 
-    public void setTiltCompensationAngle(float tiltCompensationAngle) {
-        this.tiltCompensationAngle = tiltCompensationAngle;
+    public void setPitchCompensationAngle(float pitchCompensationAngle) {
+        this.pitchCompensationAngle = pitchCompensationAngle;
     }
 
     public void setRollCompensationAngle(float rollCompensationAngle) {
@@ -154,7 +154,7 @@ public class InclinometerView extends View {
         // Also prepare angle font sizes (relative to circle size)
         staticTextPaint.setTextSize(radius / 10);
         dynamicRollTextPaint.setTextSize(radius / 5);
-        dynamicTiltTextPaint.setTextSize(radius / 5);
+        dynamicPitchTextPaint.setTextSize(radius / 5);
 
         // Prepare a new background image
         backgroundImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
@@ -213,17 +213,17 @@ public class InclinometerView extends View {
         if (angleArray != null) {
             // Angle values have been received, draw dynamic contents
             float roll = limitTo180(angleArray[0] - rollCompensationAngle);
-            float tilt = limitTo180(angleArray[1] - tiltCompensationAngle);
+            float pitch = limitTo180(angleArray[1] - pitchCompensationAngle);
 
             // Roll color
             int rollColor = getAngleColor(roll, MAX_ROLL);
             dynamicRollLinePaint.setColor(rollColor);
             dynamicRollTextPaint.setColor(rollColor);
 
-            // Tilt color
-            int tiltColor = getAngleColor(tilt, MAX_TILT);
-            dynamicTiltTextPaint.setColor(tiltColor);
-            dynamicTiltRectPaint.setColor(tiltColor);
+            // Pitch color
+            int pitchColor = getAngleColor(pitch, MAX_PITCH);
+            dynamicPitchTextPaint.setColor(pitchColor);
+            dynamicPitchRectPaint.setColor(pitchColor);
 
 
             // 1. Draw roll
@@ -252,24 +252,24 @@ public class InclinometerView extends View {
             // Restore orientation
             canvas.restore();
 
-            // 2. Draw tilt
+            // 2. Draw pitch
             // Remember orientation
             canvas.save();
 
             canvas.translate(centerX, centerY);
 
-            float sinY = (float) Math.sin(Math.toRadians(tilt));
-            canvas.drawRect(-radius / 3, 0, radius / 3, radius * sinY, dynamicTiltRectPaint);
+            float sinY = (float) Math.sin(Math.toRadians(pitch));
+            canvas.drawRect(-radius / 3, 0, radius / 3, radius * sinY, dynamicPitchRectPaint);
 
-            // Draw current tilt value
-            text = Math.round(Math.abs(tilt)) + "°";
+            // Draw current pitch value
+            text = Math.round(Math.abs(pitch)) + "°";
             // Text dimensions: See https://stackoverflow.com/a/42091739
             dynamicRollTextPaint.getTextBounds(text, 0, text.length(), bounds);
-            if (tilt > 0) {
-                canvas.drawText(text, -bounds.width() / 2f, -bounds.height() * 0.1f, dynamicTiltTextPaint);
+            if (pitch > 0) {
+                canvas.drawText(text, -bounds.width() / 2f, -bounds.height() * 0.1f, dynamicPitchTextPaint);
             }
             else {
-                canvas.drawText(text, -bounds.width() / 2f, bounds.height() * 1.1f, dynamicTiltTextPaint);
+                canvas.drawText(text, -bounds.width() / 2f, bounds.height() * 1.1f, dynamicPitchTextPaint);
             }
 
             // Restore orientation
@@ -286,7 +286,7 @@ public class InclinometerView extends View {
 
             // 5. Debug
             if (showDebug) {
-                canvas.drawText("" + roll + " ; " + tilt + " ; " + angleArray[2], 0, canvas.getHeight() - 5, debugTextPaint);
+                canvas.drawText("" + roll + " ; " + pitch + " ; " + angleArray[2], 0, canvas.getHeight() - 5, debugTextPaint);
             }
         }
 

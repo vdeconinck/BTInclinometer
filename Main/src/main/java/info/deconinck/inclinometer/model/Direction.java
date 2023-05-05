@@ -12,7 +12,7 @@ public class Direction {
     private static final double LATITUDE_CHANGE_THRESHOLD = 0.00001f; // about 1m
     private static final double LONGITUDE_CHANGE_THRESHOLD = 0.001f; // about 1m at the equator
     private static final double ROLL_CHANGE_THRESHOLD = 0.1f;
-    private static final double TILT_CHANGE_THRESHOLD = 0.1f;
+    private static final double PITCH_CHANGE_THRESHOLD = 0.1f;
 
     @PrimaryKey(autoGenerate = true)
     public int id;
@@ -24,15 +24,15 @@ public class Direction {
     public double latitude;
     public double longitude;
     public double roll;
-    public double tilt;
+    public double pitch;
 
-    public Direction(Long sessionId, double latitude, double longitude, double roll, double tilt) {
+    public Direction(Long sessionId, double latitude, double longitude, double roll, double pitch) {
         time = OffsetDateTime.now();
         this.sessionId = sessionId;
         this.latitude = latitude;
         this.longitude = longitude;
         this.roll = roll;
-        this.tilt = tilt;
+        this.pitch = pitch;
     }
 
     public String getISOTimestamp() {
@@ -48,7 +48,7 @@ public class Direction {
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
                 ", roll=" + roll +
-                ", tilt=" + tilt +
+                ", pitch=" + pitch +
                 '}';
     }
 
@@ -58,7 +58,7 @@ public class Direction {
                         || Math.abs(otherDirection.latitude - this.latitude) > LATITUDE_CHANGE_THRESHOLD
                         || Math.abs(otherDirection.longitude - this.longitude) > LONGITUDE_CHANGE_THRESHOLD
                         || Math.abs(otherDirection.roll - this.roll) > ROLL_CHANGE_THRESHOLD
-                        || Math.abs(otherDirection.tilt - this.tilt) > TILT_CHANGE_THRESHOLD
+                        || Math.abs(otherDirection.pitch - this.pitch) > PITCH_CHANGE_THRESHOLD
                 ;
     }
 }

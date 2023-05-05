@@ -152,7 +152,7 @@
     <string name="anglez">AngleZ:</string>
     <string name="t">T:</string>
     <string name="item2">item2</string>
-    <string name="zero_tilt">Zero tilt</string>
+    <string name="zero_pitch">Zero pitch</string>
     <string name="zero_roll">Zero roll</string>
     <string name="select_angle">Type %1$s compensation angle</string>
     <string name="current">Current</string>
@@ -178,6 +178,6 @@
     <string name="select_session_to_export">Select session to export</string>
     <string name="recording_stopped">Recording of session %1$s stopped.</string>
     <string name="recording_started">Recording of session %1$s started.</string>
-    <string name="post_notification_permission_text">Use notification icon to always show roll/tilt</string>
+    <string name="post_notification_permission_text">Use notification icon to always show roll/pitch</string>
 
 </resources>
