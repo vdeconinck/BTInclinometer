@@ -287,6 +287,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                     for (int i = 0; i < 3; i++) {
                         angle[i] = ((((short) dataBuffer[i * 2 + 1]) << 8) | ((short) dataBuffer[i * 2] & 0xff)) / 32768.0f * 180;
                     }
+                    // TODO shouldn't we compute here (and store) roll and tilt values, after limitTo180 and compensated ?
                     // version, 16-bit too
                     fTemp = ((((short) dataBuffer[7]) << 8) | ((short) dataBuffer[6] & 0xff)) / 100.0f;
                     if (fTemp != fTempT) {
@@ -522,8 +523,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                         inclinometerView.setRecLed(!inclinometerView.isRecLed());
 
                         // Copute roll and tilt
-                        float roll = angle[0] - rollCompensationAngle;
-                        float tilt = angle[1] - tiltCompensationAngle;
+                        float roll = InclinometerView.limitTo180(angle[0] - rollCompensationAngle);
+                        float tilt = InclinometerView.limitTo180(angle[1] - tiltCompensationAngle);
 
                         // Prepare logging to DB, incl Latitude and Longitude
                         Direction direction = new Direction(sessionId, lastLocation.getLatitude(), lastLocation.getLongitude(), roll, tilt);
@@ -533,6 +534,8 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
                             lastDirection = direction;
                         }
 
+                        // TODO !!
+                        // TODO Notifications should not depend on recording state !
                         // Show roll/tilt as a notification
                         if (NotificationManagerCompat.from(this).areNotificationsEnabled()) {
                             displayNotifications(roll, tilt);
@@ -1725,7 +1728,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         notifyRoll(roll, resultPendingIntent);
-        notifyTilt(tilt, resultPendingIntent, getAngleColor(tilt, MAX_TILT));
+        notifyTilt(tilt, resultPendingIntent);
     }
 
     private void notifyRoll(float roll, PendingIntent intent) {
@@ -1744,7 +1747,7 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         NotificationManagerCompat.from(this).notify(0, builder.build());
     }
 
-    private void notifyTilt(float tilt, PendingIntent intent, int angleColor) {
+    private void notifyTilt(float tilt, PendingIntent intent) {
         Notification.Builder builder = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             builder = new Notification.Builder(this, TILT_CHANNEL_ID);
@@ -1777,24 +1780,33 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
 
 
     private static Bitmap createRollBitmap(int roll) {
+        // TODO Change *text* color and only show a grey bar at the bottom/on the right
+        Paint bgPaint = new Paint();
+        bgPaint.setColor(Color.BLACK);
+
+        int angleColor = getAngleColor(roll, MAX_ROLL);
+
         Paint rectPaint = new Paint();
-        rectPaint.setColor(getAngleColor(roll, MAX_ROLL));
+        rectPaint.setColor(manipulateColor(angleColor, 0.5f));
 
         Paint textPaint = new Paint();
         textPaint.setAntiAlias(true);
         textPaint.setTextSize(90);
         textPaint.setTextAlign(Paint.Align.CENTER);
-        textPaint.setColor(Color.WHITE);
+        textPaint.setColor(angleColor);
 
+        String rollStr = String.format("%d", Math.round(Math.abs(roll)));
         Rect textBounds = new Rect();
-        textPaint.getTextBounds("00", 0, 2, textBounds);
-
+        textPaint.getTextBounds(rollStr, 0, rollStr.length(), textBounds);
+        // Note textBounds represents the size of the text including space around it.
+        // See https://stackoverflow.com/questions/5714600/gettextbounds-in-android/14766372#14766372
 
         Bitmap bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888);
 
         Canvas canvas = new Canvas(bitmap);
+        canvas.drawRect(0, 0, 96, 96, bgPaint);
         canvas.drawRect(48, 92, 48 + roll, 96, rectPaint);
-        canvas.drawText(String.format("%02d", Math.abs(roll)), textBounds.width() / 2 + 5, 70, textPaint);
+        canvas.drawText(rollStr, -textBounds.left + (96 - textBounds.width()) / 2, 70, textPaint);
         return bitmap;
     }
 
@@ -1817,6 +1829,17 @@ public class DataMonitorActivity extends FragmentActivity implements OnClickList
         canvas.drawRect(46, 48, 50, 48 + tilt, rectPaint);
         canvas.drawText(String.format("%02d", Math.abs(tilt)), textBounds.width() / 2 + 5, 80, textPaint);
         return bitmap;
+    }
+
+    public static int manipulateColor(int color, float factor) {
+        int a = Color.alpha(color);
+        int r = Math.round(Color.red(color) * factor);
+        int g = Math.round(Color.green(color) * factor);
+        int b = Math.round(Color.blue(color) * factor);
+        return Color.argb(a,
+                Math.min(r,255),
+                Math.min(g,255),
+                Math.min(b,255));
     }
 
     @Override

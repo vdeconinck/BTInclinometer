@@ -301,7 +301,7 @@ public class InclinometerView extends View {
     /**
      * Make sure result is in the range [-180;180]
       */
-    private float limitTo180(float angle) {
+    public static float limitTo180(float angle) {
         // First bring the angle in positive values (even if input is in [-360;0]) by adding 360
         // Then add 180, take the modulo and subtract back 180
         return (angle + 540) % 360 - 180;
