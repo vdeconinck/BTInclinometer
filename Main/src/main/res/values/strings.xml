@@ -167,6 +167,7 @@
     <string name="gps_location_permission_text">GPS Location</string>
     <string name="network_location_permission_text">Network location</string>
     <string name="permission_required">%1$s Permission Required</string>
+    <string name="permission_requested">%1$s Permission Requested</string>
     <string name="bluetooth_permission_explanation">This app only works with WitMotion bluetooth accelerometers.</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="deny">Deny</string>
